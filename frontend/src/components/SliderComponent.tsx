@@ -65,7 +65,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   };
 
   return (
-    <div className={'slider'} id={parent_path.concat('.' + name)}>
+    <div className={'sliderComponent'} id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

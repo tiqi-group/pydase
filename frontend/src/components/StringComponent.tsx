@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
+import '../App.css';
 
 // TODO: add button functionality
 
@@ -50,7 +51,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   };
 
   return (
-    <div className={'component boolean'} id={parent_path.concat(name)}>
+    <div className={'stringComponent'} id={parent_path.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -67,6 +68,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}
+              className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
             />
           </InputGroup>
         </div>

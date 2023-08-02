@@ -25,7 +25,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   };
 
   return (
-    <div className={'component boolean'} id={parent_path.concat('.' + name)}>
+    <div className={'enumComponent'} id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

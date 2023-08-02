@@ -17,7 +17,7 @@ export const DataServiceComponent = React.memo(
     const [open, setOpen] = useState(true);
 
     return (
-      <div className="App">
+      <div className="dataServiceComponent">
         <Card className="mb-3">
           <Card.Header
             onClick={() => setOpen(!open)}

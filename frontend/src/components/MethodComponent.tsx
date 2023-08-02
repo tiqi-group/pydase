@@ -54,7 +54,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   return (
     <div
-      className="col-5 align-items-center method"
+      className="col-5 align-items-center methodComponent"
       id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>

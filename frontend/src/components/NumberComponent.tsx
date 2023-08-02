@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
+import '../App.css';
 
 // TODO: add button functionality
 
@@ -223,7 +224,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   };
 
   return (
-    <div className={'number component'} id={parent_path.concat(name)}>
+    <div className={'numberComponent'} id={parent_path.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -239,19 +240,15 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
               name={parent_path.concat(name)}
               onKeyDown={handleKeyDown}
               onBlur={handleBlur}
+              className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
             />
           </InputGroup>
           {!readOnly && (
             <div className="d-flex flex-column">
-              <Button
-                style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
-                // className="mb-1"
-                variant="outline-secondary">
+              <Button className="numberComponentButton" variant="outline-secondary">
                 +
               </Button>
-              <Button
-                style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
-                variant="outline-secondary">
+              <Button className="numberComponentButton" variant="outline-secondary">
                 -
               </Button>
             </div>

@@ -27,7 +27,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   };
 
   return (
-    <div className={'button'} id={parent_path.concat('.' + name)}>
+    <div className={'buttonComponent'} id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

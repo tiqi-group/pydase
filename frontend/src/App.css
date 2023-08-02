@@ -1,0 +1,8 @@
+input.instantUpdate {
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.numberComponentButton {
+  padding: 0.15em 6px !important;
+  font-size: 0.70rem !important;
+}

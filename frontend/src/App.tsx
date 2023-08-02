@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react';
-import { Navbar, Button, Form, Nav, Offcanvas, Container } from 'react-bootstrap';
+import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
   DataServiceComponent,

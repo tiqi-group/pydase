@@ -20,7 +20,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
   const { name, parent_path, value, docString, isInstantUpdate } = props;
 
   return (
-    <div className={'component list'} id={parent_path.concat(name)}>
+    <div className={'listComponent'} id={parent_path.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
