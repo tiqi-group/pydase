@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react';
-import { Form } from 'react-bootstrap';
+import { Navbar, Button, Form, Nav, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
   DataServiceComponent,
@@ -107,7 +107,10 @@ const reducer = (state: State, action: Action): State => {
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
-  // const [isConnected, setIsConnected] = useState(socket.connected);
+  const [showSettings, setShowSettings] = useState(false);
+
+  const handleCloseSettings = () => setShowSettings(false);
+  const handleShowSettings = () => setShowSettings(true);
 
   useEffect(() => {
     // Fetch data from the API when the component mounts
@@ -137,11 +140,27 @@ const App = () => {
   }
   return (
     <>
-      <Form.Check
-        checked={isInstantUpdate}
-        onChange={(e) => setIsInstantUpdate(e.target.checked)}
-        type="switch"
-      />
+      <Navbar expand={false} bg="primary" variant="dark" fixed="top">
+        <Container fluid>
+          <Navbar.Brand href="#home">My App</Navbar.Brand>
+          <Navbar.Toggle aria-controls="offcanvasNavbar" onClick={handleShowSettings} />
+        </Container>
+      </Navbar>
+
+      <Offcanvas show={showSettings} onHide={handleCloseSettings} placement="end">
+        <Offcanvas.Header closeButton>
+          <Offcanvas.Title>Settings</Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <Form.Check
+            checked={isInstantUpdate}
+            onChange={(e) => setIsInstantUpdate(e.target.checked)}
+            type="switch"
+            label="Enable Instant Update"
+          />
+          {/* Add any additional controls you want here */}
+        </Offcanvas.Body>
+      </Offcanvas>
 
       <div className="App">
         <DataServiceComponent
