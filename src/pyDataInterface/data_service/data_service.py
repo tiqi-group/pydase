@@ -24,6 +24,7 @@ class DataService(rpyc.Service):
     be tracked consistently. The keys of the dictionary are the ids of the original
     lists, and the values are the DataServiceList instances that wrap these lists.
     """
+    _notification_callbacks: list[Callable[[str, str, Any], Any]] = []
 
     def __init__(self) -> None:
         # Keep track of the root object. This helps to filter the emission of
@@ -40,11 +41,7 @@ class DataService(rpyc.Service):
         self._callbacks: set[Callable[[str, Any], None]] = set()
         self._set_start_and_stop_for_async_methods()
 
-        self._register_list_change_callbacks(self, f"{self.__class__.__name__}")
-        self._register_DataService_instance_callbacks(
-            self, f"{self.__class__.__name__}"
-        )
-        self._register_property_callbacks(self, f"{self.__class__.__name__}")
+        self._register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
 
@@ -118,6 +115,13 @@ class DataService(rpyc.Service):
             # create start and stop methods for each coroutine
             setattr(self, f"start_{name}", start_task)
             setattr(self, f"stop_{name}", stop_task)
+
+    def _register_callbacks(self) -> None:
+        self._register_list_change_callbacks(self, f"{self.__class__.__name__}")
+        self._register_DataService_instance_callbacks(
+            self, f"{self.__class__.__name__}"
+        )
+        self._register_property_callbacks(self, f"{self.__class__.__name__}")
 
     def _register_list_change_callbacks(
         self, obj: "DataService", parent_path: str
@@ -407,6 +411,12 @@ class DataService(rpyc.Service):
     def _emit_notification(self, parent_path: str, name: str, value: Any) -> None:
         logger.debug(f"{parent_path}.{name} changed to {value}!")
 
+        for callback in self._notification_callbacks:
+            try:
+                callback(parent_path, name, value)
+            except Exception as e:
+                logger.error(e)
+
     def serialize(self, prefix: str = "") -> dict[str, dict[str, Any]]:
         """
         Serializes the instance into a dictionary, preserving the structure of the
@@ -465,7 +475,6 @@ class DataService(rpyc.Service):
                     "type": type(value).__name__,
                     "value": value.serialize(prefix=key),
                     "readonly": False,
-                    "id": id(value),
                     "doc": inspect.getdoc(value),
                 }
             elif isinstance(value, list):
@@ -515,3 +524,22 @@ class DataService(rpyc.Service):
                 }
 
         return result
+
+    def add_notification_callback(
+        self, callback: Callable[[str, str, Any], None]
+    ) -> None:
+        """
+        Adds a new notification callback function to the list of callbacks.
+
+        This function is intended to be used for registering a function that will be
+        called whenever a the value of an attribute changes.
+
+        Args:
+            callback (Callable[[str, str, Any], None]): The callback function to
+            register.
+                It should accept three parameters:
+                - parent_path (str): The parent path of the parameter.
+                - name (str): The name of the changed parameter.
+                - value (Any): The value of the parameter.
+        """
+        self._notification_callbacks.append(callback)
