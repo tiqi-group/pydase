@@ -467,41 +467,6 @@ class DataService(rpyc.Service, TaskManager):
         """
         self._notification_callbacks.append(callback)
 
-    def apply_updates(self, data: dict[str, Any]) -> None:
-        """
-        Applies updates to the attributes of this DataService instance.
-
-        For each key-value pair in the provided data dictionary, this function
-        checks if the attribute with the corresponding name exists in the instance,
-        and if the current value of this attribute is different from the new value.
-        If the attribute exists and the values are different, it updates the attribute
-        in the instance with the new value.
-
-        Args:
-            data (dict): A dictionary containing the updates to be applied. The keys
-                should correspond to the names of attributes in the DataService instance
-                and the values should be the new values for these attributes.
-
-        Note:
-            This function assumes that all values can be directly compared with
-            the != operator and assigned with the = operator. If some attributes need
-            more complex update logic, this function might not work correctly for them.
-        """
-
-        # TODO: check if attribute is DataService instance -> nested updates?
-        # Might not be necessary as each DataService instance change would trigger its
-        # own frontend_update notification.
-
-        for key, new_value in data.items():
-            if hasattr(self, key):
-                current_value = getattr(self, key)
-                if current_value != new_value:
-                    setattr(self, key, new_value)
-            else:
-                logger.error(
-                    f"Attribute {key} does not exist in the DataService instance."
-                )
-
     def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
         """
         Serializes the instance into a dictionary, preserving the structure of the
