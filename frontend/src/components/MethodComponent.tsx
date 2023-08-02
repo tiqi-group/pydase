@@ -31,6 +31,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
       'frontend_update',
       {
         name: name,
+        parent_path: parent_path,
         value: { args: args }
       },
       (ack) => {

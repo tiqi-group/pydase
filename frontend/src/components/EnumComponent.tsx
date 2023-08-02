@@ -23,6 +23,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const handleValueChange = (newValue: string) => {
     socket.emit('frontend_update', {
       name: name,
+      parent_path: parent_path,
       value: { value: newValue }
     });
   };

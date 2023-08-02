@@ -33,6 +33,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   ) => {
     socket.emit('frontend_update', {
       name: name,
+      parent_path: parent_path,
       value: { value: newNumber, min: min, max: max, step_size: stepSize }
     });
   };

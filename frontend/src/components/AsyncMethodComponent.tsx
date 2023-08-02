@@ -33,6 +33,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
     socket.emit('frontend_update', {
       name: method_name,
+      parent_path: parent_path,
       value: { args: args }
     });
   };
