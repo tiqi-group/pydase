@@ -18,6 +18,8 @@ from uvicorn.server import HANDLED_SIGNALS
 from pyDataInterface import DataService
 from pyDataInterface.version import __version__
 
+from .web_server import WebAPI
+
 try:
     import tiqi_rpc
 except ImportError:
@@ -123,31 +125,47 @@ class Server:
                 host=self._host,
                 port=self._rpc_port,
             )
-            tiqi_rpc_server.install_signal_handlers = lambda: None
+            tiqi_rpc_server.install_signal_handlers = lambda: None  # type: ignore
             future_or_task = self._loop.create_task(tiqi_rpc_server.serve())
             self.servers["tiqi-rpc"] = future_or_task
         if self._enable_web:
-            # async def print_client_color() -> None:
-            #     while True:
-            #         print(self._service.name)
-            #         await asyncio.sleep(1)
+            self._wapi: WebAPI = WebAPI(
+                *self._args,
+                service=self._service,
+                info=self._info,
+                **self._kwargs,
+            )
+            web_server = uvicorn.Server(
+                uvicorn.Config(
+                    self._wapi.fastapi_app, host=self._host, port=self._web_port
+                )
+            )
 
-            # future_or_task = self._loop.create_task(print_client_color())
-            # self._wapi: FastAPI = web_api(
-            #     data_model=self._data_model,
-            #     info=self._info,
-            #     *self._args,
-            #     **self._kwargs,
-            # )
-            # web_server = uvicorn.Server(
-            #     uvicorn.Config(self._wapi, host=self._host, port=self._web_port)
-            # )
-            # # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
-            # # SIGTERM, which makes it impossible to escape out of
-            # web_server.install_signal_handlers = lambda: None
-            # future_or_task = self._loop.create_task(web_server.serve())
-            # self.servers["web"] = future_or_task
-            pass
+            def sio_callback(parent_path: str, name: str, value: Any) -> None:
+                async def notify() -> None:
+                    try:
+                        await self._wapi.sio.emit(
+                            "notify",
+                            {
+                                "data": {
+                                    "parent_path": parent_path,
+                                    "name": name,
+                                    "value": value,
+                                }
+                            },
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to send notification: {e}")
+
+                self._loop.create_task(notify())
+
+            self._service.add_notification_callback(sio_callback)
+
+            # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
+            # SIGTERM, which makes it impossible to escape out of
+            web_server.install_signal_handlers = lambda: None  # type: ignore
+            future_or_task = self._loop.create_task(web_server.serve())
+            self.servers["web"] = future_or_task
 
     async def main_loop(self) -> None:
         while not self.should_exit:
@@ -156,14 +174,14 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
-        await self._cancel_servers()
-        await self._cancel_tasks()
+        await self.__cancel_servers()
+        await self.__cancel_tasks()
 
         if self._enable_rpc:
             logger.debug("Closing rpyc server.")
             self._rpc_server.close()
 
-    async def _cancel_servers(self) -> None:
+    async def __cancel_servers(self) -> None:
         for server_name, task in self.servers.items():
             task.cancel()
             try:
@@ -173,7 +191,7 @@ class Server:
             except Exception as e:
                 logger.warning(f"Unexpected exception: {e}.")
 
-    async def _cancel_tasks(self) -> None:
+    async def __cancel_tasks(self) -> None:
         for task in asyncio.all_tasks(self._loop):
             task.cancel()
             try:
@@ -217,7 +235,7 @@ class Server:
             if self._enable_web:
 
                 async def emit_exception() -> None:
-                    await self._wapi._sio.emit(
+                    await self._wapi.sio.emit(
                         "notify",
                         {
                             "data": {
