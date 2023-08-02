@@ -3,8 +3,16 @@ import { Component, ComponentLabel } from './components/component';
 import { ButtonComponent } from './components/ButtonComponent';
 import { socket } from './socket';
 import { NumberComponent } from './components/NumberComponent';
+import { SliderComponent } from './components/SliderComponent';
 
-type AttributeType = 'str' | 'bool' | 'float' | 'int' | 'method' | 'Subclass';
+type AttributeType =
+  | 'str'
+  | 'bool'
+  | 'float'
+  | 'int'
+  | 'method'
+  | 'Subclass'
+  | 'NumberSlider';
 
 type ValueType = boolean | string | number | object;
 interface Attribute {
@@ -142,6 +150,21 @@ const App = () => {
                 docString={value.doc}
                 readOnly={value.readonly}
                 value={Number(value.value)}
+              />
+            </div>
+          );
+        } else if (value.type === 'NumberSlider') {
+          return (
+            <div key={key}>
+              <SliderComponent
+                name={key}
+                parent_path="DataService"
+                docString={value.doc}
+                readOnly={value.readonly}
+                value={value.value['value']['value']}
+                min={value.value['min']['value']}
+                max={value.value['max']['value']}
+                stepSize={value.value['step_size']['value']}
               />
             </div>
           );
