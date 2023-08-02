@@ -180,18 +180,76 @@ class DataService(rpyc.Service, TaskManager):
     the "subject" and the callback functions as the "observers".
     """
 
-    def __init__(self) -> None:
+    def __init__(self, filename: Optional[str] = None) -> None:
         TaskManager.__init__(self)
-        DataServiceSerializer.__init__(self, "serialized.json")
         self.__root__: "DataService" = self
         """Keep track of the root object. This helps to filter the emission of
         notifications. This overwrite the TaksManager's __root__ attribute."""
 
         self._callbacks: set[Callable[[str, Any], None]] = set()
+        self._filename: Optional[str] = filename
 
         self._register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
+        self._load_values_from_json()
+
+    def _load_values_from_json(self) -> None:
+        if self._filename is not None:
+            # Check if the file specified by the filename exists
+            if os.path.exists(self._filename):
+                with open(self._filename, "r") as f:
+                    # Load JSON data from file and update class attributes with these
+                    # values
+                    self.set_attributes_from_serialized_representation(
+                        cast(dict[str, Any], json.load(f))
+                    )
+
+    def write_to_file(self) -> None:
+        """
+        Serialize the DataService instance and write it to a JSON file.
+
+        Args:
+            filename (str): The name of the file to write to.
+        """
+        if self._filename is not None:
+            with open(self._filename, "w") as f:
+                json.dump(self.serialize(), f, indent=4)
+        else:
+            logger.error(
+                f"Class {self.__class__.__name__} was not initialised with a filename. "
+                'Skipping "write_to_file"...'
+            )
+
+    def set_attributes_from_serialized_representation(
+        self, serialized_representation: dict[str, Any]
+    ) -> None:
+        # Traverse the serialized representation and set the attributes of the class
+        for path, value in generate_paths_and_values_from_serialized_DataService(
+            serialized_representation
+        ).items():
+            # Split the path into elements
+            parent_path, attr_name = f"DataService.{path}".rsplit(".", 1)
+
+            if isinstance(value, list):
+                for index, item in enumerate(value):
+                    update_DataService_by_path(
+                        self,
+                        {
+                            "name": f"{attr_name}[{index}]",
+                            "parent_path": parent_path,
+                            "value": item,
+                        },
+                    )
+            else:
+                update_DataService_by_path(
+                    self,
+                    {
+                        "name": attr_name,
+                        "parent_path": parent_path,
+                        "value": value,
+                    },
+                )
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         current_value = getattr(self, __name, None)

@@ -173,6 +173,9 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
+        logger.info(f"Saving data to {self._service._filename}.")
+        self._service.write_to_file()
+
         await self.__cancel_servers()
         await self.__cancel_tasks()
 
