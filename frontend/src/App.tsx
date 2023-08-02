@@ -4,6 +4,7 @@ import { ButtonComponent } from './components/ButtonComponent';
 import { socket } from './socket';
 import { NumberComponent } from './components/NumberComponent';
 import { SliderComponent } from './components/SliderComponent';
+import { EnumComponent } from './components/EnumComponent';
 
 type AttributeType =
   | 'str'
@@ -11,7 +12,8 @@ type AttributeType =
   | 'float'
   | 'int'
   | 'method'
-  | 'Subclass'
+  | 'DataService'
+  | 'Enum'
   | 'NumberSlider';
 
 type ValueType = boolean | string | number | object;
@@ -22,6 +24,7 @@ interface Attribute {
   doc?: string | null;
   parameters?: Record<string, string>;
   async?: boolean;
+  enum?: Record<string, string>;
 }
 
 type MyData = Record<string, Attribute>;
@@ -165,6 +168,18 @@ const App = () => {
                 min={value.value['min']['value']}
                 max={value.value['max']['value']}
                 stepSize={value.value['step_size']['value']}
+              />
+            </div>
+          );
+        } else if (value.type === 'Enum') {
+          return (
+            <div key={key}>
+              <EnumComponent
+                name={key}
+                parent_path="DataService"
+                docString={value.doc}
+                value={String(value.value)}
+                enumDict={value.enum}
               />
             </div>
           );
