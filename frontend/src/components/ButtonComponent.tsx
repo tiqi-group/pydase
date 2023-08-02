@@ -36,7 +36,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
 
       <DocStringComponent docString={docString} />
       <ToggleButton
-        id="toggle-check"
+        id={`toggle-check-${parent_path}.${name}`}
         type="checkbox"
         variant={value ? 'success' : 'secondary'}
         checked={value}
