@@ -1,9 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import { socket } from './socket';
-import {
-  DataServiceComponent,
-  DataServiceJSON
-} from './components/DataServiceComponent';
+import { DataServiceComponent } from './components/DataServiceComponent';
+import { DataServiceJSON } from './components/GenericComponent';
 
 type ValueType = boolean | string | number | object;
 
@@ -18,6 +16,16 @@ type NotificationElement = {
 /**
  * A function to update a specific property in a deeply nested object.
  * The property to be updated is specified by a path array.
+ *
+ * Each path element can be a regular object key or an array index of the
+ * form "attribute[index]", where "attribute" is the key of the array in
+ * the object and "index" is the index of the element in the array.
+ *
+ * For array indices, the element at the specified index in the array is
+ * updated.
+ *
+ * If the property to be updated is an object or an array, it is updated
+ * recursively.
  *
  * @param {Array<string>} path - An array where each element is a key in the object,
  * forming a path to the property to be updated.
@@ -36,20 +44,47 @@ function updateNestedObject(path: Array<string>, obj: object, value: ValueType) 
   // of the path.
   const [first, ...rest] = path;
 
-  // Return a new object that copies all properties of the original object, but updates
-  // the property specified by 'first'.
-  // The updated property is an object that copies all properties of the original nested
-  // object, but updates the 'value' property.
-  // The new 'value' property is the result of a recursive call to updateNestedObject,
-  // with the rest of the path, the value of the nested object as the object to be
-  // updated, and the new value.
-  return {
-    ...obj,
-    [first]: {
-      ...obj[first],
-      value: updateNestedObject(rest, obj[first]?.value || {}, value)
+  // Check if 'first' is an array index.
+  const indexMatch = first.match(/^(\w+)\[(\d+)\]$/);
+
+  // If 'first' is an array index of the form "attribute[index]", then update the
+  // element at the specified index in the array. Otherwise, update the property
+  // specified by 'first' in the object.
+  if (indexMatch) {
+    const attribute = indexMatch[1];
+    const index = parseInt(indexMatch[2]);
+
+    if (Array.isArray(obj[attribute]?.value)) {
+      return {
+        ...obj,
+        [attribute]: {
+          ...obj[attribute],
+          value: obj[attribute].value.map((item, i) =>
+            i === index
+              ? {
+                  ...item,
+                  value: updateNestedObject(rest, item.value || {}, value)
+                }
+              : item
+          )
+        }
+      };
+    } else {
+      throw new Error(
+        `Expected ${attribute}.value to be an array, but received ${typeof obj[
+          attribute
+        ]?.value}`
+      );
     }
-  };
+  } else {
+    return {
+      ...obj,
+      [first]: {
+        ...obj[first],
+        value: updateNestedObject(rest, obj[first]?.value || {}, value)
+      }
+    };
+  }
 }
 
 const reducer = (state: State, action: Action): State => {
