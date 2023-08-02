@@ -119,7 +119,9 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     }
 
     // Set the cursor position after the component re-renders
-    const inputElement = document.getElementsByName(name)[0] as HTMLInputElement;
+    const inputElement = document.getElementsByName(
+      parent_path.concat(name)
+    )[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
@@ -212,7 +214,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   };
 
   return (
-    <div className={'component boolean'} id={parent_path.concat(name)}>
+    <div className={'number component'} id={parent_path.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -225,7 +227,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
               type="text"
               value={inputString}
               disabled={readOnly}
-              name={name}
+              name={parent_path.concat(name)}
               onKeyDown={handleKeyDown}
             />
           </InputGroup>
