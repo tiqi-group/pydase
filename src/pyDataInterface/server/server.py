@@ -142,6 +142,10 @@ class Server:
             )
 
             def sio_callback(parent_path: str, name: str, value: Any) -> None:
+                # TODO: an error happens when an attribute is set to a list
+                # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
+                # >       raise TypeError(f'Object of type {o.__class__.__name__} '
+                # > TypeError: Object of type list is not JSON serializable
                 async def notify() -> None:
                     try:
                         await self._wapi.sio.emit(
