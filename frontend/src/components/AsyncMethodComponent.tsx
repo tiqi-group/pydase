@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { InputGroup, Form, Button } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 
@@ -31,11 +31,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       method_name = `start_${name}`;
     }
 
-    socket.emit('frontend_update', {
-      name: method_name,
-      parent_path: parent_path,
-      value: { args: args }
-    });
+    emit_update(method_name, parent_path, { args: args });
   };
 
   useEffect(() => {

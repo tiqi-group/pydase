@@ -8,3 +8,12 @@ const URL = `ws://${hostname}:${port}/`;
 console.debug('Websocket: ', URL);
 
 export const socket = io(URL, { path: '/ws/socket.io', transports: ['websocket'] });
+
+export const emit_update = (
+  name: string,
+  parent_path: string,
+  value: unknown,
+  callback?: (ack: unknown) => void
+) => {
+  socket.emit('frontend_update', { name, parent_path, value }, callback);
+};

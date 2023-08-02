@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col, Button, Collapse } from 'react-bootstrap';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 
@@ -31,10 +31,11 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     max: number = props.max,
     stepSize: number = props.stepSize
   ) => {
-    socket.emit('frontend_update', {
-      name: name,
-      parent_path: parent_path,
-      value: { value: newNumber, min: min, max: max, step_size: stepSize }
+    emit_update(name, parent_path, {
+      value: newNumber,
+      min: min,
+      max: max,
+      step_size: stepSize
     });
   };
   const handleOnChange = (event, newNumber: number | number[]) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
 interface ButtonComponentProps {
@@ -23,11 +23,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
 
   const setChecked = (checked: boolean) => {
-    socket.emit('frontend_update', {
-      name: name,
-      parent_path: parent_path,
-      value: checked
-    });
+    emit_update(name, parent_path, checked);
   };
 
   return (

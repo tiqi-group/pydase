@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 
@@ -27,20 +27,12 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     Object.keys(props.parameters).forEach(
       (name) => (args[name] = event.target[name].value)
     );
-    socket.emit(
-      'frontend_update',
-      {
-        name: name,
-        parent_path: parent_path,
-        value: { args: args }
-      },
-      (ack) => {
-        // Update the functionCalls state with the new call if we get an acknowledge msg
-        if (ack !== undefined) {
-          setFunctionCalls((prevCalls) => [...prevCalls, { name, args, result: ack }]);
-        }
+    emit_update(name, parent_path, { args: args }, (ack) => {
+      // Update the functionCalls state with the new call if we get an acknowledge msg
+      if (ack !== undefined) {
+        setFunctionCalls((prevCalls) => [...prevCalls, { name, args, result: ack }]);
       }
-    );
+    });
   };
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
 interface EnumComponentProps {
@@ -21,11 +21,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const { name, parent_path, value, docString, enumDict } = props;
 
   const handleValueChange = (newValue: string) => {
-    socket.emit('frontend_update', {
-      name: name,
-      parent_path: parent_path,
-      value: newValue
-    });
+    emit_update(name, parent_path, newValue);
   };
 
   return (
