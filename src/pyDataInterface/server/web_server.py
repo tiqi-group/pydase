@@ -15,6 +15,7 @@ from pyDataInterface.version import __version__
 
 class FrontendUpdate(TypedDict):
     name: str
+    parent_path: str
     value: Any
 
 
@@ -53,7 +54,17 @@ class WebAPI:
         @sio.event  # type: ignore
         def frontend_update(sid: str, data: FrontendUpdate) -> Any:
             logger.debug(f"Received frontend update: {data}")
-            attr = getattr(self.service, data["name"])
+            parent_path = data["parent_path"].split(".")
+            attr_name = data["name"]
+
+            # Traverse the object tree according to parent_path
+            target_obj = self.service
+            for part in parent_path:
+                if part != "DataService":  # Skip the root object itself
+                    target_obj = getattr(target_obj, part)
+
+            attr = getattr(target_obj, attr_name)
+
             if isinstance(attr, DataService):
                 attr.apply_updates(data["value"])
             elif isinstance(attr, Enum):
@@ -79,7 +90,7 @@ class WebAPI:
 
                 return attr(**args)
             else:
-                setattr(self.service, data["name"], data["value"])
+                setattr(target_obj, attr_name, data["value"])
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
