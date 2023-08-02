@@ -467,6 +467,18 @@ class DataService(rpyc.Service):
             if key.startswith("_"):
                 continue  # Skip attributes that start with underscore
 
+            # Skip keys that start with "start_" or "stop_" and end with an async method
+            # name
+            if (key.startswith("start_") or key.startswith("stop_")) and key.split(
+                "_", 1
+            )[1] in {
+                name
+                for name, _ in inspect.getmembers(
+                    self, predicate=inspect.iscoroutinefunction
+                )
+            }:
+                continue
+
             # Get the value of the current attribute or method
             value = getattr(self, key)
 
