@@ -332,3 +332,96 @@ def test_subclass_properties_2(capsys: CaptureFixture) -> None:
     # a notification will be emitted.
     actual_output = sorted(set(captured.out.strip().split("\n")))
     assert actual_output == expected_output
+
+
+def test_subsubclass_properties(capsys: CaptureFixture) -> None:
+    class SubSubClass(DataService):
+        _voltage = 10.0
+
+        @property
+        def voltage(self) -> float:
+            return self._voltage
+
+        @voltage.setter
+        def voltage(self, value: float) -> None:
+            self._voltage = value
+
+    class SubClass(DataService):
+        class_attr = SubSubClass()
+        current = 0.5
+
+        @property
+        def power(self) -> float:
+            return self.class_attr.voltage * self.current
+
+    class ServiceClass(DataService):
+        class_attr = [SubClass() for i in range(2)]
+
+        @property
+        def power(self) -> float:
+            return self.class_attr[0].power
+
+    test_service = ServiceClass()
+
+    test_service.class_attr[1].class_attr.voltage = 100.0
+    captured = capsys.readouterr()
+    expected_output = sorted(
+        {
+            "ServiceClass.class_attr[0].class_attr.voltage = 100.0",
+            "ServiceClass.class_attr[1].class_attr.voltage = 100.0",
+            "ServiceClass.class_attr[0].power = 50.0",
+            "ServiceClass.class_attr[1].power = 50.0",
+            "ServiceClass.power = 50.0",
+        }
+    )
+    actual_output = sorted(set(captured.out.strip().split("\n")))
+    assert actual_output == expected_output
+
+
+def test_subsubclass_instance_properties(capsys: CaptureFixture) -> None:
+    class SubSubClass(DataService):
+        def __init__(self) -> None:
+            self._voltage = 10.0
+            super().__init__()
+
+        @property
+        def voltage(self) -> float:
+            return self._voltage
+
+        @voltage.setter
+        def voltage(self, value: float) -> None:
+            self._voltage = value
+
+    class SubClass(DataService):
+        def __init__(self) -> None:
+            self.attr = [SubSubClass()]
+            self.current = 0.5
+            super().__init__()
+
+        @property
+        def power(self) -> float:
+            return self.attr[0].voltage * self.current
+
+    class ServiceClass(DataService):
+        class_attr = [SubClass() for i in range(2)]
+
+        @property
+        def power(self) -> float:
+            return self.class_attr[0].power
+
+    test_service = ServiceClass()
+
+    test_service.class_attr[1].attr[0].voltage = 100.0
+    captured = capsys.readouterr()
+    # again, changing an item in a list will trigger the callbacks. This is why a
+    # notification for `ServiceClass.power` is emitted although it did not change its
+    # value
+    expected_output = sorted(
+        {
+            "ServiceClass.class_attr[1].attr[0].voltage = 100.0",
+            "ServiceClass.class_attr[1].power = 50.0",
+            "ServiceClass.power = 5.0",
+        }
+    )
+    actual_output = sorted(set(captured.out.strip().split("\n")))
+    assert actual_output == expected_output

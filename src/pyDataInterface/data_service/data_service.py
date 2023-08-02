@@ -122,8 +122,20 @@ class DataService(rpyc.Service):
                         )
             if isinstance(attr_value, property):
                 dependencies = attr_value.fget.__code__.co_names  # type: ignore
+                source_code_string = inspect.getsource(attr_value.fget)  # type: ignore
 
                 for dependency in dependencies:
+                    # check if the dependencies are attributes of obj
+                    # This doesn't have to be the case like, for example, here:
+                    # >>> @property
+                    # >>> def power(self) -> float:
+                    # >>>     return self.class_attr.voltage * self.current
+                    #
+                    # The dependencies for this property are:
+                    #  ('class_attr', 'voltage', 'current')
+                    if f"self.{dependency}" not in source_code_string:
+                        continue
+
                     # use `obj` instead of `type(obj)` to get DataServiceList
                     # instead of list
                     dependency_value = getattr(obj, dependency)
@@ -347,7 +359,8 @@ class DataService(rpyc.Service):
         """Handles registration of callbacks for DataService attributes"""
 
         # as the DataService is an attribute of self, change the root object
-        nested_attr.__root__ = self.__root__
+        # use the dictionary to not trigger callbacks on initialised objects
+        nested_attr.__dict__["__root__"] = self.__root__
 
         new_path = f"{parent_path}.{attr_name}"
         self._register_DataService_callbacks(nested_attr, new_path)
