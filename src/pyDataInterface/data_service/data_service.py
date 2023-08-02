@@ -401,7 +401,7 @@ class DataService(rpyc.Service, TaskManager):
             except Exception as e:
                 logger.error(e)
 
-    def serialize(self, prefix: str = "") -> dict[str, dict[str, Any]]:  # noqa
+    def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.
@@ -463,9 +463,6 @@ class DataService(rpyc.Service, TaskManager):
             # Get the value of the current attribute or method
             value = getattr(self, key)
 
-            # Prepare the key by appending prefix and the key
-            key = f"{prefix}.{key}" if prefix else key
-
             if isinstance(value, DataService):
                 result[key] = {
                     "type": type(value).__name__
@@ -480,8 +477,11 @@ class DataService(rpyc.Service, TaskManager):
                     "type": "list",
                     "value": [
                         {
-                            "type": type(item).__name__,
-                            "value": item.serialize(prefix=key)
+                            "type": "DataService"
+                            if isinstance(item, DataService)
+                            and type(item).__name__ not in ("NumberSlider")
+                            else type(item).__name__,
+                            "value": item.serialize()
                             if isinstance(item, DataService)
                             else item,
                             "readonly": False,
