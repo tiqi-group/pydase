@@ -9,7 +9,6 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
-from pyDataInterface.data_service import NumberSlider
 from pyDataInterface.version import __version__
 
 
@@ -22,7 +21,7 @@ class WebAPI:
     __sio_app: socketio.ASGIApp
     __fastapi_app: FastAPI
 
-    def __init__(
+    def __init__(  # noqa: CFQ002
         self,
         service: DataService,
         frontend: str | Path | None = None,
