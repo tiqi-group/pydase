@@ -1,0 +1,17 @@
+[flake8]
+ignore = E501,W503,FS003,F403,F405,E203
+include = src
+max-line-length = 88
+max-doc-length = 88
+# mccabe cyclomatic complexity
+max-complexity = 7
+# flake8-expression-complexity
+max-expression-complexity = 5.5
+# flake8-class-attributes-order
+use_class_attributes_order_strict_mode=True
+# flake8-eradicate
+# this 
+eradicate_whitelist_extend = "#openapi.yaml#"
+per-file-ignores =
+    services/*/generated/*: F401,W505
+    services/*/on_service_ready.py: F401,E800

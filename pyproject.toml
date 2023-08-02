@@ -1,0 +1,72 @@
+[tool.poetry]
+name = "pyDataInterface"
+version = "0.1.0"
+description = ""
+authors = ["Mose Mueller <mosmuell@ethz.ch>"]
+readme = "README.md"
+packages = [{include = "pyDataInterface", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+rpyc = "^5.3.1"
+loguru = "^0.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+mypy = "^1.4.1"
+black = "^23.1.0"
+isort = "^5.12.0"
+flake8 = "^5.0.4"
+flake8-use-fstring = "^1.4"
+flake8-functions = "^0.0.7"
+flake8-comprehensions = "^3.11.1"
+flake8-pep585 = "^0.1.7"
+flake8-pep604 = "^0.1.0"
+flake8-eradicate = "^1.4.0"
+
+[tool.setuptools.package-data]
+pyDataInterface = ['frontend/*', 'examples/*', 'version.json']
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+include = ["pyDataInterface", "tests"]
+exclude = ["**/node_modules",
+    "**/__pycache__",
+    "docs",
+    "frontend",
+]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "basic"
+reportUnknownMemberType = true
+
+[tool.black]
+line-length = 88
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | venv
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+show_error_codes = true
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+ignore_missing_imports = false
