@@ -8,7 +8,7 @@ from typing import TypedDict
 from loguru import logger
 from tiqi_rpc import Any
 
-from pyDataInterface.utils import get_class_and_instance_attributes
+from pyDataInterface.utils.helpers import get_class_and_instance_attributes
 
 
 class TaskDict(TypedDict):

@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from pyDataInterface.utils import (
+from pyDataInterface.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
 

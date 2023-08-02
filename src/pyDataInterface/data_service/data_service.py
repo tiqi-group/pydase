@@ -9,17 +9,17 @@ from typing import Any, Optional, cast, get_type_hints
 import rpyc
 from loguru import logger
 
-from pyDataInterface.utils import (
-    get_class_and_instance_attributes,
-    warn_if_instance_class_does_not_inherit_from_DataService,
-)
 from pyDataInterface.utils.helpers import (
     convert_arguments_to_hinted_types,
     generate_paths_from_DataService_dict,
+    get_class_and_instance_attributes,
     get_nested_value_by_path_and_key,
     get_object_attr_from_path,
     parse_list_attr_and_index,
     set_if_differs,
+)
+from pyDataInterface.utils.warnings import (
+    warn_if_instance_class_does_not_inherit_from_DataService,
 )
 
 from .data_service_list import DataServiceList
