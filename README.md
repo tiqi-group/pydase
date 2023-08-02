@@ -1,14 +1,27 @@
-# pydase (Python Data Service)
+# pydase (Python Data Service) <!-- omit from toc -->
 
 `pydase` is a Python library for creating data service servers with integrated web and RPC servers. It's designed to handle the management of data structures, automated tasks, and callbacks, and provides built-in functionality for serving data over different protocols.
 
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Defining a DataService](#defining-a-dataservice)
+  - [Running the Server](#running-the-server)
+  - [Accessing the Web Interface](#accessing-the-web-interface)
+  - [Connecting to the Service using rpyc](#connecting-to-the-service-using-rpyc)
+- [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
 
-- Integrated web and RPC servers
-- [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
-- Event-based callback functionality for real-time updates
-- Built-in support for serving data over different protocols
-- Support for additional servers for specific use-cases
+<!-- no toc -->
+* [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
+* [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
+* [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
+* Event-based callback functionality for real-time updates
+* Support for additional servers for specific use-cases
 
 ## Installation
 
