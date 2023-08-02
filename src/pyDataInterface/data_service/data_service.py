@@ -54,10 +54,6 @@ class DataService(rpyc.Service, TaskManager):
         """Keep track of the root object. This helps to filter the emission of
         notifications. This overwrite the TaksManager's __root__ attribute."""
 
-        self._autostart_tasks: dict[str, tuple[Any]]
-        if "_autostart_tasks" not in self.__dict__:
-            self._autostart_tasks = {}
-
         self._callbacks: set[Callable[[str, Any], None]] = set()
 
         self._register_callbacks()
@@ -101,17 +97,6 @@ class DataService(rpyc.Service, TaskManager):
 
         # allow all other attributes
         setattr(self, name, value)
-
-    def _start_autostart_tasks(self) -> None:
-        if self._autostart_tasks is not None:
-            for service_name, args in self._autostart_tasks.items():
-                start_method = getattr(self, f"start_{service_name}", None)
-                if start_method is not None and callable(start_method):
-                    start_method(*args)
-                else:
-                    logger.warning(
-                        f"No start method found for service '{service_name}'"
-                    )
 
     def _register_callbacks(self) -> None:
         self._register_list_change_callbacks(self, f"{self.__class__.__name__}")

@@ -39,6 +39,10 @@ class TaskManager:
 
         self._loop = asyncio.get_event_loop()
 
+        self._autostart_tasks: dict[str, tuple[Any]]
+        if "_autostart_tasks" not in self.__dict__:
+            self._autostart_tasks = {}
+
         self._tasks: dict[str, TaskDict] = {}
         """A dictionary to keep track of running tasks. The keys are the names of the
         tasks and the values are TaskDict instances which include the task itself and
@@ -156,6 +160,17 @@ class TaskManager:
             # create start and stop methods for each coroutine
             setattr(self, f"start_{name}", start_task)
             setattr(self, f"stop_{name}", stop_task)
+
+    def _start_autostart_tasks(self) -> None:
+        if self._autostart_tasks is not None:
+            for service_name, args in self._autostart_tasks.items():
+                start_method = getattr(self, f"start_{service_name}", None)
+                if start_method is not None and callable(start_method):
+                    start_method(*args)
+                else:
+                    logger.warning(
+                        f"No start method found for service '{service_name}'"
+                    )
 
     @abstractmethod
     def _emit_notification(self, parent_path: str, name: str, value: Any) -> None:
