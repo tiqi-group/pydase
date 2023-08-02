@@ -54,7 +54,7 @@ class TaskManager(AbstractTaskManager):
 
     In the above example, `my_task` will start running as soon as
     `_start_autostart_tasks` is called which is done when the DataService instance is
-    passed to the `pyDataInterface.Server` class.
+    passed to the `pyDataService.Server` class.
 
     The responsibilities of the TaskManager class are:
 

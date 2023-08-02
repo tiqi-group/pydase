@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "pyDataInterface"
+name = "pyDataService"
 version = "0.1.0"
 description = ""
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
-packages = [{ include = "pyDataInterface", from = "src" }]
+packages = [{ include = "pyDataService", from = "src" }]
 
 
 [tool.poetry.dependencies]
@@ -39,7 +39,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-include = ["src/pyDataInterface", "tests"]
+include = ["src/pyDataService", "tests"]
 exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend"]
 venvPath = "."
 venv = ".venv"

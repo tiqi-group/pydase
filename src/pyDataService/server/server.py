@@ -15,8 +15,8 @@ from rpyc import (
 from rpyc import ThreadedServer
 from uvicorn.server import HANDLED_SIGNALS
 
-from pyDataInterface import DataService
-from pyDataInterface.version import __version__
+from pyDataService import DataService
+from pyDataService.version import __version__
 
 from .web_server import WebAPI
 
@@ -117,7 +117,7 @@ class Server:
             self.servers["rpyc"] = future_or_task
         if self._enable_tiqi_rpc and tiqi_rpc is not None:
             tiqi_rpc_server = tiqi_rpc.Server(
-                RPCInterface(self._data_model, info=self._info, **self._kwargs),
+                RPCInterface(self._service, info=self._info, **self._kwargs),
                 host=self._host,
                 port=self._rpc_port,
             )

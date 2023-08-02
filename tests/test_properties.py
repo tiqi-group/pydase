@@ -1,6 +1,6 @@
 from pytest import CaptureFixture
 
-from pyDataInterface import DataService
+from pyDataService import DataService
 
 
 def test_properties(capsys: CaptureFixture) -> None:
