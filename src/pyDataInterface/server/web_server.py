@@ -142,9 +142,7 @@ class WebAPI:
             app.mount(
                 "/",
                 StaticFiles(
-                    directory=Path(__file__).parent.parent.parent.parent
-                    / "frontend"
-                    / "build",
+                    directory=Path(__file__).parent.parent.parent / "frontend",
                     html=True,
                 ),
             )
