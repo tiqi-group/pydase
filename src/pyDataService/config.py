@@ -1,9 +1,9 @@
 from typing import Literal
 
-from confz import ConfZ, ConfZEnvSource
+from confz import BaseConfig, EnvSource
 
 
-class OperationMode(ConfZ):  # type: ignore
+class OperationMode(BaseConfig):  # type: ignore
     environment: Literal["development"] | Literal["production"] = "production"
 
-    CONFIG_SOURCES = ConfZEnvSource(allow=["ENVIRONMENT"])
+    CONFIG_SOURCES = EnvSource(allow=["ENVIRONMENT"])

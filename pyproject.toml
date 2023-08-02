@@ -16,7 +16,7 @@ uvicorn = "^0.22.0"
 toml = "^0.10.2"
 python-socketio = "^5.8.0"
 websockets = "^11.0.3"
-confz = "^1.8.2"
+confz = "^2.0.0"
 
 [tool.poetry.group.dev.dependencies]
 types-toml = "^0.10.8.6"
