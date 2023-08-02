@@ -6,41 +6,13 @@ from loguru import logger
 
 from pyDataInterface.utils.helpers import get_class_and_instance_attributes
 
-from .abstract_data_service import AbstractDataService
+from .abstract_service_classes import AbstractCallbackManager, AbstractDataService
 from .data_service_list import DataServiceList
 
 
-class CallbackManager:
-    _notification_callbacks: list[Callable[[str, str, Any], Any]] = []
-    """
-    A list of callback functions that are executed when a change occurs in the
-    DataService instance. These functions are intended to handle or respond to these
-    changes in some way, such as emitting a socket.io message to the frontend.
-
-    Each function in this list should be a callable that accepts three parameters:
-
-    - parent_path (str): The path to the parent of the attribute that was changed.
-    - name (str): The name of the attribute that was changed.
-    - value (Any): The new value of the attribute.
-
-    A callback function can be added to this list using the add_notification_callback
-    method. Whenever a change in the DataService instance occurs (or in its nested
-    DataService or DataServiceList instances), the emit_notification method is invoked,
-    which in turn calls all the callback functions in _notification_callbacks with the
-    appropriate arguments.
-
-    This implementation follows the observer pattern, with the DataService instance as
-    the "subject" and the callback functions as the "observers".
-    """
-    _list_mapping: dict[int, DataServiceList] = {}
-    """
-    A dictionary mapping the id of the original lists to the corresponding
-    DataServiceList instances.
-    This is used to ensure that all references to the same list within the DataService
-    object point to the same DataServiceList, so that any modifications to that list can
-    be tracked consistently. The keys of the dictionary are the ids of the original
-    lists, and the values are the DataServiceList instances that wrap these lists.
-    """
+class CallbackManager(AbstractCallbackManager):
+    _notification_callbacks = []
+    _list_mapping = {}
 
     def __init__(self, service: "AbstractDataService") -> None:
         self.callbacks: set[Callable[[str, Any], None]] = set()
@@ -349,7 +321,7 @@ class CallbackManager:
             else None
         )
 
-        obj._task_status_change_callbacks.append(callback)
+        obj._task_manager._task_status_change_callbacks.append(callback)
 
         # Recursively register callbacks for all nested attributes of the object
         attrs: dict[str, Any] = get_class_and_instance_attributes(obj)
