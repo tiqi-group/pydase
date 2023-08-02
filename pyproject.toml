@@ -4,7 +4,11 @@ version = "0.1.0"
 description = ""
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
-packages = [{include = "pyDataInterface", from = "src"}]
+packages = [
+  { include = "pyDataInterface", from = "src" },
+  { include = "frontend", from = "src" },
+]
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -14,7 +18,7 @@ fastapi = "^0.100.0"
 uvicorn = "^0.22.0"
 toml = "^0.10.2"
 types-toml = "^0.10.8.6"
-tiqi-rpc = {git = "git@gitlab.phys.ethz.ch:tiqi-projects/tiqi-rpc-python.git"}
+tiqi-rpc = { git = "git@gitlab.phys.ethz.ch:tiqi-projects/tiqi-rpc-python.git" }
 python-socketio = "^5.8.0"
 websockets = "^11.0.3"
 confz = "^1.8.2"
@@ -42,11 +46,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
 include = ["pyDataInterface", "tests"]
-exclude = ["**/node_modules",
-    "**/__pycache__",
-    "docs",
-    "frontend",
-]
+exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
