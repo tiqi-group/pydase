@@ -98,6 +98,7 @@ const handleDeleteKey = (
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
+  const { name, parent_path, readOnly, docString } = props;
   const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
@@ -107,18 +108,22 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   useEffect(() => {
     renderCount.current++;
 
-    // Set the cursor position and input string after the component re-renders
+    // Parse the input string to a number for comparison
+    const numericInputString =
+      props.type === 'int' ? parseInt(inputString) : parseFloat(inputString);
+
+    // Update inputString only when value is different from numericInputString
+    // preventing the removal of trailing decimals or zeros after the decimal.
+    if (props.value !== numericInputString) {
+      setInputString(props.value.toString());
+    }
+
+    // Set the cursor position after the component re-renders
     const inputElement = document.getElementsByName(name)[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
-      // Setting input string as trailing zeros after the decimal will be stripped
-      // otherwise
-      inputElement.value = inputString;
-
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
   });
-
-  const { name, parent_path, value, readOnly, docString } = props;
 
   const handleNumericKey = (key: string, value: string, selectionStart: number) => {
     // Check if a number key or a decimal point key is pressed
@@ -217,7 +222,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
             <InputGroup.Text>{name}</InputGroup.Text>
             <Form.Control
               type="text"
-              value={value}
+              value={inputString}
               disabled={readOnly}
               name={name}
               onKeyDown={handleKeyDown}
