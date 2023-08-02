@@ -15,5 +15,9 @@ export const emit_update = (
   value: unknown,
   callback?: (ack: unknown) => void
 ) => {
-  socket.emit('frontend_update', { name, parent_path, value }, callback);
+  if (callback) {
+    socket.emit('frontend_update', { name, parent_path, value }, callback);
+  } else {
+    socket.emit('frontend_update', { name, parent_path, value });
+  }
 };
