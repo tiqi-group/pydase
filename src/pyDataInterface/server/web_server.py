@@ -1,14 +1,20 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
 from pyDataInterface.version import __version__
+
+
+class FrontendUpdate(TypedDict):
+    name: str
+    value: Any
 
 
 class WebAPI:
@@ -39,11 +45,16 @@ class WebAPI:
     def setup_socketio(self) -> None:
         # the socketio ASGI app, to notify clients when params update
         if self.enable_CORS:
-            self.__sio = socketio.AsyncServer(
-                async_mode="asgi", cors_allowed_origins="*"
-            )
+            sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
         else:
-            self.__sio = socketio.AsyncServer(async_mode="asgi")
+            sio = socketio.AsyncServer(async_mode="asgi")
+
+        @sio.on("frontend_update")  # type: ignore
+        def handle_frontend_update(sid: str, data: FrontendUpdate) -> None:
+            logger.debug(f"Received frontend update: {data}")
+            setattr(self.service, data["name"], data["value"])
+
+        self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
     def setup_fastapi_app(self) -> None:  # noqa: CFQ004
