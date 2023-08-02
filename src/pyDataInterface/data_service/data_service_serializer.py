@@ -12,9 +12,7 @@ class DataServiceSerializer:
     def __init__(self, filename: str) -> None:
         self._tasks: dict[str, TaskDict]
 
-    def serialize(  # noqa
-        self, tasks: dict[str, Any] = {}
-    ) -> dict[str, dict[str, Any]]:
+    def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.
@@ -112,8 +110,8 @@ class DataServiceSerializer:
                     for k, v in sig.parameters.items()
                 }
                 running_task_info = None
-                if key in tasks:  # If there's a running task for this method
-                    task_info = tasks[key]
+                if key in self._tasks:  # If there's a running task for this method
+                    task_info = self._tasks[key]
                     running_task_info = task_info["kwargs"]
 
                 result[key] = {
