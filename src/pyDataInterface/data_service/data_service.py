@@ -53,6 +53,34 @@ class DataService(rpyc.Service):
     def _turn_lists_into_notify_lists(
         self, obj: "DataService", parent_path: str
     ) -> None:
+        """
+        This method ensures that notifications are emitted whenever a list attribute of
+        a DataService instance changes. These notifications pertain solely to the list
+        item changes, not to changes in attributes of objects within the list.
+
+        The method works by converting all list attributes (both at the class and
+        instance levels) into DataServiceList objects. Each DataServiceList is then
+        assigned a callback that is triggered whenever an item in the list is updated.
+        The callback emits a notification, but only if the DataService instance was the
+        root instance when the callback was registered.
+
+        This method operates recursively, processing the input object and all nested
+        attributes that are instances of DataService. While navigating the structure,
+        it constructs a path for each attribute that traces back to the root. This path
+        is included in any emitted notifications to facilitate identification of the
+        source of a change.
+
+        Parameters:
+        -----------
+        obj: DataService
+            The target object to be processed. All list attributes (and those of its
+            nested DataService attributes) will be converted into DataServiceList
+            objects.
+        parent_path: str
+            The access path for the parent object. Used to construct the full access
+            path for the notifications.
+        """
+
         # Convert all list attributes (both class and instance) to DataServiceList
         for attr_name in set(dir(obj)) - set(dir(object)) - {"_root"}:
             attr_value = getattr(obj, attr_name)
@@ -87,6 +115,8 @@ class DataService(rpyc.Service):
                     self._list_mapping[id(attr_value)] = notifying_list
 
                 setattr(obj, attr_name, notifying_list)
+
+                # recursively add callbacks to list attributes of DataService instances
                 for i, item in enumerate(attr_value):
                     if isinstance(item, DataService):
                         new_path = f"{parent_path}.{attr_name}[{i}]"
@@ -138,8 +168,30 @@ class DataService(rpyc.Service):
 
     def _register_callbacks(self, obj: "DataService", parent_path: str) -> None:
         """
-        Recursive helper function to register callbacks for the object and all
-        its nested attributes
+        This function is a key part of the observer pattern implemented by the
+        DataService class.
+        Its purpose is to allow the system to automatically send out notifications
+        whenever an attribute of a DataService instance is updated, which is especially
+        useful when the DataService instance is part of a nested structure.
+
+        It works by recursively registering callbacks for a given DataService instance
+        and all of its nested attributes. Each callback is responsible for emitting a
+        notification when the attribute it is attached to is modified.
+
+        This function ensures that only the root DataService instance (the one directly
+        exposed to the user or another system via rpyc) emits notifications.
+
+        Each notification contains a 'parent_path' that traces the attribute's location
+        within the nested DataService structure, starting from the root. This makes it
+        easier for observers to determine exactly where a change has occurred.
+
+        Parameters:
+        -----------
+        obj: DataService
+            The target object on which callbacks are to be registered.
+        parent_path: str
+            The access path for the parent object. This is used to construct the full
+            access path for the notifications.
         """
 
         # Create and register a callback for the object
