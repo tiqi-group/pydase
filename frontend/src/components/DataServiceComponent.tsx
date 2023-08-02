@@ -8,6 +8,7 @@ import { AsyncMethodComponent } from './AsyncMethodComponent';
 import React from 'react';
 import { Card, Collapse } from 'react-bootstrap';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
+import { StringComponent } from './StringComponent';
 
 type AttributeType =
   | 'str'
@@ -39,9 +40,7 @@ export type DataServiceJSON = Record<string, Attribute>;
 export const DataServiceComponent = React.memo(
   ({ props, parentPath = 'DataService' }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
-    // useEffect(() => {}, []);
 
-    // While the data is loading
     return (
       <div className="App">
         <Card className="mb-3">
@@ -131,6 +130,18 @@ export const DataServiceComponent = React.memo(
                       </div>
                     );
                   }
+                } else if (value.type === 'str') {
+                  return (
+                    <div key={key}>
+                      <StringComponent
+                        name={key}
+                        value={value.value as string}
+                        readOnly={value.readonly}
+                        docString={value.doc}
+                        parent_path={parentPath}
+                      />
+                    </div>
+                  );
                 } else if (value.type === 'DataService') {
                   return (
                     <div key={key}>
