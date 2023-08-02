@@ -1,7 +1,5 @@
-import re
-from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, TypedDict, get_type_hints
+from typing import Any, TypedDict
 
 import socketio
 from fastapi import FastAPI
@@ -11,7 +9,9 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
-from pyDataInterface.utils.helpers import get_attr_from_path
+from pyDataInterface.utils.apply_update_to_data_service import (
+    apply_updates_to_data_service,
+)
 from pyDataInterface.version import __version__
 
 
@@ -46,7 +46,7 @@ class WebAPI:
         self.setup_socketio()
         self.setup_fastapi_app()
 
-    def setup_socketio(self) -> None:  # noqa: C901
+    def setup_socketio(self) -> None:
         # the socketio ASGI app, to notify clients when params update
         if self.enable_CORS:
             sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
@@ -56,54 +56,7 @@ class WebAPI:
         @sio.event  # type: ignore
         def frontend_update(sid: str, data: FrontendUpdate) -> Any:
             logger.debug(f"Received frontend update: {data}")
-            parent_path = data["parent_path"].split(".")
-            attr_name = data["name"]
-
-            # Traverse the object tree according to parent_path
-            target_obj = get_attr_from_path(self.service, parent_path)
-
-            # Check if attr_name contains an index for a list item
-            index: Optional[int] = None
-            if re.search(r"\[.*\]", attr_name):
-                attr_name, index_str = attr_name.split("[")
-                try:
-                    index = int(
-                        index_str.replace("]", "")
-                    )  # Remove closing bracket and convert to int
-                except ValueError:
-                    logger.error(f"Invalid list index: {index_str}")
-                    return
-
-            attr = getattr(target_obj, attr_name)
-
-            if isinstance(attr, DataService):
-                attr.apply_updates(data["value"])
-            elif isinstance(attr, Enum):
-                setattr(
-                    self.service, data["name"], attr.__class__[data["value"]["value"]]
-                )
-            elif callable(attr):
-                args: dict[str, Any] = data["value"]["args"]
-                type_hints = get_type_hints(attr)
-
-                # Convert arguments to their hinted types
-                for arg_name, arg_value in args.items():
-                    if arg_name in type_hints:
-                        arg_type = type_hints[arg_name]
-                        if isinstance(arg_type, type):
-                            # Attempt to convert the argument to its hinted type
-                            try:
-                                args[arg_name] = arg_type(arg_value)
-                            except ValueError:
-                                msg = f"Failed to convert argument '{arg_name}' to type {arg_type.__name__}"
-                                logger.error(msg)
-                                return msg
-
-                return attr(**args)
-            elif isinstance(attr, list):
-                attr[index] = data["value"]
-            else:
-                setattr(target_obj, attr_name, data["value"])
+            return apply_updates_to_data_service(self.service, data)
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
