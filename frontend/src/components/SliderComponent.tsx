@@ -67,7 +67,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
       <DocStringComponent docString={docString} />
       <Row>
-        <Col className="col-2 d-flex align-items-center">
+        <Col className="col-5 d-flex align-items-center">
           <InputGroup.Text
           // style={{ height: '80px' }}
           >
