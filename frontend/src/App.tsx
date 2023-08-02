@@ -1,7 +1,8 @@
 import { useEffect, useReducer } from 'react';
 import { Component, ComponentLabel } from './components/component';
-import { ButtonComponent } from './components/button';
+import { ButtonComponent } from './components/ButtonComponent';
 import { socket } from './socket';
+import { NumberComponent } from './components/NumberComponent';
 
 type AttributeType = 'str' | 'bool' | 'float' | 'int' | 'method' | 'Subclass';
 
@@ -65,17 +66,11 @@ const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'SET_DATA':
       return action.data;
-    case 'UPDATE_ATTRIBUTE':
-      if (!state) {
-        console.log('No state is set');
-        return state;
-      }
-      {
-        const path = action.parent_path.split('.').slice(1).concat(action.name);
-        console.log(path);
+    case 'UPDATE_ATTRIBUTE': {
+      const path = action.parent_path.split('.').slice(1).concat(action.name);
 
-        return updateNestedObject(path, state, action.value);
-      }
+      return updateNestedObject(path, state, action.value);
+    }
     default:
       throw new Error();
   }
@@ -119,9 +114,34 @@ const App = () => {
             <div key={key}>
               <ButtonComponent
                 name={key}
+                parent_path="DataService"
                 docString={value.doc}
                 readOnly={value.readonly}
                 value={Boolean(value.value)}
+              />
+            </div>
+          );
+        } else if (value.type === 'int') {
+          return (
+            <div key={key}>
+              <NumberComponent
+                name={key}
+                parent_path="DataService"
+                docString={value.doc}
+                readOnly={value.readonly}
+                value={Number(value.value)}
+              />
+            </div>
+          );
+        } else if (value.type === 'float') {
+          return (
+            <div key={key}>
+              <NumberComponent
+                name={key}
+                parent_path="DataService"
+                docString={value.doc}
+                readOnly={value.readonly}
+                value={Number(value.value)}
               />
             </div>
           );
@@ -131,6 +151,7 @@ const App = () => {
               <ComponentLabel name={key} docString={value.doc} />
               <Component
                 name={key}
+                parent_path="DataService"
                 value={value.value}
                 readOnly={value.readonly}
                 type={value.type}
