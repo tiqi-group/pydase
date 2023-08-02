@@ -35,7 +35,7 @@ def test_properties(capsys: CaptureFixture) -> None:
     expected_output = sorted(
         [
             "ServiceClass.power = 1.0",
-            "ServiceClass.voltage = 1",
+            "ServiceClass.voltage = 1.0",
         ]
     )
     actual_output = sorted(captured.out.strip().split("\n"))
