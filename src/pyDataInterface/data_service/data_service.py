@@ -70,7 +70,13 @@ class DataService(rpyc.Service):
         self._initialised = True
 
     def __setattr__(self, __name: str, __value: Any) -> None:
+        current_value = getattr(self, __name, None)
+        # parse ints into floats if current value is a float
+        if isinstance(current_value, float) and isinstance(__value, int):
+            __value = float(__value)
+
         super().__setattr__(__name, __value)
+
         if self.__dict__.get("_initialised") and not __name == "_initialised":
             for callback in self._callbacks:
                 callback(__name, __value)
