@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 
 interface ComponentProps {
   name: string;
+  parent_path: string;
   value: any;
   readOnly: boolean;
   type: string;
@@ -19,27 +20,13 @@ export const ComponentLabel = ({
 };
 
 export const Component = React.memo(
-  ({ name, value, readOnly, type, docString }: ComponentProps) => {
+  ({ name, parent_path, value, readOnly, type, docString }: ComponentProps) => {
     const renderCount = useRef(0);
 
     useEffect(() => {
       renderCount.current++;
     });
     switch (type) {
-      case 'int':
-      case 'float':
-        return (
-          <>
-            <p>Render count: {renderCount.current}</p>
-            <input
-              type="number"
-              name={name}
-              value={value}
-              readOnly={readOnly}
-              title={docString}
-            />
-          </>
-        );
       case 'str':
         return (
           <>
@@ -50,18 +37,9 @@ export const Component = React.memo(
               value={value}
               readOnly={readOnly}
               title={docString}
+              id={parent_path}
             />
           </>
-        );
-      case 'bool':
-        return (
-          <input
-            type="checkbox"
-            name={name}
-            checked={value}
-            disabled={readOnly}
-            title={docString}
-          />
         );
       case 'method':
         return (
