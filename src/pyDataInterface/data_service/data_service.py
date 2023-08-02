@@ -1,6 +1,11 @@
+import asyncio
 import inspect
+import json
+import os
+import re
 from collections.abc import Callable
-from typing import Any
+from enum import Enum
+from typing import Any, Optional, TypedDict, cast, get_type_hints
 
 import rpyc
 from loguru import logger
@@ -9,13 +14,140 @@ from pyDataInterface.utils import (
     get_class_and_instance_attributes,
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
+from pyDataInterface.utils.helpers import (
+    convert_arguments_to_hinted_types,
+    generate_paths_and_values_from_serialized_DataService,
+    get_DataService_attr_from_path,
+    set_if_differs,
+)
 
 from .data_service_list import DataServiceList
 from .data_service_serializer import DataServiceSerializer
 from .task_manager import TaskManager
 
 
-class DataService(rpyc.Service, TaskManager, DataServiceSerializer):
+class UpdateDict(TypedDict):
+    """
+    A TypedDict subclass representing a dictionary used for updating attributes in a
+    DataService.
+
+    Attributes:
+    ----------
+    name : str
+        The name of the attribute to be updated in the DataService instance.
+        If the attribute is part of a nested structure, this would be the name of the
+        attribute in the last nested object. For example, for an attribute access path
+        'attr1.list_attr[0].attr2', 'attr2' would be the name.
+
+    parent_path : str
+        The access path for the parent object of the attribute to be updated. This is
+        used to construct the full access path for the attribute. For example, for an
+        attribute access path 'attr1.list_attr[0].attr2', 'attr1.list_attr[0]' would be
+        the parent_path.
+
+    value : Any
+        The new value to be assigned to the attribute. The type of this value should
+        match the type of the attribute to be updated.
+    """
+
+    name: str
+    parent_path: str
+    value: Any
+
+
+def extract_path_list_and_name_and_index_from_UpdateDict(
+    data: UpdateDict,
+) -> tuple[list[str], str, Optional[int]]:
+    path_list, attr_name = data["parent_path"].split("."), data["name"]
+    index: Optional[int] = None
+    index_search = re.search(r"\[(\d+)\]", attr_name)
+    if index_search:
+        attr_name = attr_name.split("[")[0]
+        index = int(index_search.group(1))
+    return path_list, attr_name, index
+
+
+def get_target_object_and_attribute(
+    service: "DataService", path_list: list[str], attr_name: str
+) -> tuple[Any, Any]:
+    target_obj = get_DataService_attr_from_path(service, path_list)
+    attr = getattr(target_obj, attr_name, None)
+    if attr is None:
+        logger.error(f"Attribute {attr_name} not found.")
+    return target_obj, attr
+
+
+def update_each_DataService_attribute(
+    service: "DataService", parent_path: str, data_value: dict[str, Any]
+) -> None:
+    for key, value in data_value.items():
+        update_DataService_by_path(
+            service,
+            {
+                "name": key,
+                "parent_path": parent_path,
+                "value": value,
+            },
+        )
+
+
+def process_DataService_attribute(
+    service: "DataService", attr_name: str, data: UpdateDict
+) -> None:
+    update_each_DataService_attribute(
+        service,
+        f"{data['parent_path']}.{attr_name}",
+        cast(dict[str, Any], data["value"]),
+    )
+
+
+def process_list_attribute(
+    service: "DataService", attr: list[Any], index: int, data: UpdateDict
+) -> None:
+    if isinstance(attr[index], DataService):
+        update_each_DataService_attribute(
+            service,
+            f"{data['parent_path']}.{data['name']}",
+            cast(dict[str, Any], data["value"]),
+        )
+    elif isinstance(attr[index], list):
+        logger.error("Nested lists are not supported yet.")
+        raise NotImplementedError
+    else:
+        set_if_differs(attr, index, data["value"])
+
+
+def process_callable_attribute(attr: Any, data: UpdateDict) -> Any:
+    converted_args_or_error_msg = convert_arguments_to_hinted_types(
+        data["value"]["args"], get_type_hints(attr)
+    )
+    return (
+        attr(**converted_args_or_error_msg)
+        if not isinstance(converted_args_or_error_msg, str)
+        else converted_args_or_error_msg
+    )
+
+
+def update_DataService_by_path(service: "DataService", data: UpdateDict) -> Any:
+    (
+        path_list,
+        attr_name,
+        index,
+    ) = extract_path_list_and_name_and_index_from_UpdateDict(data)
+    target_obj, attr = get_target_object_and_attribute(service, path_list, attr_name)
+    if attr is None:
+        return
+    if isinstance(attr, DataService):
+        process_DataService_attribute(service, attr_name, data)
+    elif isinstance(attr, Enum):
+        set_if_differs(target_obj, attr_name, attr.__class__[data["value"]])
+    elif callable(attr):
+        return process_callable_attribute(attr, data)
+    elif isinstance(attr, list) and index is not None:
+        process_list_attribute(service, attr, index, data)
+    else:
+        set_if_differs(target_obj, attr_name, data["value"])
+
     _list_mapping: dict[int, DataServiceList] = {}
     """
     A dictionary mapping the id of the original lists to the corresponding

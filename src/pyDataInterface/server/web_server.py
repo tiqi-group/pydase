@@ -9,16 +9,11 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
-from pyDataInterface.utils.apply_update_to_data_service import (
-    apply_updates_to_data_service,
+from pyDataInterface.data_service.data_service import (
+    UpdateDict,
+    update_DataService_by_path,
 )
 from pyDataInterface.version import __version__
-
-
-class FrontendUpdate(TypedDict):
-    name: str
-    parent_path: str
-    value: Any
 
 
 class WebAPI:
@@ -54,9 +49,9 @@ class WebAPI:
             sio = socketio.AsyncServer(async_mode="asgi")
 
         @sio.event  # type: ignore
-        def frontend_update(sid: str, data: FrontendUpdate) -> Any:
+        def frontend_update(sid: str, data: UpdateDict) -> Any:
             logger.debug(f"Received frontend update: {data}")
-            return apply_updates_to_data_service(self.service, data)
+            return update_DataService_by_path(self.service, data)
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
