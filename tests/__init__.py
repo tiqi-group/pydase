@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Any, cast
+from typing import Any
 
 import pytest
 from loguru import logger
@@ -23,4 +23,4 @@ def emit(self: Any, parent_path: str, name: str, value: Any) -> None:
     print(f"{parent_path}.{name} = {value}")
 
 
-cast(CallbackManager, DataService._callback_manager).emit_notification = emit  # type: ignore
+CallbackManager.emit_notification = emit  # type: ignore
