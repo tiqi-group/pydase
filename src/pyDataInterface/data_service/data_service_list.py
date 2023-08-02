@@ -1,6 +1,10 @@
 from collections.abc import Callable
 from typing import Any
 
+from pyDataInterface.utils import (
+    warn_if_instance_class_does_not_inherit_from_DataService,
+)
+
 
 class DataServiceList(list):
     """
@@ -35,6 +39,9 @@ class DataServiceList(list):
         self.callbacks: list[Callable[[int, Any], None]] = []
         if isinstance(callback, list):
             self.callbacks = callback
+
+        for item in args[0]:
+            warn_if_instance_class_does_not_inherit_from_DataService(item)
 
         # prevent gc to delete the passed list by keeping a reference
         self._original_list = args[0]
