@@ -140,7 +140,7 @@ class TaskManager(AbstractTaskManager):
     def start_autostart_tasks(self) -> None:
         if self.service._autostart_tasks is not None:
             for service_name, args in self.service._autostart_tasks.items():
-                start_method = getattr(self, f"start_{service_name}", None)
+                start_method = getattr(self.service, f"start_{service_name}", None)
                 if start_method is not None and callable(start_method):
                     start_method(*args)
                 else:
