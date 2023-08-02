@@ -101,7 +101,7 @@ Once the server is running, you can access the web interface in a browser:
 
 ![Web Interface](./docs/images/Example_App.png)
 
-In this interface, you can interact with the properties of your `Device` service. For more details about using this interface, see the [full documentation](URL_TO_YOUR_DOCUMENTATION).
+In this interface, you can interact with the properties of your `Device` service.
 
 ## Documentation
 
