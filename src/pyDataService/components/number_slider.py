@@ -1,26 +1,14 @@
+from typing import Any, Literal
+
+from loguru import logger
+
 from ..data_service.data_service import DataService
 
 
 class NumberSlider(DataService):
     """
-    The `NumberSlider` class models and represents a UI component, such as a slider or
-    a dial, in the context of a data interface. This could be useful in various
-    applications, such as a lab setting where you might want to adjust a parameter
-    (e.g., temperature, voltage) within a certain range, and want to ensure that the
-    value is only adjusted in certain increments (`step_size`).
-
-    You can use it as an attribute of a `DataService` subclass to model the state of a
-    particular UI component. Here is an example of how to use the `NumberSlider` class:
-
-    ```python
-    class MyService(DataService):
-        voltage = NumberSlider(1, 0, 10, 0.1)
-
-    # Then, you can modify or access the voltage value like this:
-    my_service = MyService()
-    my_service.voltage.value = 5
-    print(my_service.voltage.value)  # Output: 5
-    ```
+    This class models a UI slider for a data service, allowing for adjustments of a
+    parameter within a specified range and increments.
 
     Parameters:
     -----------
@@ -32,6 +20,21 @@ class NumberSlider(DataService):
         The maximum value of the slider. Defaults to 100.
     step_size (float, optional):
         The increment/decrement step size of the slider. Defaults to 1.0.
+    type (Literal["int"] | Literal["float"], optional):
+        The type of the slider value. Determines if the value is an integer or float.
+        Defaults to "float".
+
+    Example:
+    --------
+    ```python
+    class MyService(DataService):
+        voltage = NumberSlider(1, 0, 10, 0.1, "int")
+
+    # Modifying or accessing the voltage value:
+    my_service = MyService()
+    my_service.voltage.value = 5
+    print(my_service.voltage.value)  # Output: 5
+    ```
     """
 
     def __init__(
@@ -40,9 +43,23 @@ class NumberSlider(DataService):
         min: int = 0,
         max: int = 100,
         step_size: float = 1.0,
+        type: Literal["int"] | Literal["float"] = "float",
     ) -> None:
         self.min = min
         self.max = max
-        self.value = value
         self.step_size = step_size
+
+        if type not in {"float", "int"}:
+            logger.error(f"Unknown type '{type}'. Using 'float'.")
+            type = "float"
+
+        self._type = type
+        self.value = value
+
         super().__init__()
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "value":
+            value = int(value) if self._type == "int" else float(value)
+
+        return super().__setattr__(name, value)
