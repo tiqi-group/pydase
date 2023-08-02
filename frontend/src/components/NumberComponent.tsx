@@ -134,7 +134,13 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   };
   const handleKeyDown = (event) => {
     const { key, target } = event;
-    if (key === 'F5' || key === 'ArrowRight' || key === 'ArrowLeft') {
+    if (
+      key === 'F1' ||
+      key === 'F5' ||
+      key === 'F12' ||
+      key === 'ArrowRight' ||
+      key === 'ArrowLeft'
+    ) {
       return;
     }
     event.preventDefault();
@@ -189,6 +195,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     // Update the input value and maintain the cursor position
     socket.emit('frontend_update', {
       name: name,
+      parent_path: parent_path,
       value: Number(newValue)
     });
 
@@ -209,24 +216,26 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
             <Form.Control
               type="text"
               value={value}
-              readOnly={readOnly}
+              disabled={readOnly}
               name={name}
               onKeyDown={handleKeyDown}
             />
           </InputGroup>
-          <div className="d-flex flex-column">
-            <Button
-              style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
-              // className="mb-1"
-              variant="outline-secondary">
-              +
-            </Button>
-            <Button
-              style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
-              variant="outline-secondary">
-              -
-            </Button>
-          </div>
+          {!readOnly && (
+            <div className="d-flex flex-column">
+              <Button
+                style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
+                // className="mb-1"
+                variant="outline-secondary">
+                +
+              </Button>
+              <Button
+                style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
+                variant="outline-secondary">
+                -
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
