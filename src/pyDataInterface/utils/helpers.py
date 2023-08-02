@@ -124,7 +124,7 @@ def generate_paths_from_DataService_dict(
     return paths
 
 
-STANDARD_TYPES = ("int", "float", "bool", "str", "Enum")
+STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType")
 
 
 def get_nested_value_by_path_and_key(data: dict, path: str, key: str = "value") -> Any:
