@@ -243,7 +243,7 @@ class Server:
 
                 async def emit_exception() -> None:
                     await self._wapi.sio.emit(  # type: ignore
-                        "notify",
+                        "exception",
                         {
                             "data": {
                                 "exception": str(exc),
