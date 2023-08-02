@@ -17,7 +17,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   useEffect(() => {
     renderCount.current++;
   });
-  const { name, parent_path: fullname, value, readOnly, docString, mapping } = props;
+  const { name, parent_path, value, readOnly, docString, mapping } = props;
 
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
 
@@ -26,20 +26,20 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const setChecked = (checked: boolean) => {
     socket.emit('frontend_update', {
       name: name,
-      fullname: fullname,
+      parent_path: parent_path,
       value: checked
     });
   };
 
   return (
-    <div className={'component boolean'} id={fullname}>
+    <div className={'component boolean'} id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
       <ToggleButton
         id="toggle-check"
         type="checkbox"
         variant={value ? 'success' : 'secondary'}
         checked={value}
-        value={fullname}
+        value={parent_path}
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         <p>{buttonName}</p>
