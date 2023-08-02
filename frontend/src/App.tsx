@@ -142,7 +142,7 @@ const App = () => {
     <>
       <Navbar expand={false} bg="primary" variant="dark" fixed="top">
         <Container fluid>
-          <Navbar.Brand href="#home">My App</Navbar.Brand>
+          <Navbar.Brand>Data Service App</Navbar.Brand>
           <Navbar.Toggle aria-controls="offcanvasNavbar" onClick={handleShowSettings} />
         </Container>
       </Navbar>
