@@ -1,6 +1,6 @@
 import asyncio
 import inspect
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import wraps
 from typing import TypedDict
@@ -16,20 +16,58 @@ class TaskDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-class TaskManager:
+class TaskManager(ABC):
     """
-    The TaskManager class is a utility class designed to manage asynchronous tasks. It
-    provides functionality for starting and stopping these tasks. The class is primarily
-    used by the DataService class to manage its tasks.
+    The TaskManager class is a utility designed to manage asynchronous tasks. It
+    provides functionality for starting, stopping, and tracking these tasks. The class
+    is primarily used by the DataService class to manage its tasks.
 
-    The TaskManager class has the following responsibilities:
+    A task in TaskManager is any asynchronous function. To add a task, you simply need
+    to define an async function within your class that extends TaskManager. For example:
 
-    - Track all running tasks.
-    - Provide the ability to start and stop tasks.
-    - Emit notifications when the status of a task changes.
+    ```python
+    class MyService(DataService):
+        async def my_task(self):
+            # Your task implementation here
+            pass
+    ```
 
-    The tasks are asynchronous functions which can be started or stopped with the
-    generated functions in this class.
+    With the above definition, TaskManager automatically creates `start_my_task` and
+    `stop_my_task` methods that can be used to control the task.
+
+    TaskManager also supports auto-starting tasks. If there are tasks that should start
+    running as soon as an instance of your class is created, you can define them in
+    `self._autostart_tasks` in your class constructor (__init__ method). Here's how:
+
+    ```python
+    class MyService(DataService):
+        def __init__(self):
+            self._autostart_tasks = {
+                "my_task": (*args)  # Replace with actual arguments
+            }
+            self.wait_time = 1
+            super().__init__()
+
+        async def my_task(self, *args):
+            while True:
+                # Your task implementation here
+                await asyncio.sleep(self.wait_time)
+    ```
+
+    In the above example, `my_task` will start running as soon as
+    `_start_autostart_tasks` is called which is done when the DataService instance is
+    passed to the `pyDataInterface.Server` class.
+
+    The responsibilities of the TaskManager class are:
+
+    - Track all running tasks: Keeps track of all the tasks that are currently running.
+    This allows for monitoring of task statuses and for making sure tasks do not
+    overlap.
+    - Provide the ability to start and stop tasks: Automatically creates methods to
+    start and stop each task.
+    - Emit notifications when the status of a task changes: Has a built-in mechanism for
+    emitting notifications when a task starts or stops. This is used to update the user
+    interfaces, but can also be used to write logs, etc.
     """
 
     def __init__(self) -> None:
