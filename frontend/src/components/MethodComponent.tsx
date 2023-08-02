@@ -6,7 +6,7 @@ import { DocStringComponent } from './DocStringComponent';
 interface MethodProps {
   name: string;
   parent_path: string;
-  parameters: { [key: string]: string };
+  parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
 }
@@ -61,7 +61,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   return (
     <div
-      className="col-3 align-items-center method"
+      className="col-5 align-items-center method"
       id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
       <h5 onClick={() => setHideOutput(!hideOutput)} style={{ cursor: 'pointer' }}>

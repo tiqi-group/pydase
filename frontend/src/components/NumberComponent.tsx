@@ -210,7 +210,7 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
       <p>Render count: {renderCount.current}</p>
       <DocStringComponent docString={docString} />
       <div className="row">
-        <div className="col-2 d-flex">
+        <div className="col-5 d-flex">
           <InputGroup>
             <InputGroup.Text>{name}</InputGroup.Text>
             <Form.Control

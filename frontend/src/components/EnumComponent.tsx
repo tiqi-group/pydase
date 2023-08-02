@@ -1,13 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  OverlayTrigger,
-  Badge,
-  Tooltip,
-  InputGroup,
-  Form,
-  Row,
-  Col
-} from 'react-bootstrap';
+import React, { useEffect, useRef } from 'react';
+import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { socket } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
@@ -40,7 +32,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       <p>Render count: {renderCount.current}</p>
       <DocStringComponent docString={docString} />
       <Row>
-        <Col className="col-2 d-flex align-items-center">
+        <Col className="col-5 d-flex align-items-center">
           <InputGroup.Text>{name}</InputGroup.Text>
           <Form.Select
             aria-label="Default select example"
