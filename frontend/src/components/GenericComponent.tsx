@@ -34,10 +34,11 @@ type GenericComponentProps = {
   attribute: Attribute;
   name: string;
   parentPath: string;
+  isInstantUpdate: boolean;
 };
 
 export const GenericComponent = React.memo(
-  ({ attribute, name, parentPath }: GenericComponentProps) => {
+  ({ attribute, name, parentPath, isInstantUpdate }: GenericComponentProps) => {
     if (attribute.type === 'bool') {
       return (
         <ButtonComponent
@@ -57,6 +58,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value)}
+          isInstantUpdate={isInstantUpdate}
         />
       );
     } else if (attribute.type === 'NumberSlider') {
@@ -70,6 +72,7 @@ export const GenericComponent = React.memo(
           min={attribute.value['min']['value']}
           max={attribute.value['max']['value']}
           stepSize={attribute.value['step_size']['value']}
+          isInstantUpdate={isInstantUpdate}
         />
       );
     } else if (attribute.type === 'Enum') {
@@ -111,6 +114,7 @@ export const GenericComponent = React.memo(
           readOnly={attribute.readonly}
           docString={attribute.doc}
           parent_path={parentPath}
+          isInstantUpdate={isInstantUpdate}
         />
       );
     } else if (attribute.type === 'DataService') {
@@ -118,15 +122,17 @@ export const GenericComponent = React.memo(
         <DataServiceComponent
           props={attribute.value as DataServiceJSON}
           parentPath={parentPath.concat('.', name)}
+          isInstantUpdate={isInstantUpdate}
         />
       );
     } else if (attribute.type === 'list') {
       return (
         <ListComponent
           name={name}
-          value={attribute.value as object[]}
+          value={attribute.value as Attribute[]}
           docString={attribute.doc}
           parent_path={parentPath}
+          isInstantUpdate={isInstantUpdate}
         />
       );
     } else {

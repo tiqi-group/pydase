@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup, Button } from 'react-bootstrap';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
 // TODO: add button functionality
@@ -12,6 +12,7 @@ interface NumberComponentProps {
   value: number;
   readOnly: boolean;
   docString: string;
+  isInstantUpdate: boolean;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
@@ -98,7 +99,7 @@ const handleDeleteKey = (
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
-  const { name, parent_path, readOnly, docString } = props;
+  const { name, parent_path, readOnly, docString, isInstantUpdate } = props;
   const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
@@ -114,7 +115,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update inputString only when value is different from numericInputString
     // preventing the removal of trailing decimals or zeros after the decimal.
-    if (props.value !== numericInputString) {
+    if (isInstantUpdate && props.value !== numericInputString) {
       setInputString(props.value.toString());
     }
 
@@ -195,22 +196,30 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionStart,
         selectionEnd
       ));
+    } else if (key === 'Enter' && !isInstantUpdate) {
+      emit_update(name, parent_path, Number(newValue));
+      return;
     } else {
       console.debug(key);
       return;
     }
 
     // Update the input value and maintain the cursor position
-    socket.emit('frontend_update', {
-      name: name,
-      parent_path: parent_path,
-      value: Number(newValue)
-    });
+    if (isInstantUpdate) {
+      emit_update(name, parent_path, Number(newValue));
+    }
 
     setInputString(newValue);
 
     // Save the current cursor position before the component re-renders
     setCursorPosition(selectionStart);
+  };
+
+  const handleBlur = () => {
+    if (!isInstantUpdate) {
+      // If not in "instant update" mode, emit an update when the input field loses focus
+      emit_update(name, parent_path, Number(inputString));
+    }
   };
 
   return (
@@ -229,6 +238,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
               disabled={readOnly}
               name={parent_path.concat(name)}
               onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
             />
           </InputGroup>
           {!readOnly && (

@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { DocStringComponent } from './DocStringComponent';
-import { GenericComponent } from './GenericComponent';
+import { Attribute, GenericComponent } from './GenericComponent';
 
 interface ListComponentProps {
   name: string;
   parent_path?: string;
-  value: object[];
+  value: Attribute[];
   docString: string;
+  isInstantUpdate: boolean;
 }
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
@@ -16,7 +17,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
     renderCount.current++;
   });
 
-  const { name, parent_path, value, docString } = props;
+  const { name, parent_path, value, docString, isInstantUpdate } = props;
 
   return (
     <div className={'component list'} id={parent_path.concat(name)}>
@@ -31,6 +32,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
             attribute={item}
             name={`${name}[${index}]`}
             parentPath={parent_path}
+            isInstantUpdate={isInstantUpdate}
           />
         );
       })}

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { socket } from '../socket';
+import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
 // TODO: add button functionality
@@ -11,22 +11,38 @@ interface StringComponentProps {
   value: string;
   readOnly: boolean;
   docString: string;
+  isInstantUpdate: boolean;
 }
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const renderCount = useRef(0);
+  const [inputString, setInputString] = useState(props.value);
 
+  const { name, parent_path, readOnly, docString, isInstantUpdate } = props;
   useEffect(() => {
     renderCount.current++;
-  });
+    if (isInstantUpdate && props.value !== inputString) {
+      setInputString(props.value);
+    }
+  }, [isInstantUpdate, props.value, inputString, renderCount]);
 
-  const { name, parent_path, value, readOnly, docString } = props;
   const handleChange = (event) => {
-    socket.emit('frontend_update', {
-      name: name,
-      parent_path: parent_path,
-      value: event.target.value
-    });
+    setInputString(event.target.value);
+    if (isInstantUpdate) {
+      emit_update(name, parent_path, event.target.value);
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && !isInstantUpdate) {
+      emit_update(name, parent_path, inputString);
+    }
+  };
+
+  const handleBlur = () => {
+    if (!isInstantUpdate) {
+      emit_update(name, parent_path, inputString);
+    }
   };
 
   return (
@@ -41,10 +57,12 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
             <InputGroup.Text>{name}</InputGroup.Text>
             <Form.Control
               type="text"
-              value={value}
+              value={inputString}
               disabled={readOnly}
               name={name}
               onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
             />
           </InputGroup>
         </div>

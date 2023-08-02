@@ -13,6 +13,7 @@ interface SliderComponentProps {
   readOnly: boolean;
   docString: string;
   stepSize: number;
+  isInstantUpdate: boolean;
 }
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {

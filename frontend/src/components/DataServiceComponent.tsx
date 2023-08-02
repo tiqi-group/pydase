@@ -7,12 +7,13 @@ import { Attribute, GenericComponent } from './GenericComponent';
 type DataServiceProps = {
   props: DataServiceJSON;
   parentPath?: string;
+  isInstantUpdate: boolean;
 };
 
 export type DataServiceJSON = Record<string, Attribute>;
 
 export const DataServiceComponent = React.memo(
-  ({ props, parentPath = 'DataService' }: DataServiceProps) => {
+  ({ props, parentPath = 'DataService', isInstantUpdate }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
 
     return (
@@ -33,6 +34,7 @@ export const DataServiceComponent = React.memo(
                     attribute={value}
                     name={key}
                     parentPath={parentPath}
+                    isInstantUpdate={isInstantUpdate}
                   />
                 );
               })}

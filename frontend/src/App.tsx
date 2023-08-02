@@ -1,4 +1,5 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import { Form } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
   DataServiceComponent,
@@ -105,6 +106,7 @@ const reducer = (state: State, action: Action): State => {
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
+  const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   // const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
@@ -134,9 +136,20 @@ const App = () => {
     return <p>Loading...</p>;
   }
   return (
-    <div className="App">
-      <DataServiceComponent props={state as DataServiceJSON} />
-    </div>
+    <>
+      <Form.Check
+        checked={isInstantUpdate}
+        onChange={(e) => setIsInstantUpdate(e.target.checked)}
+        type="switch"
+      />
+
+      <div className="App">
+        <DataServiceComponent
+          props={state as DataServiceJSON}
+          isInstantUpdate={isInstantUpdate}
+        />
+      </div>
+    </>
   );
 };
 
