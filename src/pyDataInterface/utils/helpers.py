@@ -77,8 +77,8 @@ def generate_paths_from_DataService_dict(
         list[str]: A list with paths as elements.
 
     Note:
-        The function ignores keys whose "type" is "method", as these represent methods of the
-        DataService object and not its state.
+        The function ignores keys whose "type" is "method", as these represent methods
+        of the DataService object and not its state.
 
     Example:
     -------
@@ -155,14 +155,18 @@ def get_nested_value_by_path_and_key(data: dict, path: str, key: str = "value") 
 
         >>> data = {
         >>>     "attr1": {"type": "int", "value": 10},
-        >>>     "attr2": {"type": "MyClass", "value": {"attr3": {"type": "float", "value": 20.5}}}
+        >>>     "attr2": {
+                    "type": "MyClass",
+                    "value": {"attr3": {"type": "float", "value": 20.5}}
+                }
         >>> }
 
         The function can be used to get the value of 'attr1' as follows:
         >>> get_value_of_key_from_path(data, "attr1")
         10
 
-        It can also be used to get the value of 'attr3', which is nested within 'attr2', as follows:
+        It can also be used to get the value of 'attr3', which is nested within 'attr2',
+        as follows:
         >>> get_value_of_key_from_path(data, "attr2.attr3", "type")
         float
     """

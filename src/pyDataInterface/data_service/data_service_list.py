@@ -24,8 +24,6 @@ class DataServiceList(list):
     method.
 
     Attributes:
-        _original_list (list):
-            Reference to the original list, to prevent it from being garbage collected.
         callbacks (list):
             List of callback functions to be executed on item set.
     """
