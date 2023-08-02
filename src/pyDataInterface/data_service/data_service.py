@@ -44,8 +44,10 @@ class DataService(rpyc.Service):
         self._start_async_loop_in_thread()
         self._start_autostart_tasks()
 
-        self._register_DataService_callbacks(self, f"{self.__class__.__name__}")
         self._register_list_change_callbacks(self, f"{self.__class__.__name__}")
+        self._register_DataService_instance_callbacks(
+            self, f"{self.__class__.__name__}"
+        )
         self._register_property_callbacks(self, f"{self.__class__.__name__}")
         self._check_instance_classes()
         self._initialised = True
@@ -284,7 +286,7 @@ class DataService(rpyc.Service):
             setattr(self, f"start_{name}", start_task)
             setattr(self, f"stop_{name}", stop_task)
 
-    def _register_DataService_callbacks(
+    def _register_DataService_instance_callbacks(
         self, obj: "DataService", parent_path: str
     ) -> None:
         """
@@ -334,7 +336,7 @@ class DataService(rpyc.Service):
         attrs = obj.__get_class_and_instance_attributes()
 
         for nested_attr_name, nested_attr in attrs.items():
-            if isinstance(nested_attr, list):
+            if isinstance(nested_attr, DataServiceList):
                 self._register_list_callbacks(
                     nested_attr, parent_path, nested_attr_name
                 )
@@ -363,7 +365,7 @@ class DataService(rpyc.Service):
         nested_attr.__dict__["__root__"] = self.__root__
 
         new_path = f"{parent_path}.{attr_name}"
-        self._register_DataService_callbacks(nested_attr, new_path)
+        self._register_DataService_instance_callbacks(nested_attr, new_path)
 
     def _start_loop(self) -> None:
         asyncio.set_event_loop(self.__loop)
