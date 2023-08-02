@@ -17,9 +17,6 @@ class AbstractDataService(ABC):
     loop.
     """
     _autostart_tasks: dict[str, tuple[Any]]
-    # _task_status_change_callbacks: list[Callable[[str, dict[str, Any] | None], None]]
-    # """A list of callback functions to be invoked when the status of a task (start or
-    # stop) changes."""
 
 
 class TaskDict(TypedDict):
