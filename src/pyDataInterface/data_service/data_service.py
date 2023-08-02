@@ -27,15 +27,37 @@ class DataService(rpyc.Service):
     lists, and the values are the DataServiceList instances that wrap these lists.
     """
     _notification_callbacks: list[Callable[[str, str, Any], Any]] = []
+    """
+    A list of callback functions that are executed when a change occurs in the
+    DataService instance. These functions are intended to handle or respond to these
+    changes in some way, such as emitting a socket.io message to the frontend.
+
+    Each function in this list should be a callable that accepts three parameters:
+
+    - parent_path (str): The path to the parent of the attribute that was changed.
+    - name (str): The name of the attribute that was changed.
+    - value (Any): The new value of the attribute.
+
+    A callback function can be added to this list using the add_notification_callback
+    method. Whenever a change in the DataService instance occurs (or in its nested
+    DataService or DataServiceList instances), the _emit_notification method is invoked,
+    which in turn calls all the callback functions in _notification_callbacks with the
+    appropriate arguments.
+
+    This implementation follows the observer pattern, with the DataService instance as
+    the "subject" and the callback functions as the "observers".
+    """
 
     def __init__(self) -> None:
-        # Keep track of the root object. This helps to filter the emission of
-        # notifications
         self.__root__: "DataService" = self
+        """Keep track of the root object. This helps to filter the emission of
+        notifications."""
+
         self.__loop = asyncio.get_event_loop()
 
-        # dictionary to keep track of running tasks
-        self.__tasks: dict[str, asyncio.Task[None]] = {}
+        self.__tasks: dict[str, TaskDict] = {}
+        """Dictionary to keep track of running tasks."""
+
         self._autostart_tasks: dict[str, tuple[Any]]
         if "_autostart_tasks" not in self.__dict__:
             self._autostart_tasks = {}
