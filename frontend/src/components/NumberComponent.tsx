@@ -1,37 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  OverlayTrigger,
-  Badge,
-  Tooltip,
-  Form,
-  InputGroup,
-  Button
-} from 'react-bootstrap';
+import { Form, InputGroup, Button } from 'react-bootstrap';
 import { socket } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
 // TODO: add button functionality
 
-interface ButtonComponentProps {
+interface NumberComponentProps {
   name: string;
+  type: 'float' | 'int';
   parent_path?: string;
   value: number;
   readOnly: boolean;
   docString: string;
 }
-
-const handleNumericKey = (key: string, value: string, selectionStart: number) => {
-  // Check if a number key or a decimal point key is pressed
-  if (key === '.' && value.includes('.')) {
-    // Check if value already contains a decimal. If so, ignore input.
-    // eslint-disable-next-line no-console
-    console.warn('Number already contains decimal! Ignoring...');
-    return { value, selectionStart };
-  }
-  // Add the new key at the cursor's position
-  const newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
-  return { value: newValue, selectionStart: selectionStart + 1 };
-};
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
 // selectionEnd
@@ -116,7 +97,7 @@ const handleDeleteKey = (
   return { value, selectionStart };
 };
 
-export const NumberComponent = React.memo((props: ButtonComponentProps) => {
+export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
@@ -139,6 +120,18 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
 
   const { name, parent_path, value, readOnly, docString } = props;
 
+  const handleNumericKey = (key: string, value: string, selectionStart: number) => {
+    // Check if a number key or a decimal point key is pressed
+    if (key === '.' && (value.includes('.') || props.type === 'int')) {
+      // Check if value already contains a decimal. If so, ignore input.
+      // eslint-disable-next-line no-console
+      console.warn('Invalid input! Ignoring...');
+      return { value, selectionStart };
+    }
+    // Add the new key at the cursor's position
+    const newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
+    return { value: newValue, selectionStart: selectionStart + 1 };
+  };
   const handleKeyDown = (event) => {
     const { key, target } = event;
     if (key === 'F5' || key === 'ArrowRight' || key === 'ArrowLeft') {

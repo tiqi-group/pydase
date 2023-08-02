@@ -133,23 +133,12 @@ const App = () => {
               />
             </div>
           );
-        } else if (value.type === 'int') {
+        } else if (value.type === 'float' || value.type === 'int') {
           return (
             <div key={key}>
               <NumberComponent
                 name={key}
-                parent_path="DataService"
-                docString={value.doc}
-                readOnly={value.readonly}
-                value={Number(value.value)}
-              />
-            </div>
-          );
-        } else if (value.type === 'float') {
-          return (
-            <div key={key}>
-              <NumberComponent
-                name={key}
+                type={value.type}
                 parent_path="DataService"
                 docString={value.doc}
                 readOnly={value.readonly}
