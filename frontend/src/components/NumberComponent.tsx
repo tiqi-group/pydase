@@ -109,16 +109,6 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   useEffect(() => {
     renderCount.current++;
 
-    // Parse the input string to a number for comparison
-    const numericInputString =
-      props.type === 'int' ? parseInt(inputString) : parseFloat(inputString);
-
-    // Update inputString only when value is different from numericInputString
-    // preventing the removal of trailing decimals or zeros after the decimal.
-    if (isInstantUpdate && props.value !== numericInputString) {
-      setInputString(props.value.toString());
-    }
-
     // Set the cursor position after the component re-renders
     const inputElement = document.getElementsByName(
       parent_path.concat(name)
@@ -127,6 +117,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
   });
+
+  useEffect(() => {
+    // Parse the input string to a number for comparison
+    const numericInputString =
+      props.type === 'int' ? parseInt(inputString) : parseFloat(inputString);
+    // Only update the inputString if it's different from the prop value
+    if (props.value !== numericInputString) {
+      setInputString(props.value.toString());
+    }
+  }, [props.value]);
 
   const handleNumericKey = (key: string, value: string, selectionStart: number) => {
     // Check if a number key or a decimal point key is pressed

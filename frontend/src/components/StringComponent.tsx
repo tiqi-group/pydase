@@ -21,10 +21,14 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const { name, parent_path, readOnly, docString, isInstantUpdate } = props;
   useEffect(() => {
     renderCount.current++;
-    if (isInstantUpdate && props.value !== inputString) {
+  }, [isInstantUpdate, inputString, renderCount]);
+
+  useEffect(() => {
+    // Only update the inputString if it's different from the prop value
+    if (props.value !== inputString) {
       setInputString(props.value);
     }
-  }, [isInstantUpdate, props.value, inputString, renderCount]);
+  }, [props.value]);
 
   const handleChange = (event) => {
     setInputString(event.target.value);
