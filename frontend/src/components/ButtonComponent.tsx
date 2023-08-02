@@ -1,29 +1,35 @@
-import React, { MouseEventHandler, useEffect, useRef, useState } from 'react';
-import { OverlayTrigger, Badge, Button, Tooltip, ToggleButton } from 'react-bootstrap';
+import React, { useEffect, useRef } from 'react';
+import { OverlayTrigger, Badge, Tooltip, ToggleButton } from 'react-bootstrap';
+import { socket } from '../socket';
 
 interface ButtonComponentProps {
   name: string;
-  fullname?: string;
+  parent_path?: string;
   value: boolean;
   readOnly: boolean;
   docString: string;
-  onToggle?: MouseEventHandler;
   mapping?: [string, string]; // Enforce a tuple of two strings
 }
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const renderCount = useRef(0);
 
-  const [checked, setChecked] = useState(false);
-
   useEffect(() => {
     renderCount.current++;
   });
-  const { name, fullname, value, readOnly, docString, onToggle, mapping } = props;
+  const { name, parent_path: fullname, value, readOnly, docString, mapping } = props;
 
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
 
   const tooltip = <Tooltip id="tooltip">{docString}</Tooltip>;
+
+  const setChecked = (checked: boolean) => {
+    socket.emit('frontend_update', {
+      name: name,
+      fullname: fullname,
+      value: checked
+    });
+  };
 
   return (
     <div className={'component boolean'} id={fullname}>
@@ -31,11 +37,9 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
       <ToggleButton
         id="toggle-check"
         type="checkbox"
-        // variant="secondary"
-        variant={checked ? 'success' : 'secondary'}
-        checked={checked}
+        variant={value ? 'success' : 'secondary'}
+        checked={value}
         value={fullname}
-        onMouseUp={onToggle}
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         <p>{buttonName}</p>
