@@ -22,25 +22,137 @@ from .web_server import WebAPI
 
 
 class AdditionalServerProtocol(Protocol):
+    """
+    A Protocol that defines the interface for additional servers.
+
+    This protocol sets the standard for how additional servers should be implemented
+    to ensure compatibility with the main Server class. The protocol requires that
+    any server implementing it should have an __init__ method for initialization, a
+    serve method for starting the server, and an install_signal_handlers method for
+    setting up signal handlers.
+
+    Parameters:
+    -----------
+    service: DataService
+        The instance of DataService that the server will use. This could be the main
+        application or a specific service that the server will provide.
+
+    port: int
+        The port number at which the server will be accessible. This should be a valid
+        port number, typically in the range 1024-65535.
+
+    host: str
+        The hostname or IP address at which the server will be hosted. This could be a
+        local address (like '127.0.0.1' for localhost) or a public IP address.
+
+    **kwargs: Any
+        Any additional parameters required for initializing the server. These parameters
+        are specific to the server's implementation.
+    """
+
     def __init__(
         self, service: DataService, port: int, host: str, **kwargs: Any
     ) -> None:
         ...
 
     async def serve(self) -> Any:
+        """Starts the server. This method should be implemented as an asynchronous
+        method, which means that it should be able to run concurrently with other tasks.
+        """
         ...
 
     def install_signal_handlers(self) -> None:
+        """Sets up signal handlers for the server. This method is used to define how the
+        server should respond to various system signals, such as SIGINT and SIGTERM.
+        """
         ...
 
 
 class AdditionalServer(TypedDict):
+    """
+    A TypedDict that represents the configuration for an additional server to be run
+    alongside the main server.
+
+    This class is used to specify the server type, the port on which the server should
+    run, and any additional keyword arguments that should be passed to the server when
+    it's instantiated.
+    """
+
     server: type[AdditionalServerProtocol]
     port: int
     kwargs: dict[str, Any]
 
 
 class Server:
+    """
+    The `Server` class provides a flexible server implementation for the `DataService`.
+
+    Parameters:
+    -----------
+    service: DataService
+        The DataService instance that this server will manage.
+    host: str
+        The host address for the server. Default is '0.0.0.0', which means all available
+        network interfaces.
+    rpc_port: int
+        The port number for the RPC server. Default is 18871.
+    web_port: int
+        The port number for the web server. Default is 8001.
+    enable_rpc: bool
+        Whether to enable the RPC server. Default is True.
+    enable_web: bool
+        Whether to enable the web server. Default is True.
+    use_forking_server: bool
+        Whether to use ForkingServer for multiprocessing (e.g. for a database interface
+        server). Default is False.
+    web_settings: dict[str, Any]
+        Additional settings for the web server. Default is {} (an empty dictionary).
+    additional_servers : list[AdditionalServer]
+        A list of additional servers to run alongside the main server. Each entry in the
+        list should be a dictionary with the following structure:
+
+        - server: A class that adheres to the AdditionalServerProtocol. This class
+            should have an `__init__` method that accepts the DataService instance,
+            port, host, and optional keyword arguments, and a `serve` method that is a
+            coroutine responsible for starting the server.
+        - port: The port on which the additional server will be running.
+        - kwargs: A dictionary containing additional keyword arguments that will be
+            passed to the server's `__init__` method.
+
+        Here's an example of how you might define an additional server:
+
+
+        >>>     class MyCustomServer:
+        ...         def __init__(
+        ...             self, service: DataService, port: int, host: str, **kwargs: Any
+        ...         ):
+        ...             self.service = service
+        ...             self.port = port
+        ...             self.host = host
+        ...             # handle any additional arguments...
+        ...
+        ...         async def serve(self):
+        ...             # code to start the server...
+
+        And here's how you might add it to the `additional_servers` list when creating a
+        `Server` instance:
+
+        >>>    server = Server(
+        ...        service=my_data_service,
+        ...        additional_servers=[
+        ...            {
+        ...                "server": MyCustomServer,
+        ...                "port": 12345,
+        ...                "kwargs": {"some_arg": "some_value"}
+        ...            }
+        ...        ],
+        ...    )
+        ...    server.run()
+
+    **kwargs: Any
+        Additional keyword arguments.
+    """
+
     def __init__(  # noqa: CFQ002
         self,
         service: DataService,
@@ -81,6 +193,17 @@ class Server:
         }
 
     def run(self) -> None:
+        """
+        Initializes the asyncio event loop and starts the server.
+
+        This method should be called to start the server after it's been instantiated.
+
+        Raises
+        ------
+        Exception
+            If there's an error while running the server, the error will be propagated
+            after the server is shut down.
+        """
         try:
             self._loop = asyncio.get_event_loop()
         except RuntimeError:
