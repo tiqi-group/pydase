@@ -9,6 +9,7 @@ def warn_if_instance_class_does_not_inherit_from_DataService(__value: object) ->
         "builtins",
         "__builtin__",
         "asyncio.unix_events",
+        "_abc",
     ] and base_class_name not in ["DataService", "list", "Enum"]:
         logger.warning(
             f"Warning: Class {type(__value).__name__} does not inherit from DataService."
