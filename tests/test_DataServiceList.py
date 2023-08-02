@@ -1,43 +1,6 @@
-from typing import Any
-
 from pytest import CaptureFixture
 
 from pyDataInterface import DataService
-
-
-def emit(self: Any, access_path: set[str], name: str, value: Any) -> None:
-    if isinstance(value, DataService):
-        value = value.serialize()
-
-    for path in access_path:
-        print(f"{path}.{name} = {value}")
-
-
-DataService._emit = emit  # type: ignore
-
-
-def test_class_attribute(capsys: CaptureFixture) -> None:
-    class ServiceClass(DataService):
-        attr = 0
-
-    service_instance = ServiceClass()
-
-    service_instance.attr = 1
-    captured = capsys.readouterr()
-    assert captured.out == "ServiceClass.attr = 1\n"
-
-
-def test_instance_attribute(capsys: CaptureFixture) -> None:
-    class ServiceClass(DataService):
-        def __init__(self) -> None:
-            self.attr = "Hello World"
-            super().__init__()
-
-    service_instance = ServiceClass()
-
-    service_instance.attr = "Hello"
-    captured = capsys.readouterr()
-    assert captured.out == "ServiceClass.attr = Hello\n"
 
 
 def test_class_list_attribute(capsys: CaptureFixture) -> None:
@@ -89,15 +52,15 @@ def test_reused_instance_list_attribute(capsys: CaptureFixture) -> None:
 
     service_instance = ServiceClass()
 
-    service_instance.attr[0] = "Hello"
+    service_instance.attr[0] = 20
     captured = capsys.readouterr()
 
     assert service_instance.attr == service_instance.attr_2
     assert service_instance.attr != service_instance.attr_3
     expected_output = sorted(
         [
-            "ServiceClass.attr[0] = Hello",
-            "ServiceClass.attr_2[0] = Hello",
+            "ServiceClass.attr[0] = 20",
+            "ServiceClass.attr_2[0] = 20",
         ]
     )
     actual_output = sorted(captured.out.strip().split("\n"))
@@ -123,15 +86,15 @@ def test_nested_reused_instance_list_attribute(capsys: CaptureFixture) -> None:
     service_instance = ServiceClass()
 
     _ = capsys.readouterr()
-    service_instance.attr[0] = "Hello"
+    service_instance.attr[0] = 20
     captured = capsys.readouterr()
 
     assert service_instance.attr == service_instance.subclass.attr_list
     expected_output = sorted(
         [
-            "ServiceClass.subclass.attr_list_2[0] = Hello",
-            "ServiceClass.subclass.attr_list[0] = Hello",
-            "ServiceClass.attr[0] = Hello",
+            "ServiceClass.subclass.attr_list_2[0] = 20",
+            "ServiceClass.subclass.attr_list[0] = 20",
+            "ServiceClass.attr[0] = 20",
         ]
     )
     actual_output = sorted(captured.out.strip().split("\n"))
