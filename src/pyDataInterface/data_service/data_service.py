@@ -2,6 +2,7 @@ import asyncio
 import inspect
 from collections.abc import Callable
 from enum import Enum
+from functools import wraps
 from itertools import chain
 from typing import Any
 
@@ -95,6 +96,7 @@ class DataService(rpyc.Service):
             self, predicate=inspect.iscoroutinefunction
         ):
 
+            @wraps(method)
             def start_task(*args: Any, **kwargs: Any) -> None:
                 async def task(*args: Any, **kwargs: Any) -> None:
                     try:
@@ -507,7 +509,6 @@ class DataService(rpyc.Service):
                     "type": "method",
                     "async": asyncio.iscoroutinefunction(value),
                     "parameters": parameters,
-                    "readonly": False,
                     "doc": inspect.getdoc(value),
                 }
             elif isinstance(getattr(self.__class__, key, None), property):
