@@ -15,7 +15,7 @@ uvicorn = "^0.22.0"
 toml = "^0.10.2"
 types-toml = "^0.10.8.6"
 tiqi-rpc = {git = "git@gitlab.phys.ethz.ch:tiqi-projects/tiqi-rpc-python.git"}
-python-socketio = "^4.6.1"
+python-socketio = "^5.8.0"
 websockets = "^11.0.3"
 confz = "^1.8.2"
 
