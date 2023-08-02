@@ -121,7 +121,7 @@ class DataService(rpyc.Service, TaskManager):
         self._register_property_callbacks(self, f"{self.__class__.__name__}")
         self._register_start_stop_task_callbacks(self, f"{self.__class__.__name__}")
 
-    def _register_list_change_callbacks(
+    def _register_list_change_callbacks(  # noqa: C901
         self, obj: "DataService", parent_path: str
     ) -> None:
         """
@@ -308,7 +308,7 @@ class DataService(rpyc.Service, TaskManager):
                             attr_value, callback
                         )
 
-    def _register_property_callbacks(
+    def _register_property_callbacks(  # noqa: C901
         self,
         obj: "DataService",
         parent_path: str,
@@ -375,7 +375,7 @@ class DataService(rpyc.Service, TaskManager):
                         )
                     else:
                         callback = (
-                            lambda name, _, dependent_attr=attr_name, dep=dependency: obj._emit_notification(
+                            lambda name, _, dependent_attr=attr_name, dep=dependency: obj._emit_notification(  # type: ignore
                                 parent_path=parent_path,
                                 name=dependent_attr,
                                 value=getattr(obj, dependent_attr),
@@ -401,7 +401,7 @@ class DataService(rpyc.Service, TaskManager):
             except Exception as e:
                 logger.error(e)
 
-    def serialize(self, prefix: str = "") -> dict[str, dict[str, Any]]:
+    def serialize(self, prefix: str = "") -> dict[str, dict[str, Any]]:  # noqa
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.

@@ -43,7 +43,7 @@ class WebAPI:
         self.setup_socketio()
         self.setup_fastapi_app()
 
-    def setup_socketio(self) -> None:
+    def setup_socketio(self) -> None:  # noqa: C901
         # the socketio ASGI app, to notify clients when params update
         if self.enable_CORS:
             sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
