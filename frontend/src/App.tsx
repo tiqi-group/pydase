@@ -1,10 +1,11 @@
 import { useEffect, useReducer } from 'react';
-import { Component, ComponentLabel } from './components/component';
 import { ButtonComponent } from './components/ButtonComponent';
 import { NumberComponent } from './components/NumberComponent';
 import { SliderComponent } from './components/SliderComponent';
 import { EnumComponent } from './components/EnumComponent';
 import { socket } from './socket';
+import { MethodComponent } from './components/MethodComponent';
+import { AsyncMethodComponent } from './components/AsyncMethodComponent';
 
 type AttributeType =
   | 'str'
@@ -183,20 +184,31 @@ const App = () => {
               />
             </div>
           );
-        } else if (!value.async) {
-          return (
-            <div key={key}>
-              <ComponentLabel name={key} docString={value.doc} />
-              <Component
-                name={key}
-                parent_path="DataService"
-                value={value.value}
-                readOnly={value.readonly}
-                type={value.type}
-                docString={value.doc}
-              />
-            </div>
-          );
+        } else if (value.type === 'method') {
+          if (!value.async) {
+            return (
+              <div key={key}>
+                <MethodComponent
+                  name={key}
+                  parent_path="DataService"
+                  docString={value.doc}
+                  parameters={value.parameters}
+                />
+              </div>
+            );
+          } else {
+            return (
+              <div key={key}>
+                <AsyncMethodComponent
+                  name={key}
+                  parent_path="DataService"
+                  docString={value.doc}
+                  parameters={value.parameters}
+                  value={value.value as Record<string, string>}
+                />
+              </div>
+            );
+          }
         } else {
           return <div key={key}></div>;
         }
