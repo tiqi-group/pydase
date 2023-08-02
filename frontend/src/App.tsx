@@ -1,7 +1,9 @@
 import { useEffect, useReducer } from 'react';
-import { socket } from './socket';
-import { DataServiceComponent } from './components/DataServiceComponent';
-import { DataServiceJSON } from './components/GenericComponent';
+import { hostname, port, socket } from './socket';
+import {
+  DataServiceComponent,
+  DataServiceJSON
+} from './components/DataServiceComponent';
 
 type ValueType = boolean | string | number | object;
 
@@ -107,7 +109,7 @@ const App = () => {
 
   useEffect(() => {
     // Fetch data from the API when the component mounts
-    fetch('http://localhost:8001/service-properties')
+    fetch(`http://${hostname}:${port}/service-properties`)
       .then((response) => response.json())
       .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
 
