@@ -321,7 +321,7 @@ class CallbackManager(AbstractCallbackManager):
             else None
         )
 
-        obj._task_manager._task_status_change_callbacks.append(callback)
+        obj._task_manager.task_status_change_callbacks.append(callback)
 
         # Recursively register callbacks for all nested attributes of the object
         attrs: dict[str, Any] = get_class_and_instance_attributes(obj)

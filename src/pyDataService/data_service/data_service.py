@@ -247,9 +247,9 @@ class DataService(rpyc.Service, AbstractDataService):
                 }
                 running_task_info = None
                 if (
-                    key in self._task_manager._tasks
+                    key in self._task_manager.tasks
                 ):  # If there's a running task for this method
-                    task_info = self._task_manager._tasks[key]
+                    task_info = self._task_manager.tasks[key]
                     running_task_info = task_info["kwargs"]
 
                 result[key] = {

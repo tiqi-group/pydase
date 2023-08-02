@@ -25,10 +25,10 @@ class TaskDict(TypedDict):
 
 
 class AbstractTaskManager(ABC):
-    _task_status_change_callbacks: list[Callable[[str, dict[str, Any] | None], Any]]
+    task_status_change_callbacks: list[Callable[[str, dict[str, Any] | None], Any]]
     """A list of callback functions to be invoked when the status of a task (start or
     stop) changes."""
-    _tasks: dict[str, TaskDict]
+    tasks: dict[str, TaskDict]
     """A dictionary to keep track of running tasks. The keys are the names of the
     tasks and the values are TaskDict instances which include the task itself and
     its kwargs.

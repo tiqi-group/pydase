@@ -1,17 +1,11 @@
 import asyncio
 import inspect
 from functools import wraps
-from typing import TypedDict
+from typing import Any
 
 from loguru import logger
-from tiqi_rpc import Any
 
 from .abstract_service_classes import AbstractDataService, AbstractTaskManager
-
-
-class TaskDict(TypedDict):
-    task: asyncio.Task[None]
-    kwargs: dict[str, Any]
 
 
 class TaskManager(AbstractTaskManager):
@@ -72,9 +66,9 @@ class TaskManager(AbstractTaskManager):
         self.service = service
         self._loop = asyncio.get_event_loop()
 
-        self._tasks = {}
+        self.tasks = {}
 
-        self._task_status_change_callbacks = []
+        self.task_status_change_callbacks = []
 
         self._set_start_and_stop_for_async_methods()
 
@@ -92,7 +86,7 @@ class TaskManager(AbstractTaskManager):
                     except asyncio.CancelledError:
                         print(f"Task {name} was cancelled")
 
-                if not self._tasks.get(name):
+                if not self.tasks.get(name):
                     # Get the signature of the coroutine method to start
                     sig = inspect.signature(method)
 
@@ -118,25 +112,25 @@ class TaskManager(AbstractTaskManager):
                     # Store the task and its arguments in the '__tasks' dictionary. The
                     # key is the name of the method, and the value is a dictionary
                     # containing the task object and the updated keyword arguments.
-                    self._tasks[name] = {
+                    self.tasks[name] = {
                         "task": self._loop.create_task(task(*args, **kwargs)),
                         "kwargs": kwargs_updated,
                     }
 
                     # emit the notification that the task was started
-                    for callback in self._task_status_change_callbacks:
+                    for callback in self.task_status_change_callbacks:
                         callback(name, kwargs_updated)
                 else:
                     logger.error(f"Task `{name}` is already running!")
 
             def stop_task() -> None:
                 # cancel the task
-                task = self._tasks.pop(name)
+                task = self.tasks.pop(name)
                 if task is not None:
                     self._loop.call_soon_threadsafe(task["task"].cancel)
 
                     # emit the notification that the task was stopped
-                    for callback in self._task_status_change_callbacks:
+                    for callback in self.task_status_change_callbacks:
                         callback(name, None)
 
             # create start and stop methods for each coroutine
