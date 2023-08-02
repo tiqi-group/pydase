@@ -1,37 +1,15 @@
 import { useEffect, useReducer } from 'react';
-import { ButtonComponent } from './components/ButtonComponent';
-import { NumberComponent } from './components/NumberComponent';
-import { SliderComponent } from './components/SliderComponent';
-import { EnumComponent } from './components/EnumComponent';
 import { socket } from './socket';
-import { MethodComponent } from './components/MethodComponent';
-import { AsyncMethodComponent } from './components/AsyncMethodComponent';
-
-type AttributeType =
-  | 'str'
-  | 'bool'
-  | 'float'
-  | 'int'
-  | 'method'
-  | 'DataService'
-  | 'Enum'
-  | 'NumberSlider';
+import {
+  DataServiceComponent,
+  DataServiceJSON
+} from './components/DataServiceComponent';
 
 type ValueType = boolean | string | number | object;
-interface Attribute {
-  type: AttributeType;
-  value?: ValueType;
-  readonly: boolean;
-  doc?: string | null;
-  parameters?: Record<string, string>;
-  async?: boolean;
-  enum?: Record<string, string>;
-}
 
-type MyData = Record<string, Attribute>;
-type State = MyData | null;
+type State = DataServiceJSON | null;
 type Action =
-  | { type: 'SET_DATA'; data: MyData }
+  | { type: 'SET_DATA'; data: DataServiceJSON }
   | { type: 'UPDATE_ATTRIBUTE'; parent_path: string; name: string; value: ValueType };
 type NotificationElement = {
   data: { parent_path: string; name: string; value: object };
@@ -96,7 +74,7 @@ const App = () => {
     // Fetch data from the API when the component mounts
     fetch('http://localhost:8001/service-properties')
       .then((response) => response.json())
-      .then((data: MyData) => dispatch({ type: 'SET_DATA', data }));
+      .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
 
     function onNotify(value: NotificationElement) {
       dispatch({
@@ -120,88 +98,7 @@ const App = () => {
   }
   return (
     <div className="App">
-      {Object.entries(state).map(([key, value]) => {
-        if (value.type === 'bool') {
-          return (
-            <div key={key}>
-              <ButtonComponent
-                name={key}
-                parent_path="DataService"
-                docString={value.doc}
-                readOnly={value.readonly}
-                value={Boolean(value.value)}
-              />
-            </div>
-          );
-        } else if (value.type === 'float' || value.type === 'int') {
-          return (
-            <div key={key}>
-              <NumberComponent
-                name={key}
-                type={value.type}
-                parent_path="DataService"
-                docString={value.doc}
-                readOnly={value.readonly}
-                value={Number(value.value)}
-              />
-            </div>
-          );
-        } else if (value.type === 'NumberSlider') {
-          return (
-            <div key={key}>
-              <SliderComponent
-                name={key}
-                parent_path="DataService"
-                docString={value.doc}
-                readOnly={value.readonly}
-                value={value.value['value']['value']}
-                min={value.value['min']['value']}
-                max={value.value['max']['value']}
-                stepSize={value.value['step_size']['value']}
-              />
-            </div>
-          );
-        } else if (value.type === 'Enum') {
-          return (
-            <div key={key}>
-              <EnumComponent
-                name={key}
-                parent_path="DataService"
-                docString={value.doc}
-                value={String(value.value)}
-                enumDict={value.enum}
-              />
-            </div>
-          );
-        } else if (value.type === 'method') {
-          if (!value.async) {
-            return (
-              <div key={key}>
-                <MethodComponent
-                  name={key}
-                  parent_path="DataService"
-                  docString={value.doc}
-                  parameters={value.parameters}
-                />
-              </div>
-            );
-          } else {
-            return (
-              <div key={key}>
-                <AsyncMethodComponent
-                  name={key}
-                  parent_path="DataService"
-                  docString={value.doc}
-                  parameters={value.parameters}
-                  value={value.value as Record<string, string>}
-                />
-              </div>
-            );
-          }
-        } else {
-          return <div key={key}></div>;
-        }
-      })}
+      <DataServiceComponent props={state as DataServiceJSON} />
     </div>
   );
 };
