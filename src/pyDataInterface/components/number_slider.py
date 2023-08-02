@@ -1,4 +1,4 @@
-from pyDataInterface import DataService
+from ..data_service.data_service import DataService
 
 
 class NumberSlider(DataService):
