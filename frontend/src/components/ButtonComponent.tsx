@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { OverlayTrigger, Badge, Tooltip, ToggleButton } from 'react-bootstrap';
 import { socket } from '../socket';
+import { DocStringComponent } from './DocStringComponent';
 
 interface ButtonComponentProps {
   name: string;
@@ -21,8 +22,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
 
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
 
-  const tooltip = <Tooltip id="tooltip">{docString}</Tooltip>;
-
   const setChecked = (checked: boolean) => {
     socket.emit('frontend_update', {
       name: name,
@@ -34,6 +33,8 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   return (
     <div className={'component boolean'} id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
+
+      <DocStringComponent docString={docString} />
       <ToggleButton
         id="toggle-check"
         type="checkbox"
@@ -44,14 +45,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         <p>{buttonName}</p>
       </ToggleButton>
-
-      {docString && (
-        <OverlayTrigger placement="bottom" overlay={tooltip}>
-          <Badge pill className="tooltip-trigger" bg="light" text="dark">
-            ?
-          </Badge>
-        </OverlayTrigger>
-      )}
     </div>
   );
 });

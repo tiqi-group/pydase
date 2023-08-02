@@ -8,6 +8,7 @@ import {
   Button
 } from 'react-bootstrap';
 import { socket } from '../socket';
+import { DocStringComponent } from './DocStringComponent';
 
 // TODO: add button functionality
 
@@ -138,8 +139,6 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
 
   const { name, parent_path, value, readOnly, docString } = props;
 
-  const tooltip = <Tooltip id="tooltip">{docString}</Tooltip>;
-
   const handleKeyDown = (event) => {
     const { key, target } = event;
     if (key === 'F5' || key === 'ArrowRight' || key === 'ArrowLeft') {
@@ -209,6 +208,7 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
   return (
     <div className={'component boolean'} id={parent_path.concat(name)}>
       <p>Render count: {renderCount.current}</p>
+      <DocStringComponent docString={docString} />
       <div className="row">
         <div className="col-2 d-flex">
           <InputGroup>
@@ -236,14 +236,6 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
           </div>
         </div>
       </div>
-
-      {docString && (
-        <OverlayTrigger placement="bottom" overlay={tooltip}>
-          <Badge pill className="tooltip-trigger" bg="light" text="dark">
-            ?
-          </Badge>
-        </OverlayTrigger>
-      )}
     </div>
   );
 });

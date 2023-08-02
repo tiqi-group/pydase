@@ -11,8 +11,8 @@ import {
   Collapse
 } from 'react-bootstrap';
 import { socket } from '../socket';
-import './NumberComponent.css';
 import RangeSlider from 'react-bootstrap-range-slider';
+import { DocStringComponent } from './DocStringComponent';
 
 interface SliderComponentProps {
   name: string;
@@ -37,8 +37,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const [min, setMin] = useState(props.min);
   const [max, setMax] = useState(props.max);
   const [stepSize, setStepSize] = useState(props.stepSize);
-
-  const tooltip = <Tooltip id="tooltip">{docString}</Tooltip>;
 
   const socketEmit = (
     newNumber: number,
@@ -75,6 +73,8 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   return (
     <div className={'component boolean'} id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
+
+      <DocStringComponent docString={docString} />
       <Row>
         <Col className="col-2 d-flex align-items-center">
           <InputGroup.Text style={{ height: '65px' }}>{name}</InputGroup.Text>
@@ -126,14 +126,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
           </div>
         </Collapse>
       </Row>
-
-      {docString && (
-        <OverlayTrigger placement="bottom" overlay={tooltip}>
-          <Badge pill className="tooltip-trigger" bg="light" text="dark">
-            ?
-          </Badge>
-        </OverlayTrigger>
-      )}
     </div>
   );
 });
