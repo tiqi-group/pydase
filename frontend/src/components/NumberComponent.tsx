@@ -143,6 +143,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       key === 'F1' ||
       key === 'F5' ||
       key === 'F12' ||
+      key === 'Tab' ||
       key === 'ArrowRight' ||
       key === 'ArrowLeft'
     ) {
