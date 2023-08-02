@@ -170,7 +170,3 @@ class TaskManager(ABC):
                     logger.warning(
                         f"No start method found for service '{service_name}'"
                     )
-
-    @abstractmethod
-    def _emit_notification(self, parent_path: str, name: str, value: Any) -> None:
-        raise NotImplementedError

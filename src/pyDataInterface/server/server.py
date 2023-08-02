@@ -162,7 +162,7 @@ class Server:
 
                 self._loop.create_task(notify())
 
-            self._service.add_notification_callback(sio_callback)
+            self._service._callback_manager.add_notification_callback(sio_callback)
 
             # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
             # SIGTERM, which makes it impossible to escape out of

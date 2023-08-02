@@ -1,11 +1,12 @@
 from collections.abc import Generator
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from loguru import logger
 from pytest import LogCaptureFixture
 
 from pyDataInterface import DataService
+from pyDataInterface.data_service.callback_manager import CallbackManager
 
 
 @pytest.fixture
@@ -22,4 +23,4 @@ def emit(self: Any, parent_path: str, name: str, value: Any) -> None:
     print(f"{parent_path}.{name} = {value}")
 
 
-DataService._emit_notification = emit  # type: ignore
+cast(CallbackManager, DataService._callback_manager).emit_notification = emit  # type: ignore
