@@ -99,7 +99,7 @@ class Server:
         self._loop = asyncio.get_running_loop()
         self._loop.set_exception_handler(self.custom_exception_handler)
         self.install_signal_handlers()
-        self._service._start_autostart_tasks()
+        self._service._task_manager.start_autostart_tasks()
 
         if self._enable_rpc:
             self.executor = ThreadPoolExecutor()

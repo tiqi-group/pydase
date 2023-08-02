@@ -2,7 +2,6 @@ import asyncio
 import inspect
 import json
 import os
-from collections.abc import Callable
 from enum import Enum
 from typing import Any, Optional, cast, get_type_hints
 
@@ -22,7 +21,7 @@ from pyDataInterface.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
 
-from .abstract_data_service import AbstractDataService
+from .abstract_service_classes import AbstractDataService
 from .callback_manager import CallbackManager
 from .task_manager import TaskManager
 
@@ -38,10 +37,14 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
     )
 
 
-class DataService(rpyc.Service, AbstractDataService, TaskManager):
+class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, filename: Optional[str] = None) -> None:
-        TaskManager.__init__(self)
         self._callback_manager: CallbackManager = CallbackManager(self)
+        self._task_manager = TaskManager(self)
+
+        if not hasattr(self, "_autostart_tasks"):
+            self._autostart_tasks = {}
+
         self.__root__: "DataService" = self
         """Keep track of the root object. This helps to filter the emission of
         notifications. This overwrite the TaksManager's __root__ attribute."""
@@ -52,6 +55,50 @@ class DataService(rpyc.Service, AbstractDataService, TaskManager):
         self.__check_instance_classes()
         self._initialised = True
         self._load_values_from_json()
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        current_value = getattr(self, __name, None)
+        # parse ints into floats if current value is a float
+        if isinstance(current_value, float) and isinstance(__value, int):
+            __value = float(__value)
+
+        super().__setattr__(__name, __value)
+
+        if self.__dict__.get("_initialised") and not __name == "_initialised":
+            for callback in self._callback_manager.callbacks:
+                callback(__name, __value)
+        elif __name.startswith(f"_{self.__class__.__name__}__"):
+            logger.warning(
+                f"Warning: You should not set private but rather protected attributes! "
+                f"Use {__name.replace(f'_{self.__class__.__name__}__', '_')} instead "
+                f"of {__name.replace(f'_{self.__class__.__name__}__', '__')}."
+            )
+
+    def __check_instance_classes(self) -> None:
+        for attr_name, attr_value in get_class_and_instance_attributes(self).items():
+            # every class defined by the user should inherit from DataService
+            if not attr_name.startswith("_DataService__"):
+                warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
+
+    def _rpyc_getattr(self, name: str) -> Any:
+        if name.startswith("_"):
+            # disallow special and private attributes
+            raise AttributeError("cannot access private/special names")
+        # allow all other attributes
+        return getattr(self, name)
+
+    def _rpyc_setattr(self, name: str, value: Any) -> None:
+        if name.startswith("_"):
+            # disallow special and private attributes
+            raise AttributeError("cannot access private/special names")
+
+        # check if the attribute has a setter method
+        attr = getattr(self, name, None)
+        if isinstance(attr, property) and attr.fset is None:
+            raise AttributeError(f"{name} attribute does not have a setter method")
+
+        # allow all other attributes
+        setattr(self, name, value)
 
     def _load_values_from_json(self) -> None:
         if self._filename is not None:
@@ -100,50 +147,6 @@ class DataService(rpyc.Service, AbstractDataService, TaskManager):
                     f'Attribute type of "{path}" changed from "{value_type}" to '
                     f'"{class_value_type}". Ignoring value from JSON file...'
                 )
-
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        current_value = getattr(self, __name, None)
-        # parse ints into floats if current value is a float
-        if isinstance(current_value, float) and isinstance(__value, int):
-            __value = float(__value)
-
-        super().__setattr__(__name, __value)
-
-        if self.__dict__.get("_initialised") and not __name == "_initialised":
-            for callback in self._callback_manager.callbacks:
-                callback(__name, __value)
-        elif __name.startswith(f"_{self.__class__.__name__}__"):
-            logger.warning(
-                f"Warning: You should not set private but rather protected attributes! "
-                f"Use {__name.replace(f'_{self.__class__.__name__}__', '_')} instead "
-                f"of {__name.replace(f'_{self.__class__.__name__}__', '__')}."
-            )
-
-    def _rpyc_getattr(self, name: str) -> Any:
-        if name.startswith("_"):
-            # disallow special and private attributes
-            raise AttributeError("cannot access private/special names")
-        # allow all other attributes
-        return getattr(self, name)
-
-    def _rpyc_setattr(self, name: str, value: Any) -> None:
-        if name.startswith("_"):
-            # disallow special and private attributes
-            raise AttributeError("cannot access private/special names")
-
-        # check if the attribute has a setter method
-        attr = getattr(self, name, None)
-        if isinstance(attr, property) and attr.fset is None:
-            raise AttributeError(f"{name} attribute does not have a setter method")
-
-        # allow all other attributes
-        setattr(self, name, value)
-
-    def __check_instance_classes(self) -> None:
-        for attr_name, attr_value in get_class_and_instance_attributes(self).items():
-            # every class defined by the user should inherit from DataService
-            if not attr_name.startswith("_DataService__"):
-                warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
 
     def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
         """
@@ -243,8 +246,10 @@ class DataService(rpyc.Service, AbstractDataService, TaskManager):
                     for k, v in sig.parameters.items()
                 }
                 running_task_info = None
-                if key in self._tasks:  # If there's a running task for this method
-                    task_info = self._tasks[key]
+                if (
+                    key in self._task_manager._tasks
+                ):  # If there's a running task for this method
+                    task_info = self._task_manager._tasks[key]
                     running_task_info = task_info["kwargs"]
 
                 result[key] = {

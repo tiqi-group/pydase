@@ -1,14 +1,12 @@
 import asyncio
 import inspect
-from abc import ABC, abstractmethod
-from collections.abc import Callable
 from functools import wraps
 from typing import TypedDict
 
 from loguru import logger
 from tiqi_rpc import Any
 
-from pyDataInterface.utils.helpers import get_class_and_instance_attributes
+from .abstract_service_classes import AbstractDataService, AbstractTaskManager
 
 
 class TaskDict(TypedDict):
@@ -16,7 +14,7 @@ class TaskDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-class TaskManager(ABC):
+class TaskManager(AbstractTaskManager):
     """
     The TaskManager class is a utility designed to manage asynchronous tasks. It
     provides functionality for starting, stopping, and tracking these tasks. The class
@@ -70,35 +68,20 @@ class TaskManager(ABC):
     interfaces, but can also be used to write logs, etc.
     """
 
-    def __init__(self) -> None:
-        self.__root__: "TaskManager" = self
-        """Keep track of the root object. This helps to filter the emission of
-        notifications."""
-
+    def __init__(self, service: AbstractDataService) -> None:
+        self.service = service
         self._loop = asyncio.get_event_loop()
 
-        self._autostart_tasks: dict[str, tuple[Any]]
-        if "_autostart_tasks" not in self.__dict__:
-            self._autostart_tasks = {}
+        self._tasks = {}
 
-        self._tasks: dict[str, TaskDict] = {}
-        """A dictionary to keep track of running tasks. The keys are the names of the
-        tasks and the values are TaskDict instances which include the task itself and
-        its kwargs.
-        """
-
-        self._task_status_change_callbacks: list[
-            Callable[[str, dict[str, Any] | None], Any]
-        ] = []
-        """A list of callback functions to be invoked when the status of a task (start
-        or stop) changes."""
+        self._task_status_change_callbacks = []
 
         self._set_start_and_stop_for_async_methods()
 
     def _set_start_and_stop_for_async_methods(self) -> None:  # noqa: C901
         # inspect the methods of the class
         for name, method in inspect.getmembers(
-            self, predicate=inspect.iscoroutinefunction
+            self.service, predicate=inspect.iscoroutinefunction
         ):
 
             @wraps(method)
@@ -157,12 +140,12 @@ class TaskManager(ABC):
                         callback(name, None)
 
             # create start and stop methods for each coroutine
-            setattr(self, f"start_{name}", start_task)
-            setattr(self, f"stop_{name}", stop_task)
+            setattr(self.service, f"start_{name}", start_task)
+            setattr(self.service, f"stop_{name}", stop_task)
 
-    def _start_autostart_tasks(self) -> None:
-        if self._autostart_tasks is not None:
-            for service_name, args in self._autostart_tasks.items():
+    def start_autostart_tasks(self) -> None:
+        if self.service._autostart_tasks is not None:
+            for service_name, args in self.service._autostart_tasks.items():
                 start_method = getattr(self, f"start_{service_name}", None)
                 if start_method is not None and callable(start_method):
                     start_method(*args)
