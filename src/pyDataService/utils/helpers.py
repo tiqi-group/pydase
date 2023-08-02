@@ -236,7 +236,9 @@ def convert_arguments_to_hinted_types(
     return args
 
 
-def update_value_if_changed(target: Any, attr_name: str | int, new_value: Any) -> None:
+def update_value_if_changed(
+    target: Any, attr_name_or_index: str | int, new_value: Any
+) -> None:
     """
     Updates the value of an attribute or a list element on a target object if the new
     value differs from the current one.
@@ -253,25 +255,22 @@ def update_value_if_changed(target: Any, attr_name: str | int, new_value: Any) -
     Args:
         target (Any):
             The target object that has the attribute or the list.
-        attr_name (str | int):
+        attr_name_or_index (str | int):
             The name of the attribute or the index of the list element.
         new_value (Any):
             The new value for the attribute or the list element.
     """
 
-    if isinstance(target, list) and isinstance(attr_name, int):
-        if target[attr_name] != new_value:
-            target[attr_name] = new_value
-    elif isinstance(attr_name, str):
-        # Get the current value of the attribute
-        attr_value = getattr(target, attr_name)
-
+    if isinstance(target, list) and isinstance(attr_name_or_index, int):
+        if target[attr_name_or_index] != new_value:
+            target[attr_name_or_index] = new_value
+    elif isinstance(attr_name_or_index, str):
         # If the type matches and the current value is different from the new value,
         # update the attribute.
-        if attr_value != new_value:
-            setattr(target, attr_name, new_value)
+        if getattr(target, attr_name_or_index) != new_value:
+            setattr(target, attr_name_or_index, new_value)
     else:
-        logger.error(f"Incompatible arguments: {target}, {attr_name}.")
+        logger.error(f"Incompatible arguments: {target}, {attr_name_or_index}.")
 
 
 def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
