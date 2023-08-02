@@ -1,5 +1,5 @@
 {
-  "name": "pydataservice",
+  "name": "pydase",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -20,7 +20,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=development react-scripts start",
-    "build": "BUILD_PATH='../src/pyDataService/frontend' react-scripts build",
+    "build": "BUILD_PATH='../src/pydase/frontend' react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

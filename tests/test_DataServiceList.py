@@ -1,6 +1,6 @@
 from pytest import CaptureFixture
 
-from pyDataService import DataService
+from pydase import DataService
 
 
 def test_class_list_attribute(capsys: CaptureFixture) -> None:

@@ -1,6 +1,6 @@
 from pytest import LogCaptureFixture
 
-from pyDataService import DataService
+from pydase import DataService
 
 from . import caplog  # noqa
 

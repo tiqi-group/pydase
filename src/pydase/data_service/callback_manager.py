@@ -4,7 +4,7 @@ from typing import Any, cast
 
 from loguru import logger
 
-from pyDataService.utils.helpers import get_class_and_instance_attributes
+from pydase.utils.helpers import get_class_and_instance_attributes
 
 from .abstract_service_classes import AbstractCallbackManager, AbstractDataService
 from .data_service_list import DataServiceList

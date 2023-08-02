@@ -15,8 +15,8 @@ from rpyc import (
 from rpyc import ThreadedServer
 from uvicorn.server import HANDLED_SIGNALS
 
-from pyDataService import DataService
-from pyDataService.version import __version__
+from pydase import DataService
+from pydase.version import __version__
 
 from .web_server import WebAPI
 

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any, TypedDict
 
-from pyDataService.data_service.data_service_list import DataServiceList
+from pydase.data_service.data_service_list import DataServiceList
 
 
 class AbstractDataService(ABC):

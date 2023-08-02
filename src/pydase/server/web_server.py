@@ -7,9 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from pyDataService import DataService
-from pyDataService.config import OperationMode
-from pyDataService.version import __version__
+from pydase import DataService
+from pydase.config import OperationMode
+from pydase.version import __version__
 
 
 class UpdateDict(TypedDict):

@@ -5,8 +5,8 @@ import pytest
 from loguru import logger
 from pytest import LogCaptureFixture
 
-from pyDataService import DataService
-from pyDataService.data_service.callback_manager import CallbackManager
+from pydase import DataService
+from pydase.data_service.callback_manager import CallbackManager
 
 
 @pytest.fixture
