@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col, Button, Collapse } from 'react-bootstrap';
 import { socket } from '../socket';
-import RangeSlider from 'react-bootstrap-range-slider';
 import { DocStringComponent } from './DocStringComponent';
+import { Slider } from '@mui/material';
 
 interface SliderComponentProps {
   name: string;
@@ -36,7 +36,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       value: { value: newNumber, min: min, max: max, step_size: stepSize }
     });
   };
-  const handleOnChange = (event, newNumber: number) => {
+  const handleOnChange = (event, newNumber: number | number[]) => {
+    // This will never be the case as we do not have a range slider. However, we should
+    // make sure this is properly handled.
+    if (Array.isArray(newNumber)) {
+      newNumber = newNumber[0];
+    }
     socketEmit(newNumber, min, max, stepSize);
   };
 
@@ -57,25 +62,41 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   };
 
   return (
-    <div className={'component boolean'} id={parent_path.concat('.' + name)}>
+    <div className={'slider'} id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
 
       <DocStringComponent docString={docString} />
       <Row>
         <Col className="col-2 d-flex align-items-center">
-          <InputGroup.Text style={{ height: '65px' }}>{name}</InputGroup.Text>
-          <Form.Group>
-            <RangeSlider
-              disabled={readOnly}
+          <InputGroup.Text
+          // style={{ height: '80px' }}
+          >
+            {name}
+          </InputGroup.Text>
+          {/* <Form.Group> */}
+          <Slider
+            style={{ flex: 1, margin: '0px 0px 5px 10px' }}
+            aria-label="Always visible"
+            valueLabelDisplay="on"
+            disabled={readOnly}
+            value={value}
+            onChange={(event, newNumber) => handleOnChange(event, newNumber)}
+            min={min}
+            max={max}
+            step={stepSize}
+            marks={[
+              { value: min, label: `${min}` },
+              { value: max, label: `${max}` }
+            ]}
+          />
+          {/* <Form.Control
+              type="text"
               value={value}
-              onChange={(event, newNumber) => handleOnChange(event, newNumber)}
-              min={min}
-              max={max}
-              step={stepSize}
-              tooltip={'off'}
-            />
-            <Form.Control type="text" value={value} name={name} disabled={true} />
-          </Form.Group>
+              name={name}
+              disabled={true}
+              style={{ flex: 1, margin: '5px 0px 0px 10px' }}
+            /> */}
+          {/* </Form.Group> */}
         </Col>
       </Row>
       <Row xs="auto">
