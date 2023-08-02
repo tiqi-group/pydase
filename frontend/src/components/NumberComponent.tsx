@@ -207,7 +207,9 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   return (
     <div className={'component boolean'} id={parent_path.concat(name)}>
-      <p>Render count: {renderCount.current}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <p>Render count: {renderCount.current}</p>
+      )}
       <DocStringComponent docString={docString} />
       <div className="row">
         <div className="col-5 d-flex">

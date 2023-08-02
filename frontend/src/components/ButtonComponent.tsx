@@ -32,7 +32,9 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
 
   return (
     <div className={'button'} id={parent_path.concat('.' + name)}>
-      <p>Render count: {renderCount.current}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <p>Render count: {renderCount.current}</p>
+      )}
 
       <DocStringComponent docString={docString} />
       <ToggleButton

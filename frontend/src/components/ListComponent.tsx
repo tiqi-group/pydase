@@ -19,8 +19,10 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
   const { name, parent_path, value, docString } = props;
 
   return (
-    <div className={'component boolean'} id={parent_path.concat(name)}>
-      <p>Render count: {renderCount.current}</p>
+    <div className={'component list'} id={parent_path.concat(name)}>
+      {process.env.NODE_ENV === 'development' && (
+        <p>Render count: {renderCount.current}</p>
+      )}
       <DocStringComponent docString={docString} />
       {value.map((item, index) => {
         return (

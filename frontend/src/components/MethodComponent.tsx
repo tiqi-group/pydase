@@ -64,7 +64,9 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     <div
       className="col-5 align-items-center method"
       id={parent_path.concat('.' + name)}>
-      <p>Render count: {renderCount.current}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <p>Render count: {renderCount.current}</p>
+      )}
       <h5 onClick={() => setHideOutput(!hideOutput)} style={{ cursor: 'pointer' }}>
         Function: {name}
         <DocStringComponent docString={docString} />

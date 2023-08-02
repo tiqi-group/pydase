@@ -78,7 +78,9 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     <div
       className="col-5 align-items-center method"
       id={parent_path.concat('.' + name)}>
-      <p>Render count: {renderCount.current}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <p>Render count: {renderCount.current}</p>
+      )}
       <h5>
         Function: {name}
         <DocStringComponent docString={docString} />
