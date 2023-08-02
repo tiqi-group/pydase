@@ -1,10 +1,10 @@
 import { useEffect, useReducer } from 'react';
 import { Component, ComponentLabel } from './components/component';
 import { ButtonComponent } from './components/ButtonComponent';
-import { socket } from './socket';
 import { NumberComponent } from './components/NumberComponent';
 import { SliderComponent } from './components/SliderComponent';
 import { EnumComponent } from './components/EnumComponent';
+import { socket } from './socket';
 
 type AttributeType =
   | 'str'

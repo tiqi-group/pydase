@@ -1,15 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  OverlayTrigger,
-  Badge,
-  Tooltip,
-  InputGroup,
-  Form,
-  Row,
-  Col,
-  Button,
-  Collapse
-} from 'react-bootstrap';
+import { InputGroup, Form, Row, Col, Button, Collapse } from 'react-bootstrap';
 import { socket } from '../socket';
 import RangeSlider from 'react-bootstrap-range-slider';
 import { DocStringComponent } from './DocStringComponent';
@@ -33,10 +23,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     renderCount.current++;
   });
 
-  const { name, parent_path, value, readOnly, docString } = props;
-  const [min, setMin] = useState(props.min);
-  const [max, setMax] = useState(props.max);
-  const [stepSize, setStepSize] = useState(props.stepSize);
+  const { name, parent_path, value, min, max, stepSize, readOnly, docString } = props;
 
   const socketEmit = (
     newNumber: number,
@@ -56,18 +43,17 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const handleValueChange = (newValue: number, valueType: string) => {
     switch (valueType) {
       case 'min':
-        setMin(newValue);
+        socketEmit(value, newValue, max, stepSize);
         break;
       case 'max':
-        setMax(newValue);
+        socketEmit(value, min, newValue, stepSize);
         break;
       case 'stepSize':
-        setStepSize(newValue);
+        socketEmit(value, min, max, newValue);
         break;
       default:
         break;
     }
-    socketEmit(value, min, max, stepSize);
   };
 
   return (
