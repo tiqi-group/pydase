@@ -9,6 +9,7 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
+from pyDataInterface.data_service import NumberSlider
 from pyDataInterface.version import __version__
 
 
@@ -52,7 +53,11 @@ class WebAPI:
         @sio.on("frontend_update")  # type: ignore
         def handle_frontend_update(sid: str, data: FrontendUpdate) -> None:
             logger.debug(f"Received frontend update: {data}")
-            setattr(self.service, data["name"], data["value"])
+            attr = getattr(self.service, data["name"])
+            if isinstance(attr, DataService):
+                attr.apply_updates(data["value"])
+            else:
+                setattr(self.service, data["name"], data["value"])
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
