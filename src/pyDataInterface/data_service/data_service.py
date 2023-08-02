@@ -30,7 +30,7 @@ class DataService(rpyc.Service):
     def __init__(self) -> None:
         # Keep track of the root object. This helps to filter the emission of
         # notifications
-        self._root: "DataService" = self
+        self.__root__: "DataService" = self
 
         # dictionary to keep track of running tasks
         self.__tasks: dict[str, Future[None]] = {}
@@ -62,12 +62,13 @@ class DataService(rpyc.Service):
         callback: Callable[[str | int, Any], None],
     ) -> None:
         """
-        Register callback to the DataService instance and all its nested instances.
+        Register callback to a DataService or DataServiceList instance and its nested
+        instances.
 
-        This method recursively traverses all attributes of the DataService `obj` and
-        adds the callback to each instance's `_callbacks` set when an attribute is a
-        DataService instance. This ensures any modification of attributes within
-        nested instances will trigger the provided callback.
+        For a DataService, this method traverses its attributes and recursively adds the
+        callback for nested DataService or DataServiceList instances. For a
+        DataServiceList,
+        the callback is also triggered when an item gets reassigned.
         """
 
         if isinstance(obj, DataServiceList):
@@ -82,7 +83,7 @@ class DataService(rpyc.Service):
         for item in obj_list:
             if isinstance(item, DataService):
                 item._callbacks.add(callback)
-                for attr_name in set(dir(item)) - set(dir(object)) - {"_root"}:
+                for attr_name in set(dir(item)) - set(dir(object)) - {"__root__"}:
                     attr_value = getattr(item, attr_name)
                     if isinstance(attr_value, (DataService, DataServiceList)):
                         self.__register_recursive_parameter_callback(
@@ -95,24 +96,15 @@ class DataService(rpyc.Service):
         parent_path: str,
     ) -> None:
         """
-        Register callbacks to emit notifications when attributes used in a property
-        getter are changed.
+        Register callbacks to notify when properties or their dependencies change.
 
-        This method iterates over all attributes of the class. For each attribute that
-        is a property, it gets the names of the attributes used inside the property's
-        getter method. It then creates a callback for each of these dependent
-        attributes.
+        This method cycles through all attributes (both class and instance level) of the
+        input `obj`. For each attribute that is a property, it identifies dependencies
+        used in the getter method and creates a callback for each one.
 
-        If the dependent attribute is a DataServiceList, the callback is added to the
-        list. So, if any element in the list is changed, the callback will be triggered
-        and a notification will be emitted.
-
-        If the dependent attribute is an instance of DataService, the callback is
-        registered to all nested DataService instances of this attribute using
-        `_register_recursive_callback`.
-
-        For all other types of attributes, the callback is simply added to the
-        `_callbacks` set of the instance.
+        The method is recursive for attributes that are of type DataService or
+        DataServiceList. It attaches the callback directly to DataServiceList items or
+        propagates it through nested DataService instances.
         """
 
         attrs = obj.__get_class_and_instance_attributes()
@@ -143,7 +135,7 @@ class DataService(rpyc.Service):
                                 name=dependent_attr,
                                 value=getattr(obj, dependent_attr),
                             )
-                            if self == obj._root
+                            if self == obj.__root__
                             else None
                         )
 
@@ -158,7 +150,7 @@ class DataService(rpyc.Service):
                                 name=dependent_attr,
                                 value=getattr(obj, dependent_attr),
                             )
-                            if name == dep and self == obj._root
+                            if name == dep and self == obj.__root__
                             else None
                         )
                         # Add to _callbacks
@@ -213,7 +205,7 @@ class DataService(rpyc.Service):
                         name=f"{attr_name}[{index}]",
                         value=value,
                     )
-                    if self == self._root
+                    if self == self.__root__
                     else None
                 )
 
@@ -316,7 +308,7 @@ class DataService(rpyc.Service):
             lambda name, value: obj._emit_notification(
                 parent_path=parent_path, name=name, value=value
             )
-            if self == obj._root
+            if self == obj.__root__
             and not name.startswith("_")  # we are only interested in public attributes
             and not isinstance(
                 getattr(type(obj), name, None), property
@@ -355,7 +347,7 @@ class DataService(rpyc.Service):
         """Handles registration of callbacks for DataService attributes"""
 
         # as the DataService is an attribute of self, change the root object
-        nested_attr._root = self._root
+        nested_attr.__root__ = self.__root__
 
         new_path = f"{parent_path}.{attr_name}"
         self._register_DataService_callbacks(nested_attr, new_path)
@@ -412,12 +404,12 @@ class DataService(rpyc.Service):
 
         If an attribute exists at both the instance and class level,the value from the
         instance attribute takes precedence.
-        The _root object is removed as this will lead to endless recursion in the for
+        The __root__ object is removed as this will lead to endless recursion in the for
         loops.
         """
 
         attrs = dict(chain(type(self).__dict__.items(), self.__dict__.items()))
-        attrs.pop("_root")
+        attrs.pop("__root__")
         return attrs
 
     def serialize(self, prefix: str = "") -> dict[str, dict[str, Any]]:
