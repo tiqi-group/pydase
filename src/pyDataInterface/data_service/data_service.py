@@ -473,7 +473,7 @@ class DataService(rpyc.Service):
             if isinstance(value, DataService):
                 result[key] = {
                     "type": type(value).__name__,
-                    "value": value.serialize(prefix=key),
+                    "value": value.serialize(),
                     "readonly": False,
                     "doc": inspect.getdoc(value),
                 }
@@ -487,7 +487,6 @@ class DataService(rpyc.Service):
                             if isinstance(item, DataService)
                             else item,
                             "readonly": False,
-                            "id": id(item),
                         }
                         for item in value
                     ],
