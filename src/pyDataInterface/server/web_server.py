@@ -9,11 +9,36 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
-from pyDataInterface.data_service.data_service import (
-    UpdateDict,
-    update_DataService_by_path,
-)
 from pyDataInterface.version import __version__
+
+
+class UpdateDict(TypedDict):
+    """
+    A TypedDict subclass representing a dictionary used for updating attributes in a
+    DataService.
+
+    Attributes:
+    ----------
+    name : str
+        The name of the attribute to be updated in the DataService instance.
+        If the attribute is part of a nested structure, this would be the name of the
+        attribute in the last nested object. For example, for an attribute access path
+        'attr1.list_attr[0].attr2', 'attr2' would be the name.
+
+    parent_path : str
+        The access path for the parent object of the attribute to be updated. This is
+        used to construct the full access path for the attribute. For example, for an
+        attribute access path 'attr1.list_attr[0].attr2', 'attr1.list_attr[0]' would be
+        the parent_path.
+
+    value : Any
+        The new value to be assigned to the attribute. The type of this value should
+        match the type of the attribute to be updated.
+    """
+
+    name: str
+    parent_path: str
+    value: Any
 
 
 class WebAPI:
@@ -51,7 +76,11 @@ class WebAPI:
         @sio.event  # type: ignore
         def frontend_update(sid: str, data: UpdateDict) -> Any:
             logger.debug(f"Received frontend update: {data}")
-            return update_DataService_by_path(self.service, data)
+            path_list, attr_name = data["parent_path"].split("."), data["name"]
+            path_list.remove("DataService")  # always at the start, does not do anything
+            return self.service.update_DataService_attribute(
+                path_list=path_list, attr_name=attr_name, value=data["value"]
+            )
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
