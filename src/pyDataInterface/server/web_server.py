@@ -1,6 +1,7 @@
+import re
 from enum import Enum
 from pathlib import Path
-from typing import Any, TypedDict, get_type_hints
+from typing import Any, Optional, TypedDict, get_type_hints
 
 import socketio
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from loguru import logger
 
 from pyDataInterface import DataService
 from pyDataInterface.config import OperationMode
+from pyDataInterface.utils.helpers import get_attr_from_path
 from pyDataInterface.version import __version__
 
 
@@ -58,10 +60,19 @@ class WebAPI:
             attr_name = data["name"]
 
             # Traverse the object tree according to parent_path
-            target_obj = self.service
-            for part in parent_path:
-                if part != "DataService":  # Skip the root object itself
-                    target_obj = getattr(target_obj, part)
+            target_obj = get_attr_from_path(self.service, parent_path)
+
+            # Check if attr_name contains an index for a list item
+            index: Optional[int] = None
+            if re.search(r"\[.*\]", attr_name):
+                attr_name, index_str = attr_name.split("[")
+                try:
+                    index = int(
+                        index_str.replace("]", "")
+                    )  # Remove closing bracket and convert to int
+                except ValueError:
+                    logger.error(f"Invalid list index: {index_str}")
+                    return
 
             attr = getattr(target_obj, attr_name)
 
@@ -89,6 +100,8 @@ class WebAPI:
                                 return msg
 
                 return attr(**args)
+            elif isinstance(attr, list):
+                attr[index] = data["value"]
             else:
                 setattr(target_obj, attr_name, data["value"])
 
