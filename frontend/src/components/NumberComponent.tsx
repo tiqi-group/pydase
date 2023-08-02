@@ -9,6 +9,8 @@ import {
 } from 'react-bootstrap';
 import { socket } from '../socket';
 
+// TODO: add button functionality
+
 interface ButtonComponentProps {
   name: string;
   parent_path?: string;
