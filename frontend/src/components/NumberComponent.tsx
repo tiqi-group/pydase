@@ -8,7 +8,6 @@ import {
   Button
 } from 'react-bootstrap';
 import { socket } from '../socket';
-import './NumberComponent.css';
 
 interface ButtonComponentProps {
   name: string;
@@ -208,29 +207,34 @@ export const NumberComponent = React.memo((props: ButtonComponentProps) => {
   return (
     <div className={'component boolean'} id={parent_path.concat(name)}>
       <p>Render count: {renderCount.current}</p>
-      <InputGroup>
-        <InputGroup.Text>{name}</InputGroup.Text>
-        <Form.Control
-          type="text"
-          value={value}
-          readOnly={readOnly}
-          name={name}
-          onKeyDown={handleKeyDown}
-        />
-        <div className="d-flex flex-column">
-          <Button
-            style={{ padding: '0.2em 8px', fontSize: '0.70rem' }}
-            // className="mb-1"
-            variant="outline-secondary">
-            +
-          </Button>
-          <Button
-            style={{ padding: '0.2em 8px', fontSize: '0.70rem' }}
-            variant="outline-secondary">
-            -
-          </Button>
+      <div className="row">
+        <div className="col-2 d-flex">
+          <InputGroup>
+            <InputGroup.Text>{name}</InputGroup.Text>
+            <Form.Control
+              type="text"
+              value={value}
+              readOnly={readOnly}
+              name={name}
+              onKeyDown={handleKeyDown}
+            />
+          </InputGroup>
+          <div className="d-flex flex-column">
+            <Button
+              style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
+              // className="mb-1"
+              variant="outline-secondary">
+              +
+            </Button>
+            <Button
+              style={{ padding: '0.2em 6px', fontSize: '0.70rem' }}
+              variant="outline-secondary">
+              -
+            </Button>
+          </div>
         </div>
-      </InputGroup>
+      </div>
+
       {docString && (
         <OverlayTrigger placement="bottom" overlay={tooltip}>
           <Badge pill className="tooltip-trigger" bg="light" text="dark">
