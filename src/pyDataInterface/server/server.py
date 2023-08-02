@@ -23,7 +23,7 @@ from .web_server import WebAPI
 try:
     import tiqi_rpc
 except ImportError:
-    logger.debug("tiqi_rpc is not installed. tiqi_rpc. Server will not be exposed.")
+    logger.debug("tiqi_rpc is not installed. tiqi_rpc server will not be exposed.")
     tiqi_rpc = None  # type: ignore
 
 
@@ -76,7 +76,11 @@ class Server:
         except RuntimeError:
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
-        self._loop.run_until_complete(self.serve())
+        try:
+            self._loop.run_until_complete(self.serve())
+        except Exception:
+            self._loop.run_until_complete(self.shutdown())
+            raise
 
     async def serve(self) -> None:
         process_id = os.getpid()
@@ -174,7 +178,8 @@ class Server:
         logger.info("Shutting down")
 
         logger.info(f"Saving data to {self._service._filename}.")
-        self._service.write_to_file()
+        if self._service._filename is not None:
+            self._service.write_to_file()
 
         await self.__cancel_servers()
         await self.__cancel_tasks()
