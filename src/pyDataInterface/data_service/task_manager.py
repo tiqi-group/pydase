@@ -95,45 +95,6 @@ class TaskManager(ABC):
 
         self._set_start_and_stop_for_async_methods()
 
-    def _register_start_stop_task_callbacks(
-        self, obj: "TaskManager", parent_path: str
-    ) -> None:
-        """
-        This function registers callbacks for start and stop methods of async functions.
-        These callbacks are stored in the '_task_status_change_callbacks' attribute and
-        are called when the status of a task changes.
-
-        Parameters:
-        -----------
-        obj: DataService
-            The target object on which callbacks are to be registered.
-        parent_path: str
-            The access path for the parent object. This is used to construct the full
-            access path for the notifications.
-        """
-
-        # Create and register a callback for the object
-        # only emit the notification when the call was registered by the root object
-        callback: Callable[[str, dict[str, Any] | None], None] = (
-            lambda name, status: obj._emit_notification(
-                parent_path=parent_path, name=name, value=status
-            )
-            if self == obj.__root__
-            and not name.startswith("_")  # we are only interested in public attributes
-            else None
-        )
-
-        obj._task_status_change_callbacks.append(callback)
-
-        # Recursively register callbacks for all nested attributes of the object
-        attrs: dict[str, Any] = get_class_and_instance_attributes(obj)
-
-        for nested_attr_name, nested_attr in attrs.items():
-            if isinstance(nested_attr, TaskManager):
-                self._register_start_stop_task_callbacks(
-                    nested_attr, parent_path=f"{parent_path}.{nested_attr_name}"
-                )
-
     def _set_start_and_stop_for_async_methods(self) -> None:  # noqa: C901
         # inspect the methods of the class
         for name, method in inspect.getmembers(
