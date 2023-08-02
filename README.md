@@ -26,7 +26,7 @@ pip install git+https://github.com/tiqi-group/pydase.git
 
 ## Usage
 
-Using `pydase` involves two main steps: defining a `DataService` subclass and then running the server.
+Using `pydase` involves three main steps: defining a `DataService` subclass, running the server, and then connecting to the service either programmatically using `rpyc` or through the web interface.
 
 ### Defining a DataService
 
@@ -102,6 +102,24 @@ Once the server is running, you can access the web interface in a browser:
 ![Web Interface](./docs/images/Example_App.png)
 
 In this interface, you can interact with the properties of your `Device` service.
+
+### Connecting to the Service using rpyc
+
+You can also connect to the service using `rpyc`. Here's an example on how to establish a connection and interact with the service:
+
+```python
+import rpyc
+
+# Connect to the service
+conn = rpyc.connect("<ip_addr>", 18871)
+client = conn.root
+
+# Interact with the service
+client.voltage = 5.0
+print(client.voltage)  # prints 5.0
+```
+
+In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
 
 ## Understanding Tasks in pydase
 
