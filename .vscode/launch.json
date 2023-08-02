@@ -17,6 +17,13 @@
             "request": "launch",
             "module": "bar",
             "justMyCode": true
+        },
+        {
+            "type": "firefox",
+            "request": "launch",
+            "name": "react: firefox",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/frontend",
         }
     ]
 }
