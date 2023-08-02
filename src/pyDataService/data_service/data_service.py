@@ -191,7 +191,7 @@ class DataService(rpyc.Service, AbstractDataService):
         merged_set = derived_only_set | instance_dict
 
         # Iterate over attributes, properties, class attributes, and methods
-        for key in merged_set:
+        for key in sorted(merged_set):
             if key.startswith("_"):
                 continue  # Skip attributes that start with underscore
 
