@@ -34,15 +34,12 @@ flake8-pep585 = "^0.1.7"
 flake8-pep604 = "^0.1.0"
 flake8-eradicate = "^1.4.0"
 
-[tool.setuptools.package-data]
-pyDataInterface = ['frontend/*', 'examples/*', 'version.json']
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-include = ["pyDataInterface", "tests"]
+include = ["src/pyDataInterface", "tests"]
 exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend"]
 venvPath = "."
 venv = ".venv"
