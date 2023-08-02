@@ -184,7 +184,7 @@ class Server:
         await self.__cancel_servers()
         await self.__cancel_tasks()
 
-        if self._enable_rpc:
+        if hasattr(self, "_rpc_server") and self._enable_rpc:
             logger.debug("Closing rpyc server.")
             self._rpc_server.close()
 
