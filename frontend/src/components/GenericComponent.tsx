@@ -9,7 +9,7 @@ import { StringComponent } from './StringComponent';
 import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 
-export type AttributeType =
+type AttributeType =
   | 'str'
   | 'bool'
   | 'float'
@@ -21,7 +21,7 @@ export type AttributeType =
   | 'NumberSlider';
 
 type ValueType = boolean | string | number | object;
-interface Attribute {
+export interface Attribute {
   type: AttributeType;
   value?: ValueType | ValueType[];
   readonly: boolean;

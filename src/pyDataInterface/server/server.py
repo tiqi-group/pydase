@@ -23,7 +23,7 @@ from .web_server import WebAPI
 try:
     import tiqi_rpc
 except ImportError:
-    logger.debug("tiqi_rpc is not installed. tiqi_rpc.Server will not be exposed.")
+    logger.debug("tiqi_rpc is not installed. tiqi_rpc. Server will not be exposed.")
     tiqi_rpc = None  # type: ignore
 
 
@@ -91,14 +91,11 @@ class Server:
 
         logger.info(f"Finished server process [{process_id}]")
 
-    def _start_autostart_tasks(self) -> None:
-        self._service._start_autostart_tasks()
-
     async def startup(self) -> None:  # noqa: C901
         self._loop = asyncio.get_running_loop()
         self._loop.set_exception_handler(self.custom_exception_handler)
         self.install_signal_handlers()
-        self._start_autostart_tasks()
+        self._service._start_autostart_tasks()
 
         if self._enable_rpc:
             self.executor = ThreadPoolExecutor()
