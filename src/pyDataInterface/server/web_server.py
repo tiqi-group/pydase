@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -55,6 +56,10 @@ class WebAPI:
             attr = getattr(self.service, data["name"])
             if isinstance(attr, DataService):
                 attr.apply_updates(data["value"])
+            elif isinstance(attr, Enum):
+                setattr(
+                    self.service, data["name"], attr.__class__[data["value"]["value"]]
+                )
             else:
                 setattr(self.service, data["name"], data["value"])
 

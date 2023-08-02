@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 from collections.abc import Callable
+from enum import Enum
 from itertools import chain
 from typing import Any
 
@@ -516,6 +517,15 @@ class DataService(rpyc.Service):
                     "value": value,
                     "readonly": prop.fset is None,
                     "doc": inspect.getdoc(prop),
+                }
+            elif isinstance(value, Enum):
+                result[key] = {
+                    "type": "Enum",
+                    "value": value.name,
+                    "enum": {
+                        name: member.value
+                        for name, member in value.__class__.__members__.items()
+                    },
                 }
             else:
                 result[key] = {

@@ -3,6 +3,7 @@ import os
 import signal
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from enum import Enum
 from types import FrameType
 from typing import Any, Optional
 
@@ -147,7 +148,11 @@ class Server:
                                 "data": {
                                     "parent_path": parent_path,
                                     "name": name,
-                                    "value": value,
+                                    "value": value.name
+                                    if isinstance(
+                                        value, Enum
+                                    )  # enums are not JSON serializable
+                                    else value,
                                 }
                             },
                         )
