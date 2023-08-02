@@ -16,7 +16,7 @@ from pyDataInterface.utils.helpers import (
     get_nested_value_by_path_and_key,
     get_object_attr_from_path,
     parse_list_attr_and_index,
-    set_if_differs,
+    update_value_if_changed,
 )
 from pyDataInterface.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
@@ -110,17 +110,26 @@ class DataService(rpyc.Service, TaskManager):
 
     def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
         # Traverse the serialized representation and set the attributes of the class
+        serialized_class = self.serialize()
         for path in generate_paths_from_DataService_dict(json_dict):
             value = get_nested_value_by_path_and_key(json_dict, path=path)
             value_type = get_nested_value_by_path_and_key(
                 json_dict, path=path, key="type"
             )
+            class_value_type = get_nested_value_by_path_and_key(
+                serialized_class, path=path, key="type"
+            )
+            if class_value_type == value_type:
+                # Split the path into parts
+                parts = path.split(".")
+                attr_name = parts[-1]
 
-            # Split the path into parts
-            parts = path.split(".")
-            attr_name = parts[-1]
-
-            self.update_DataService_attribute(parts[:-1], attr_name, value, value_type)
+                self.update_DataService_attribute(parts[:-1], attr_name, value)
+            else:
+                logger.info(
+                    f'Attribute type of "{path}" changed from "{value_type}" to '
+                    f'"{class_value_type}". Ignoring value from JSON file...'
+                )
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         current_value = getattr(self, __name, None)
@@ -607,7 +616,6 @@ class DataService(rpyc.Service, TaskManager):
         path_list: list[str],
         attr_name: str,
         value: Any,
-        attr_type: Optional[str] = None,
     ) -> None:
         # If attr_name corresponds to a list entry, extract the attr_name and the index
         attr_name, index = parse_list_attr_and_index(attr_name)
@@ -622,13 +630,13 @@ class DataService(rpyc.Service, TaskManager):
 
         # Set the attribute at the terminal point of the path
         if isinstance(attr, Enum):
-            set_if_differs(target_obj, attr_name, attr.__class__[value])
+            update_value_if_changed(target_obj, attr_name, attr.__class__[value])
         elif isinstance(attr, list) and index is not None:
-            set_if_differs(attr, index, value)
+            update_value_if_changed(attr, index, value)
         elif isinstance(attr, DataService) and isinstance(value, dict):
             for key, v in value.items():
                 self.update_DataService_attribute([*path_list, attr_name], key, v)
         elif callable(attr):
             return process_callable_attribute(attr, value["args"])
         else:
-            set_if_differs(target_obj, attr_name, value)
+            update_value_if_changed(target_obj, attr_name, value)

@@ -236,24 +236,39 @@ def convert_arguments_to_hinted_types(
     return args
 
 
-def set_if_differs(target: Any, attr_name: str | int, new_value: Any) -> None:
+def update_value_if_changed(target: Any, attr_name: str | int, new_value: Any) -> None:
     """
-    Set the value of an attribute or a list element on a target object to a new value,
-    but only if the current value of the attribute or the list element differs from the
-    new value.
+    Updates the value of an attribute or a list element on a target object if the new
+    value differs from the current one.
+
+    This function supports updating both attributes of an object and elements of a list.
+
+    - For objects, the function first checks the current value of the attribute. If the
+      current value differs from the new value, the function updates the attribute.
+
+    - For lists, the function checks the current value at the specified index. If the
+      current value differs from the new value, the function updates the list element
+      at the given index.
 
     Args:
-        target: The object that has the attribute or the list.
-        attr_name: The name of the attribute or the index of the list element.
-        new_value: The new value for the attribute or the list element.
+        target (Any):
+            The target object that has the attribute or the list.
+        attr_name (str | int):
+            The name of the attribute or the index of the list element.
+        new_value (Any):
+            The new value for the attribute or the list element.
     """
+
     if isinstance(target, list) and isinstance(attr_name, int):
-        # Case for a list
         if target[attr_name] != new_value:
             target[attr_name] = new_value
     elif isinstance(attr_name, str):
-        # Case for an attribute
-        if getattr(target, attr_name) != new_value:
+        # Get the current value of the attribute
+        attr_value = getattr(target, attr_name)
+
+        # If the type matches and the current value is different from the new value,
+        # update the attribute.
+        if attr_value != new_value:
             setattr(target, attr_name, new_value)
     else:
         logger.error(f"Incompatible arguments: {target}, {attr_name}.")
