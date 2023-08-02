@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { OverlayTrigger, Badge, Tooltip, ToggleButton } from 'react-bootstrap';
+import { ToggleButton } from 'react-bootstrap';
 import { socket } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 
@@ -31,7 +31,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   };
 
   return (
-    <div className={'component boolean'} id={parent_path.concat('.' + name)}>
+    <div className={'button'} id={parent_path.concat('.' + name)}>
       <p>Render count: {renderCount.current}</p>
 
       <DocStringComponent docString={docString} />
