@@ -125,7 +125,7 @@ class TaskManager(AbstractTaskManager):
 
             def stop_task() -> None:
                 # cancel the task
-                task = self.tasks.pop(name)
+                task = self.tasks.pop(name, None)
                 if task is not None:
                     self._loop.call_soon_threadsafe(task["task"].cancel)
 
