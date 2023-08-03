@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
-from pydase.data_service.abstract_service_classes import AbstractDataService
+from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import get_class_and_instance_attributes
 
 from .data_service_list import DataServiceList

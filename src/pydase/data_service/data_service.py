@@ -21,7 +21,7 @@ from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
 
-from .abstract_service_classes import AbstractDataService
+from .abstract_data_service import AbstractDataService
 from .callback_manager import CallbackManager
 from .task_manager import TaskManager
 
