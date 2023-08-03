@@ -16,3 +16,6 @@ input.instantUpdate {
 .notificationToast {
   background-color: rgba(114, 214, 253, 0.5) !important;
 }
+.exceptionToast {
+  background-color: rgba(216, 41, 18, 0.678) !important;
+}

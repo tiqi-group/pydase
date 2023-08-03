@@ -20,8 +20,11 @@ type State = DataServiceJSON | null;
 type Action =
   | { type: 'SET_DATA'; data: DataServiceJSON }
   | { type: 'UPDATE_ATTRIBUTE'; parent_path: string; name: string; value: ValueType };
-type NotificationElement = {
+type UpdateNotification = {
   data: { parent_path: string; name: string; value: object };
+};
+type ExceptionNotification = {
+  data: { exception: string; type: string };
 };
 
 /**
@@ -128,7 +131,7 @@ const App = () => {
   const handleCloseSettings = () => setShowSettings(false);
   const handleShowSettings = () => setShowSettings(true);
 
-  function onNotify(value: NotificationElement) {
+  function onNotify(value: UpdateNotification) {
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
       parent_path: value.data.parent_path,
@@ -142,6 +145,15 @@ const App = () => {
     setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
   }
 
+  function onException(value: ExceptionNotification) {
+    const newNotification = {
+      type: 'exception',
+      id: Math.random(),
+      text: `${value.data.type}: ${value.data.exception}.`
+    };
+    setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+  }
+
   useEffect(() => {
     // Fetch data from the API when the component mounts
     fetch(`http://${hostname}:${port}/service-properties`)
@@ -149,9 +161,11 @@ const App = () => {
       .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
 
     socket.on('notify', onNotify);
+    socket.on('exception', onException);
 
     return () => {
       socket.off('notify', onNotify);
+      socket.off('exception', onException);
     };
   }, []);
 
@@ -175,7 +189,11 @@ const App = () => {
           style={{ position: 'fixed' }}>
           {notifications.map((notification) => (
             <Toast
-              className="notificationToast"
+              className={
+                notification.type === 'exception'
+                  ? 'exceptionToast'
+                  : 'notificationToast'
+              }
               key={notification.id}
               onClose={() => {
                 removeNotificationById(notification.id);
@@ -184,13 +202,25 @@ const App = () => {
                 removeNotificationById(notification.id);
               }}
               onMouseLeave={() => {
-                removeNotificationById(notification.id);
+                // For exception type notifications, do not dismiss on mouse leave
+                if (notification.type !== 'exception') {
+                  removeNotificationById(notification.id);
+                }
               }}
               show={true}
-              autohide
-              delay={2000}>
-              <Toast.Header closeButton={false} className="notificationToast">
-                <strong className="mr-auto">Notification</strong>
+              autohide={notification.type !== 'exception'} // Do not autohide for 'exception' type notifications
+              delay={notification.type === 'exception' ? 0 : 2000} // No delay for 'exception' type notifications
+            >
+              <Toast.Header
+                closeButton={false}
+                className={
+                  notification.type === 'exception'
+                    ? 'exceptionToast'
+                    : 'notificationToast'
+                }>
+                <strong className="mr-auto">
+                  {notification.type === 'exception' ? 'Exception' : 'Notification'}
+                </strong>
               </Toast.Header>
               <Toast.Body>{notification.text}</Toast.Body>
             </Toast>

@@ -396,15 +396,18 @@ class Server:
             if self._enable_web:
 
                 async def emit_exception() -> None:
-                    await self._wapi.sio.emit(  # type: ignore
-                        "exception",
-                        {
-                            "data": {
-                                "exception": str(exc),
-                                "type": exc.__class__.__name__,
-                            }
-                        },
-                    )
+                    try:
+                        await self._wapi.sio.emit(  # type: ignore
+                            "exception",
+                            {
+                                "data": {
+                                    "exception": str(exc),
+                                    "type": exc.__class__.__name__,
+                                }
+                            },
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to send notification: {e}")
 
                 loop.create_task(emit_exception())
         else:
