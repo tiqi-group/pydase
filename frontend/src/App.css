@@ -6,3 +6,13 @@ input.instantUpdate {
   padding: 0.15em 6px !important;
   font-size: 0.70rem !important;
 }
+.navbarOffset {
+  padding-top: 60px !important;
+  right: 20;
+}
+/* .toastContainer {
+  position: fixed;
+} */
+.notificationToast {
+  background-color: rgba(114, 214, 253, 0.5) !important;
+}

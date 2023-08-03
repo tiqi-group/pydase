@@ -1,10 +1,18 @@
 import { useEffect, useReducer, useState } from 'react';
-import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
+import {
+  Navbar,
+  Form,
+  Offcanvas,
+  Container,
+  Toast,
+  ToastContainer
+} from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
   DataServiceComponent,
   DataServiceJSON
 } from './components/DataServiceComponent';
+import './App.css';
 
 type ValueType = boolean | string | number | object;
 
@@ -108,24 +116,37 @@ const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+
+  const removeNotificationById = (id: number) => {
+    setNotifications((prevNotifications) =>
+      prevNotifications.filter((n) => n.id !== id)
+    );
+  };
 
   const handleCloseSettings = () => setShowSettings(false);
   const handleShowSettings = () => setShowSettings(true);
+
+  function onNotify(value: NotificationElement) {
+    dispatch({
+      type: 'UPDATE_ATTRIBUTE',
+      parent_path: value.data.parent_path,
+      name: value.data.name,
+      value: value.data.value
+    });
+    const newNotification = {
+      id: Math.random(),
+      text: `Attribute ${value.data.parent_path}.${value.data.name} updated to ${value.data.value}.`
+    };
+    setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+  }
 
   useEffect(() => {
     // Fetch data from the API when the component mounts
     fetch(`http://${hostname}:${port}/service-properties`)
       .then((response) => response.json())
       .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
-
-    function onNotify(value: NotificationElement) {
-      dispatch({
-        type: 'UPDATE_ATTRIBUTE',
-        parent_path: value.data.parent_path,
-        name: value.data.name,
-        value: value.data.value
-      });
-    }
 
     socket.on('notify', onNotify);
 
@@ -147,7 +168,41 @@ const App = () => {
         </Container>
       </Navbar>
 
-      <Offcanvas show={showSettings} onHide={handleCloseSettings} placement="end">
+      {showNotification && (
+        <ToastContainer
+          className="navbarOffset toastContainer"
+          position="top-end"
+          style={{ position: 'fixed' }}>
+          {notifications.map((notification) => (
+            <Toast
+              className="notificationToast"
+              key={notification.id}
+              onClose={() => {
+                removeNotificationById(notification.id);
+              }}
+              onClick={() => {
+                removeNotificationById(notification.id);
+              }}
+              onMouseLeave={() => {
+                removeNotificationById(notification.id);
+              }}
+              show={true}
+              autohide
+              delay={2000}>
+              <Toast.Header closeButton={false} className="notificationToast">
+                <strong className="mr-auto">Notification</strong>
+              </Toast.Header>
+              <Toast.Body>{notification.text}</Toast.Body>
+            </Toast>
+          ))}
+        </ToastContainer>
+      )}
+
+      <Offcanvas
+        show={showSettings}
+        onHide={handleCloseSettings}
+        placement="end"
+        style={{ zIndex: 9999 }}>
         <Offcanvas.Header closeButton>
           <Offcanvas.Title>Settings</Offcanvas.Title>
         </Offcanvas.Header>
@@ -158,11 +213,17 @@ const App = () => {
             type="switch"
             label="Enable Instant Update"
           />
+          <Form.Check
+            checked={showNotification}
+            onChange={(e) => setShowNotification(e.target.checked)}
+            type="switch"
+            label="Show Notifications"
+          />
           {/* Add any additional controls you want here */}
         </Offcanvas.Body>
       </Offcanvas>
 
-      <div className="App">
+      <div className="App navbarOffset">
         <DataServiceComponent
           props={state as DataServiceJSON}
           isInstantUpdate={isInstantUpdate}
