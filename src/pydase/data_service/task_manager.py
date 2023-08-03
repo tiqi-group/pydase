@@ -1,14 +1,23 @@
+from __future__ import annotations
+
 import asyncio
 import inspect
+from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from loguru import logger
 
-from .abstract_service_classes import AbstractDataService, AbstractTaskManager
+if TYPE_CHECKING:
+    from .data_service import DataService
 
 
-class TaskManager(AbstractTaskManager):
+class TaskDict(TypedDict):
+    task: asyncio.Task[None]
+    kwargs: dict[str, Any]
+
+
+class TaskManager:
     """
     The TaskManager class is a utility designed to manage asynchronous tasks. It
     provides functionality for starting, stopping, and tracking these tasks. The class
@@ -62,13 +71,21 @@ class TaskManager(AbstractTaskManager):
     interfaces, but can also be used to write logs, etc.
     """
 
-    def __init__(self, service: AbstractDataService) -> None:
+    def __init__(self, service: DataService) -> None:
         self.service = service
         self._loop = asyncio.get_event_loop()
 
-        self.tasks = {}
+        self.tasks: dict[str, TaskDict] = {}
+        """A dictionary to keep track of running tasks. The keys are the names of the
+        tasks and the values are TaskDict instances which include the task itself and
+        its kwargs.
+        """
 
-        self.task_status_change_callbacks = []
+        self.task_status_change_callbacks: list[
+            Callable[[str, dict[str, Any] | None], Any]
+        ] = []
+        """A list of callback functions to be invoked when the status of a task (start
+        or stop) changes."""
 
         self._set_start_and_stop_for_async_methods()
 
