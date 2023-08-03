@@ -9,6 +9,7 @@
   - [Running the Server](#running-the-server)
   - [Accessing the Web Interface](#accessing-the-web-interface)
   - [Connecting to the Service using rpyc](#connecting-to-the-service-using-rpyc)
+- [Understanding Service Persistence](#understanding-service-persistence)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -19,6 +20,7 @@
 <!-- no toc -->
 * [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
 * [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
+* [Saving and restoring the service state for service persistence](#understanding-service-persistence)
 * [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
 * Event-based callback functionality for real-time updates
 * Support for additional servers for specific use-cases
@@ -133,6 +135,36 @@ print(client.voltage)  # prints 5.0
 ```
 
 In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
+
+## Understanding Service Persistence
+
+`pydase` allows you to easily persist the state of your service by saving it to a file. This is especially useful when you want to maintain the service's state across different runs. 
+
+To save the state of your service, pass a `filename` keyword argument to the `__init__` method of the `DataService` base class. If the file specified by `filename` does not exist, the service will create this file and store its state in it when the service is shut down. If the file already exists, the service will load the state from this file, setting the values of its attributes to the values stored in the file. 
+
+Here's an example:
+
+```python
+from pydase import DataService, Server
+
+class Device(DataService):
+    def __init__(self, filename: str) -> None:
+        # ... your init code ...
+
+        # Pass the filename argument to the parent class
+        super().__init__(filename=filename)
+
+    # ... defining the Device class ...
+
+
+if __name__ == "__main__":
+    service = Device("device_state.json")
+    Server(service).run()
+```
+
+In this example, the state of the `Device` service will be saved to `device_state.json` when the service is shut down. If `device_state.json` exists when the service is started, the service will restore its state from this file.
+
+Note: If the service class structure has changed since the last time its state was saved, only the attributes that have remained the same will be restored from the settings file.
 
 ## Understanding Tasks in pydase
 
