@@ -132,6 +132,9 @@ const App = () => {
   const handleShowSettings = () => setShowSettings(true);
 
   function onNotify(value: UpdateNotification) {
+    const currentTime = new Date();
+    const timeString = currentTime.toISOString().substr(11, 8);
+
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
       parent_path: value.data.parent_path,
@@ -140,15 +143,20 @@ const App = () => {
     });
     const newNotification = {
       id: Math.random(),
+      time: timeString,
       text: `Attribute ${value.data.parent_path}.${value.data.name} updated to ${value.data.value}.`
     };
     setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
   }
 
   function onException(value: ExceptionNotification) {
+    const currentTime = new Date();
+    const timeString = currentTime.toISOString().substr(11, 8);
+
     const newNotification = {
       type: 'exception',
       id: Math.random(),
+      time: timeString,
       text: `${value.data.type}: ${value.data.exception}.`
     };
     setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
@@ -212,15 +220,16 @@ const App = () => {
               delay={notification.type === 'exception' ? 0 : 2000} // No delay for 'exception' type notifications
             >
               <Toast.Header
-                closeButton={false}
-                className={
+                closeButton={notification.type === 'exception'}
+                className={`${
                   notification.type === 'exception'
                     ? 'exceptionToast'
                     : 'notificationToast'
-                }>
-                <strong className="mr-auto">
+                } text-right`}>
+                <strong className="me-auto">
                   {notification.type === 'exception' ? 'Exception' : 'Notification'}
                 </strong>
+                <small>{notification.time}</small>
               </Toast.Header>
               <Toast.Body>{notification.text}</Toast.Body>
             </Toast>
