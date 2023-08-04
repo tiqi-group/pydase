@@ -37,6 +37,13 @@ flake8-eradicate = "^1.4.0"
 matplotlib = "^3.7.2"
 pyright = "^1.1.323"
 
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.2"
+mkdocs-include-markdown-plugin = "^3.9.1"
+mkdocstrings = "^0.22.0"
+pymdown-extensions = "^10.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
