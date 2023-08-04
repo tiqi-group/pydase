@@ -1,6 +1,6 @@
 site_name: pydase Documentation
 repo_url: https://github.com/tiqi-group/pydase
-edit_uri: blob/main/docs/
+edit_uri: blob/docs/docs/
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
