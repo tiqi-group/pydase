@@ -1,5 +1,7 @@
 # pydase (Python Data Service) <!-- omit from toc -->
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 `pydase` is a Python library for creating data service servers with integrated web and RPC servers. It's designed to handle the management of data structures, automated tasks, and callbacks, and provides built-in functionality for serving data over different protocols.
 
 - [Features](#features)
@@ -28,7 +30,7 @@
 * Support for additional servers for specific use-cases
 
 ## Installation
-
+<!--installation-start-->
 Install pydase using [`poetry`](https://python-poetry.org/):
 
 ```bash
@@ -40,9 +42,10 @@ or `pip`:
 ```bash
 pip install git+https://github.com/tiqi-group/pydase.git
 ```
+<!--installation-end-->
 
 ## Usage
-
+<!--usage-start-->
 Using `pydase` involves three main steps: defining a `DataService` subclass, running the server, and then connecting to the service either programmatically using `rpyc` or through the web interface.
 
 ### Defining a DataService
@@ -143,6 +146,7 @@ print(client.voltage)  # prints 5.0
 ```
 
 In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
+<!--usage-end-->
 
 ## Understanding Service Persistence
 
@@ -285,7 +289,7 @@ The full documentation provides more detailed information about `pydase`, includ
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](URL_TO_YOUR_CONTRIBUTING_GUIDELINES) for details on how to contribute.
+We welcome contributions! Please see [contributing.md](./docs/about/contributing.md) for details on how to contribute.
 
 ## License
 

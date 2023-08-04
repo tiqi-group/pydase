@@ -1,0 +1,41 @@
+site_name: pydase Documentation
+repo_url: https://github.com/tiqi-group/pydase
+edit_uri: blob/main/docs/
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Developer Guide: 
+    - Developer Guide: dev-guide/README.md
+    - API Reference: dev-guide/api.md
+  - About:
+    - Release Notes: about/release-notes.md
+    - Contributing: about/contributing.md
+    - License: about/license.md
+
+theme: readthedocs
+
+extra_css:
+  - css/extra.css
+
+markdown_extensions:
+  - smarty
+  - toc:
+      permalink: true
+      baselevel: 4
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.snippets
+  - pymdownx.superfences
+  # - pymdownx.highlight:
+  # - pymdownx.inlinehilite
+
+
+plugins:
+  - include-markdown
+  - search
+  - mkdocstrings
+
+watch:
+  - src/pydase
+
+  
