@@ -161,7 +161,7 @@ const App = () => {
     const newNotification = {
       id: Math.random(),
       time: timeString,
-      text: `Attribute ${parent_path}.${name} updated to ${notificationMsg}.`
+      text: `${parent_path}.${name} changed to ${notificationMsg}.`
     };
 
     // Adding the new notification to the list
