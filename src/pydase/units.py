@@ -43,7 +43,8 @@ def convert_to_quantity(
         <Quantity(10.0, 'volt')>
 
     Notes:
-        - If unit is not provided and value is a float or int, the resulting Quantity will be unitless.
+        - If unit is not provided and value is a float or int, the resulting Quantity
+          will be unitless.
     """
 
     if isinstance(value, int | float):
