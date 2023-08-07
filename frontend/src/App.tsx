@@ -1,12 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import {
-  Navbar,
-  Form,
-  Offcanvas,
-  Container,
-  Toast,
-  ToastContainer
-} from 'react-bootstrap';
+import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
   DataServiceComponent,
@@ -14,6 +7,7 @@ import {
 } from './components/DataServiceComponent';
 import './App.css';
 import { getDataServiceJSONValueByPathAndKey } from './utils/nestedObjectUtils';
+import { Notifications } from './components/NotificationsComponent';
 
 type ValueType = boolean | string | number | object;
 
@@ -21,10 +15,10 @@ type State = DataServiceJSON | null;
 type Action =
   | { type: 'SET_DATA'; data: DataServiceJSON }
   | { type: 'UPDATE_ATTRIBUTE'; parent_path: string; name: string; value: ValueType };
-type UpdateNotification = {
+type UpdateMessage = {
   data: { parent_path: string; name: string; value: object };
 };
-type ExceptionNotification = {
+type ExceptionMessage = {
   data: { exception: string; type: string };
 };
 
@@ -132,10 +126,14 @@ const App = () => {
     );
   };
 
+  const removeExceptionById = (id: number) => {
+    setExceptions((prevNotifications) => prevNotifications.filter((n) => n.id !== id));
+  };
+
   const handleCloseSettings = () => setShowSettings(false);
   const handleShowSettings = () => setShowSettings(true);
 
-  function onNotify(value: UpdateNotification) {
+  function onNotify(value: UpdateMessage) {
     // Extracting data from the notification
     const { parent_path, name, value: newValue } = value.data;
 
@@ -170,12 +168,11 @@ const App = () => {
     setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
   }
 
-  function onException(value: ExceptionNotification) {
+  function onException(value: ExceptionMessage) {
     const currentTime = new Date();
     const timeString = currentTime.toISOString().substr(11, 8);
 
     const newNotification = {
-      type: 'exception',
       id: Math.random(),
       time: timeString,
       text: `${value.data.type}: ${value.data.exception}.`
@@ -216,59 +213,13 @@ const App = () => {
         </Container>
       </Navbar>
 
-      <ToastContainer
-        className="navbarOffset toastContainer"
-        position="top-end"
-        style={{ position: 'fixed' }}>
-        {showNotification &&
-          notifications.map((notification) => (
-            <Toast
-              className="notificationToast"
-              key={notification.id}
-              onClose={() => {
-                removeNotificationById(notification.id);
-              }}
-              onClick={() => {
-                removeNotificationById(notification.id);
-              }}
-              onMouseLeave={() => {
-                // For exception type notifications, do not dismiss on mouse leave
-                if (notification.type !== 'exception') {
-                  removeNotificationById(notification.id);
-                }
-              }}
-              show={true}
-              autohide={true}
-              delay={2000}>
-              <Toast.Header
-                closeButton={notification.type === 'exception'}
-                className={`${'notificationToast'} text-right`}>
-                <strong className="me-auto">Notification</strong>
-                <small>{notification.time}</small>
-              </Toast.Header>
-              <Toast.Body>{notification.text}</Toast.Body>
-            </Toast>
-          ))}
-        {exceptions.map((exception) => (
-          // Always render exceptions, regardless of showNotification
-          <Toast
-            className="exceptionToast"
-            key={exception.id}
-            onClose={() => {
-              setExceptions((prevExceptions) =>
-                prevExceptions.filter((e) => e.id !== exception.id)
-              );
-            }}
-            show={true}
-            autohide={false}>
-            <Toast.Header closeButton className="exceptionToast text-right">
-              <strong className="me-auto">Exception</strong>
-              <small>{exception.time}</small>
-            </Toast.Header>
-            <Toast.Body>{exception.text}</Toast.Body>
-          </Toast>
-        ))}
-      </ToastContainer>
+      <Notifications
+        showNotification={showNotification}
+        notifications={notifications}
+        exceptions={exceptions}
+        removeNotificationById={removeNotificationById}
+        removeExceptionById={removeExceptionById}
+      />
 
       <Offcanvas
         show={showSettings}
