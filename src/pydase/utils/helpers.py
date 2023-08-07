@@ -4,6 +4,8 @@ from typing import Any, Optional
 
 from loguru import logger
 
+STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
+
 
 def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     """Dictionary containing all attributes (both instance and class level) of a
@@ -122,9 +124,6 @@ def generate_paths_from_DataService_dict(
         else:
             paths.append(new_path)  # type: ignore
     return paths
-
-
-STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
 
 
 def get_nested_value_by_path_and_key(data: dict, path: str, key: str = "value") -> Any:

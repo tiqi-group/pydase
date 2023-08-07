@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import {
   Navbar,
   Form,
@@ -13,6 +13,7 @@ import {
   DataServiceJSON
 } from './components/DataServiceComponent';
 import './App.css';
+import { getDataServiceJSONValueByPathAndKey } from './utils/nestedObjectUtils';
 
 type ValueType = boolean | string | number | object;
 
@@ -117,6 +118,8 @@ const reducer = (state: State, action: Action): State => {
 
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
+  const stateRef = useRef(state); // Declare a reference to hold the current state
+
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
@@ -133,20 +136,37 @@ const App = () => {
   const handleShowSettings = () => setShowSettings(true);
 
   function onNotify(value: UpdateNotification) {
-    const currentTime = new Date();
-    const timeString = currentTime.toISOString().substr(11, 8);
+    // Extracting data from the notification
+    const { parent_path, name, value: newValue } = value.data;
 
+    // Getting the current time in the required format
+    const timeString = new Date().toISOString().substring(11, 8);
+
+    // Dispatching the update to the reducer
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
-      parent_path: value.data.parent_path,
-      name: value.data.name,
-      value: value.data.value
+      parent_path,
+      name,
+      value: newValue
     });
+
+    // Formatting the value if it is of type 'Quantity'
+    let notificationMsg: object | string = newValue;
+    const path = parent_path.concat('.', name);
+    if (
+      getDataServiceJSONValueByPathAndKey(stateRef.current, path, 'type') === 'Quantity'
+    ) {
+      notificationMsg = `${newValue['magnitude']} ${newValue['unit']}`;
+    }
+
+    // Creating a new notification
     const newNotification = {
       id: Math.random(),
       time: timeString,
-      text: `Attribute ${value.data.parent_path}.${value.data.name} updated to ${value.data.value}.`
+      text: `Attribute ${parent_path}.${name} updated to ${notificationMsg}.`
     };
+
+    // Adding the new notification to the list
     setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
   }
 
@@ -162,6 +182,11 @@ const App = () => {
     };
     setExceptions((prevNotifications) => [newNotification, ...prevNotifications]);
   }
+
+  // Keep the state reference up to date
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     // Fetch data from the API when the component mounts
