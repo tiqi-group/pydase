@@ -14,6 +14,7 @@ type AttributeType =
   | 'bool'
   | 'float'
   | 'int'
+  | 'Quantity'
   | 'list'
   | 'method'
   | 'DataService'
@@ -58,6 +59,19 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value)}
+          isInstantUpdate={isInstantUpdate}
+        />
+      );
+    } else if (attribute.type === 'Quantity') {
+      return (
+        <NumberComponent
+          name={name}
+          type="float"
+          parent_path={parentPath}
+          docString={attribute.doc}
+          readOnly={attribute.readonly}
+          value={Number(attribute.value['magnitude'])}
+          unit={attribute.value['unit']}
           isInstantUpdate={isInstantUpdate}
         />
       );

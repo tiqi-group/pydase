@@ -15,6 +15,7 @@ from rpyc import (
 from rpyc import ThreadedServer
 from uvicorn.server import HANDLED_SIGNALS
 
+import pydase.units as u
 from pydase import DataService
 from pydase.version import __version__
 
@@ -295,6 +296,12 @@ class Server:
                 # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
                 # >       raise TypeError(f'Object of type {o.__class__.__name__} '
                 # > TypeError: Object of type list is not JSON serializable
+                notify_value = value
+                if isinstance(value, Enum):
+                    notify_value = value.name
+                if isinstance(value, u.Quantity):
+                    notify_value = {"magnitude": value.m, "unit": str(value.u)}
+
                 async def notify() -> None:
                     try:
                         await self._wapi.sio.emit(  # type: ignore
@@ -303,11 +310,7 @@ class Server:
                                 "data": {
                                     "parent_path": parent_path,
                                     "name": name,
-                                    "value": value.name
-                                    if isinstance(
-                                        value, Enum
-                                    )  # enums are not JSON serializable
-                                    else value,
+                                    "value": notify_value,
                                 }
                             },
                         )

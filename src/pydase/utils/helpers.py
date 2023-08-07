@@ -106,7 +106,7 @@ def generate_paths_from_DataService_dict(
             # ignoring methods
             continue
         new_path = f"{parent_path}.{key}" if parent_path else key
-        if isinstance(value["value"], dict):
+        if isinstance(value["value"], dict) and value["type"] != "Quantity":
             paths.extend(generate_paths_from_DataService_dict(value["value"], new_path))  # type: ignore
         elif isinstance(value["value"], list):
             for index, item in enumerate(value["value"]):
@@ -124,7 +124,7 @@ def generate_paths_from_DataService_dict(
     return paths
 
 
-STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType")
+STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
 
 
 def get_nested_value_by_path_and_key(data: dict, path: str, key: str = "value") -> Any:

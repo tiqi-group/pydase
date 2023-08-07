@@ -8,6 +8,7 @@ from typing import Any, Optional, cast, get_type_hints
 import rpyc
 from loguru import logger
 
+import pydase.units as u
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     generate_paths_from_DataService_dict,
@@ -61,6 +62,9 @@ class DataService(rpyc.Service, AbstractDataService):
         # parse ints into floats if current value is a float
         if isinstance(current_value, float) and isinstance(__value, int):
             __value = float(__value)
+
+        if isinstance(current_value, u.Quantity):
+            __value = u.convert_to_quantity(__value, str(current_value.u))
 
         super().__setattr__(__name, __value)
 
@@ -263,7 +267,9 @@ class DataService(rpyc.Service, AbstractDataService):
                 prop: property = getattr(self.__class__, key)
                 result[key] = {
                     "type": type(value).__name__,
-                    "value": value,
+                    "value": value
+                    if not isinstance(value, u.Quantity)
+                    else {"magnitude": value.m, "unit": str(value.u)},
                     "readonly": prop.fset is None,
                     "doc": inspect.getdoc(prop),
                 }
@@ -279,7 +285,9 @@ class DataService(rpyc.Service, AbstractDataService):
             else:
                 result[key] = {
                     "type": type(value).__name__,
-                    "value": value,
+                    "value": value
+                    if not isinstance(value, u.Quantity)
+                    else {"magnitude": value.m, "unit": str(value.u)},
                     "readonly": False,
                 }
 

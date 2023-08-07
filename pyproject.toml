@@ -17,6 +17,7 @@ toml = "^0.10.2"
 python-socketio = "^5.8.0"
 websockets = "^11.0.3"
 confz = "^2.0.0"
+pint = "^0.22"
 
 [tool.poetry.group.dev.dependencies]
 types-toml = "^0.10.8.6"

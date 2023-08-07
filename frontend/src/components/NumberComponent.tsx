@@ -14,6 +14,7 @@ interface NumberComponentProps {
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
+  unit?: string;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
@@ -100,7 +101,7 @@ const handleDeleteKey = (
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
-  const { name, parent_path, readOnly, docString, isInstantUpdate } = props;
+  const { name, parent_path, readOnly, docString, isInstantUpdate, unit } = props;
   const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
@@ -242,6 +243,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
               onBlur={handleBlur}
               className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
             />
+            {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
           </InputGroup>
           {!readOnly && (
             <div className="d-flex flex-column">
