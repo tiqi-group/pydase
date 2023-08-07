@@ -119,8 +119,9 @@ const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [showNotification, setShowNotification] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [exceptions, setExceptions] = useState([]); // Exception notifications
 
   const removeNotificationById = (id: number) => {
     setNotifications((prevNotifications) =>
@@ -159,7 +160,7 @@ const App = () => {
       time: timeString,
       text: `${value.data.type}: ${value.data.exception}.`
     };
-    setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+    setExceptions((prevNotifications) => [newNotification, ...prevNotifications]);
   }
 
   useEffect(() => {
@@ -190,18 +191,14 @@ const App = () => {
         </Container>
       </Navbar>
 
-      {showNotification && (
-        <ToastContainer
-          className="navbarOffset toastContainer"
-          position="top-end"
-          style={{ position: 'fixed' }}>
-          {notifications.map((notification) => (
+      <ToastContainer
+        className="navbarOffset toastContainer"
+        position="top-end"
+        style={{ position: 'fixed' }}>
+        {showNotification &&
+          notifications.map((notification) => (
             <Toast
-              className={
-                notification.type === 'exception'
-                  ? 'exceptionToast'
-                  : 'notificationToast'
-              }
+              className="notificationToast"
               key={notification.id}
               onClose={() => {
                 removeNotificationById(notification.id);
@@ -216,26 +213,37 @@ const App = () => {
                 }
               }}
               show={true}
-              autohide={notification.type !== 'exception'} // Do not autohide for 'exception' type notifications
-              delay={notification.type === 'exception' ? 0 : 2000} // No delay for 'exception' type notifications
-            >
+              autohide={true}
+              delay={2000}>
               <Toast.Header
                 closeButton={notification.type === 'exception'}
-                className={`${
-                  notification.type === 'exception'
-                    ? 'exceptionToast'
-                    : 'notificationToast'
-                } text-right`}>
-                <strong className="me-auto">
-                  {notification.type === 'exception' ? 'Exception' : 'Notification'}
-                </strong>
+                className={`${'notificationToast'} text-right`}>
+                <strong className="me-auto">Notification</strong>
                 <small>{notification.time}</small>
               </Toast.Header>
               <Toast.Body>{notification.text}</Toast.Body>
             </Toast>
           ))}
-        </ToastContainer>
-      )}
+        {exceptions.map((exception) => (
+          // Always render exceptions, regardless of showNotification
+          <Toast
+            className="exceptionToast"
+            key={exception.id}
+            onClose={() => {
+              setExceptions((prevExceptions) =>
+                prevExceptions.filter((e) => e.id !== exception.id)
+              );
+            }}
+            show={true}
+            autohide={false}>
+            <Toast.Header closeButton className="exceptionToast text-right">
+              <strong className="me-auto">Exception</strong>
+              <small>{exception.time}</small>
+            </Toast.Header>
+            <Toast.Body>{exception.text}</Toast.Body>
+          </Toast>
+        ))}
+      </ToastContainer>
 
       <Offcanvas
         show={showSettings}
