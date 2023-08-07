@@ -1,7 +1,5 @@
-from .data_service import DataService
-from .data_service_list import DataServiceList
+from pydase.data_service.data_service import DataService
 
 __all__ = [
     "DataService",
-    "DataServiceList",
 ]

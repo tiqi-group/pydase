@@ -1,12 +1,7 @@
-from .data_service import DataService
-from .server import Server
-from .version import __major__, __minor__, __patch__, __version__
+from pydase.data_service import DataService
+from pydase.server import Server
 
 __all__ = [
-    "__version__",
-    "__major__",
-    "__minor__",
-    "__patch__",
     "DataService",
     "Server",
 ]

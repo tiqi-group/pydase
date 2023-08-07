@@ -27,6 +27,6 @@ print(my_service.voltage.value)  # Output: 5
 ```
 """
 
-from .number_slider import NumberSlider
+from pydase.components.number_slider import NumberSlider
 
 __all__ = ["NumberSlider"]
