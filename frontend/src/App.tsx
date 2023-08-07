@@ -140,7 +140,7 @@ const App = () => {
     const { parent_path, name, value: newValue } = value.data;
 
     // Getting the current time in the required format
-    const timeString = new Date().toISOString().substring(11, 8);
+    const timeString = new Date().toISOString().substring(11, 19);
 
     // Dispatching the update to the reducer
     dispatch({
