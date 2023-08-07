@@ -11,6 +11,7 @@
   - [Connecting to the Service using rpyc](#connecting-to-the-service-using-rpyc)
 - [Understanding Service Persistence](#understanding-service-persistence)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
+- [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -22,6 +23,7 @@
 * [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
 * [Saving and restoring the service state for service persistence](#understanding-service-persistence)
 * [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
+* [Support for units](#understanding-units-in-pydase)
 * Event-based callback functionality for real-time updates
 * Support for additional servers for specific use-cases
 
@@ -204,6 +206,72 @@ if __name__ == "__main__":
 In this example, `read_sensor_data` is a task that continuously reads data from a sensor. The readout frequency can be updated using the `readout_frequency` attribute.
 By listing it in the `_autostart_tasks` dictionary, it will automatically start running when `Server(service).run()` is executed.
 As with all tasks, `pydase` will also generate `start_read_sensor_data` and `stop_read_sensor_data` methods, which can be called to manually start and stop the data reading task.
+
+## Understanding Units in pydase
+
+`pydase` integrates with the [`pint`](https://pint.readthedocs.io/en/stable/) package to allow you to work with physical quantities within your service. This enables you to define attributes with units, making your service more expressive and ensuring consistency in the handling of physical quantities.
+
+You can define quantities in your `DataService` subclass using `pydase`'s `units` functionality. These quantities can be set and accessed like regular attributes, and `pydase` will automatically handle the conversion between floats and quantities with units.
+
+Here's an example:
+
+```python
+from typing import Any
+from pydase import DataService, Server
+import pydase.units as u
+
+
+class ServiceClass(DataService):
+    voltage = 1.0 * u.units.V
+    _current: u.Quantity = 1.0 * u.units.mA
+
+    @property
+    def current(self) -> u.Quantity:
+        return self._current
+
+    @current.setter
+    def current(self, value: Any) -> None:
+        self._current = value
+
+
+if __name__ == "__main__":
+    service = ServiceClass()
+
+    # You can just set floats to the Quantity objects. The DataService __setattr__ will
+    # automatically convert this
+    service.voltage = 10.0
+    service.current = 1.5
+
+    Server(service).run()
+```
+
+In the frontend, quantities are rendered as floats, with the unit displayed as additional text. This allows you to maintain a clear and consistent representation of physical quantities across both the backend and frontend of your service.
+![Web interface with rendered units](./docs/images/Units_App.png)
+
+Should you need to access the magnitude or the unit of a quantity, you can use the `.m` attribute or the `.u` attribute of the variable, respectively. For example, this could be necessary to set the periodicity of a task:
+
+```python
+import asyncio
+from pydase import DataService, Server
+import pydase.units as u
+
+
+class ServiceClass(DataService):
+    readout_wait_time = 1.0 * u.units.ms
+
+    async def read_sensor_data(self):
+        while True:
+            print("Reading out sensor ...")
+            await asyncio.sleep(self.readout_wait_time.to("s").m)
+
+
+if __name__ == "__main__":
+    service = ServiceClass()
+
+    Server(service).run()
+```
+
+For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
 
 ## Documentation
 
