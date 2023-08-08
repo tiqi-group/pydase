@@ -56,23 +56,19 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         <p>Render count: {renderCount.current}</p>
       )}
       <DocStringComponent docString={docString} />
-      <div className="row">
-        <div className="col-5 d-flex">
-          <InputGroup>
-            <InputGroup.Text>{name}</InputGroup.Text>
-            <Form.Control
-              type="text"
-              value={inputString}
-              disabled={readOnly}
-              name={name}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
-            />
-          </InputGroup>
-        </div>
-      </div>
+      <InputGroup>
+        <InputGroup.Text>{name}</InputGroup.Text>
+        <Form.Control
+          type="text"
+          value={inputString}
+          disabled={readOnly}
+          name={name}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
+        />
+      </InputGroup>
     </div>
   );
 });

@@ -31,7 +31,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       )}
       <DocStringComponent docString={docString} />
       <Row>
-        <Col className="col-5 d-flex align-items-center">
+        <Col className="d-flex align-items-center">
           <InputGroup.Text>{name}</InputGroup.Text>
           <Form.Select
             aria-label="Default select example"

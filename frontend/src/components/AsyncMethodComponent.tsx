@@ -72,7 +72,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
   return (
     <div
-      className="col-5 align-items-center asyncMethodComponent"
+      className="align-items-center asyncMethodComponent"
       id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>

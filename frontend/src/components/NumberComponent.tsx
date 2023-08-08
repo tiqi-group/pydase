@@ -245,32 +245,30 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         <p>Render count: {renderCount.current}</p>
       )}
       <DocStringComponent docString={docString} />
-      <div className="row">
-        <div className="d-flex">
-          <InputGroup>
-            {showName && <InputGroup.Text>{name}</InputGroup.Text>}
-            <Form.Control
-              type="text"
-              value={inputString}
-              disabled={readOnly}
-              name={parent_path.concat(name)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
-            />
-            {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
-          </InputGroup>
-          {!readOnly && (
-            <div className="d-flex flex-column">
-              <Button className="numberComponentButton" variant="outline-secondary">
-                +
-              </Button>
-              <Button className="numberComponentButton" variant="outline-secondary">
-                -
-              </Button>
-            </div>
-          )}
-        </div>
+      <div className="d-flex">
+        <InputGroup>
+          {showName && <InputGroup.Text>{name}</InputGroup.Text>}
+          <Form.Control
+            type="text"
+            value={inputString}
+            disabled={readOnly}
+            name={parent_path.concat(name)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
+          />
+          {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
+        </InputGroup>
+        {!readOnly && (
+          <div className="d-flex flex-column">
+            <Button className="numberComponentButton" variant="outline-secondary">
+              +
+            </Button>
+            <Button className="numberComponentButton" variant="outline-secondary">
+              -
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
