@@ -15,6 +15,13 @@ interface NumberComponentProps {
   docString: string;
   isInstantUpdate: boolean;
   unit?: string;
+  showName?: boolean;
+  customEmitUpdate?: (
+    name: string,
+    parent_path: string,
+    value: number,
+    callback?: (ack: unknown) => void
+  ) => void;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
@@ -102,6 +109,14 @@ const handleDeleteKey = (
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const { name, parent_path, readOnly, docString, isInstantUpdate, unit } = props;
+
+  // Whether to show the name infront of the component (false if used with a slider)
+  const showName = props.showName !== undefined ? props.showName : true;
+  // If emitUpdate is passed, use this instead of the emit_update from the socket
+  // Also used when used with a slider
+  const emitUpdate =
+    props.customEmitUpdate !== undefined ? props.customEmitUpdate : emit_update;
+
   const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
@@ -199,7 +214,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      emit_update(name, parent_path, Number(newValue));
+      emitUpdate(name, parent_path, Number(newValue));
       return;
     } else {
       console.debug(key);
@@ -208,7 +223,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      emit_update(name, parent_path, Number(newValue));
+      emitUpdate(name, parent_path, Number(newValue));
     }
 
     setInputString(newValue);
@@ -220,20 +235,20 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      emit_update(name, parent_path, Number(inputString));
+      emitUpdate(name, parent_path, Number(inputString));
     }
   };
 
   return (
-    <div className={'numberComponent'} id={parent_path.concat(name)}>
-      {process.env.NODE_ENV === 'development' && (
+    <div className="numberComponent" id={parent_path.concat('.' + name)}>
+      {process.env.NODE_ENV === 'development' && showName && (
         <p>Render count: {renderCount.current}</p>
       )}
       <DocStringComponent docString={docString} />
       <div className="row">
-        <div className="col-5 d-flex">
+        <div className="d-flex">
           <InputGroup>
-            <InputGroup.Text>{name}</InputGroup.Text>
+            {showName && <InputGroup.Text>{name}</InputGroup.Text>}
             <Form.Control
               type="text"
               value={inputString}

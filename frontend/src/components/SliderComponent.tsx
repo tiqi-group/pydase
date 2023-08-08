@@ -3,6 +3,7 @@ import { InputGroup, Form, Row, Col, Button, Collapse } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
+import { NumberComponent } from './NumberComponent';
 
 interface SliderComponentProps {
   name: string;
@@ -24,20 +25,38 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     renderCount.current++;
   });
 
-  const { name, parent_path, value, min, max, stepSize, readOnly, docString } = props;
+  const {
+    name,
+    parent_path,
+    value,
+    min,
+    max,
+    stepSize,
+    readOnly,
+    docString,
+    isInstantUpdate
+  } = props;
 
-  const socketEmit = (
-    newNumber: number,
+  const emitSliderUpdate = (
+    name: string,
+    parent_path: string,
+    value: number,
+    callback?: (ack: unknown) => void,
     min: number = props.min,
     max: number = props.max,
     stepSize: number = props.stepSize
   ) => {
-    emit_update(name, parent_path, {
-      value: newNumber,
-      min: min,
-      max: max,
-      step_size: stepSize
-    });
+    emit_update(
+      name,
+      parent_path,
+      {
+        value: value,
+        min: min,
+        max: max,
+        step_size: stepSize
+      },
+      callback
+    );
   };
   const handleOnChange = (event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
@@ -45,19 +64,19 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    socketEmit(newNumber, min, max, stepSize);
+    emitSliderUpdate(name, parent_path, newNumber);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
     switch (valueType) {
       case 'min':
-        socketEmit(value, newValue, max, stepSize);
+        emitSliderUpdate(name, parent_path, value, undefined, newValue);
         break;
       case 'max':
-        socketEmit(value, min, newValue, stepSize);
+        emitSliderUpdate(name, parent_path, value, undefined, min, newValue);
         break;
       case 'stepSize':
-        socketEmit(value, min, max, newValue);
+        emitSliderUpdate(name, parent_path, value, undefined, min, max, newValue);
         break;
       default:
         break;
@@ -65,24 +84,21 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   };
 
   return (
-    <div className={'sliderComponent'} id={parent_path.concat('.' + name)}>
+    <div className="sliderComponent" id={parent_path.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
 
       <DocStringComponent docString={docString} />
       <Row>
-        <Col className="col-5 d-flex align-items-center">
-          <InputGroup.Text
-          // style={{ height: '80px' }}
-          >
-            {name}
-          </InputGroup.Text>
-          {/* <Form.Group> */}
+        <Col xs="auto">
+          <InputGroup.Text>{name}</InputGroup.Text>
+        </Col>
+        <Col xs="5">
           <Slider
-            style={{ flex: 1, margin: '0px 0px 5px 10px' }}
+            style={{ margin: '0px 0px 10px 0px' }}
             aria-label="Always visible"
-            valueLabelDisplay="on"
+            // valueLabelDisplay="on"
             disabled={readOnly}
             value={value}
             onChange={(event, newNumber) => handleOnChange(event, newNumber)}
@@ -94,14 +110,19 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
               { value: max, label: `${max}` }
             ]}
           />
-          {/* <Form.Control
-              type="text"
-              value={value}
-              name={name}
-              disabled={true}
-              style={{ flex: 1, margin: '5px 0px 0px 10px' }}
-            /> */}
-          {/* </Form.Group> */}
+        </Col>
+        <Col xs={4}>
+          <NumberComponent
+            isInstantUpdate={isInstantUpdate}
+            parent_path={parent_path}
+            name={name}
+            docString=""
+            readOnly={readOnly}
+            type="float"
+            value={value}
+            showName={false}
+            customEmitUpdate={emitSliderUpdate}
+          />
         </Col>
       </Row>
       <Row xs="auto">
