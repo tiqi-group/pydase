@@ -270,6 +270,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     "async": asyncio.iscoroutinefunction(value),
                     "parameters": parameters,
                     "doc": inspect.getdoc(value),
+                    "readonly": True,
                     "value": running_task_info,
                 }
             elif isinstance(getattr(self.__class__, key, None), property):
@@ -290,6 +291,7 @@ class DataService(rpyc.Service, AbstractDataService):
                         name: member.value
                         for name, member in value.__class__.__members__.items()
                     },
+                    "readonly": False,
                 }
             else:
                 result[key] = {
