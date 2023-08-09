@@ -309,3 +309,18 @@ def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
         attr_name, idx = attr_string[:-1].split("[")
         index = int(idx)
     return attr_name, index
+
+
+def get_component_class_names() -> list[str]:
+    """
+    Returns the names of the component classes in a list.
+
+    It takes the names from the pydase/components/__init__.py file, so this file should
+    always be up-to-date with the currently available components.
+
+    Returns:
+        list[str]: List of component class names
+    """
+    import pydase.components
+
+    return pydase.components.__all__

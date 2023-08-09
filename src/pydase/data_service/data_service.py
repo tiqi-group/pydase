@@ -9,10 +9,14 @@ import rpyc
 from loguru import logger
 
 import pydase.units as u
+from pydase.data_service.abstract_data_service import AbstractDataService
+from pydase.data_service.callback_manager import CallbackManager
+from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     generate_paths_from_DataService_dict,
     get_class_and_instance_attributes,
+    get_component_class_names,
     get_nested_value_by_path_and_key,
     get_object_attr_from_path,
     parse_list_attr_and_index,
@@ -21,10 +25,6 @@ from pydase.utils.helpers import (
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
-
-from .abstract_data_service import AbstractDataService
-from .callback_manager import CallbackManager
-from .task_manager import TaskManager
 
 
 def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
@@ -226,7 +226,7 @@ class DataService(rpyc.Service, AbstractDataService):
             if isinstance(value, DataService):
                 result[key] = {
                     "type": type(value).__name__
-                    if type(value).__name__ in ("NumberSlider")
+                    if type(value).__name__ in get_component_class_names()
                     else "DataService",
                     "value": value.serialize(),
                     "readonly": False,
@@ -237,10 +237,10 @@ class DataService(rpyc.Service, AbstractDataService):
                     "type": "list",
                     "value": [
                         {
-                            "type": "DataService"
-                            if isinstance(item, DataService)
-                            and type(item).__name__ not in ("NumberSlider")
-                            else type(item).__name__,
+                            "type": type(item).__name__
+                            if not isinstance(item, DataService)
+                            or type(item).__name__ in get_component_class_names()
+                            else "DataService",
                             "value": item.serialize()
                             if isinstance(item, DataService)
                             else item,
