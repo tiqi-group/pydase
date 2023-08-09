@@ -2,7 +2,7 @@ from typing import Any, Literal
 
 from loguru import logger
 
-from ..data_service.data_service import DataService
+from pydase.data_service.data_service import DataService
 
 
 class NumberSlider(DataService):
