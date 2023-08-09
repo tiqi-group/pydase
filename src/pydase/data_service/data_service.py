@@ -203,6 +203,18 @@ class DataService(rpyc.Service, AbstractDataService):
         # Merge the class and instance dictionaries
         merged_set = derived_only_set | instance_dict
 
+        def get_attribute_doc(attr: Any) -> Optional[str]:
+            """This function takes an input attribute attr and returns its documentation
+            string if it's different from the documentation of its type, otherwise,
+            it returns None.
+            """
+            attr_doc = inspect.getdoc(attr)
+            attr_class_doc = inspect.getdoc(type(attr))
+            if attr_class_doc != attr_doc:
+                return attr_doc
+            else:
+                return None
+
         # Iterate over attributes, properties, class attributes, and methods
         for key in sorted(merged_set):
             if key.startswith("_"):
@@ -230,7 +242,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     else "DataService",
                     "value": value.serialize(),
                     "readonly": False,
-                    "doc": inspect.getdoc(value),
+                    "doc": get_attribute_doc(value),
                 }
             elif isinstance(value, list):
                 result[key] = {
@@ -245,6 +257,7 @@ class DataService(rpyc.Service, AbstractDataService):
                             if isinstance(item, DataService)
                             else item,
                             "readonly": False,
+                            "doc": get_attribute_doc(value),
                         }
                         for item in value
                     ],
@@ -269,7 +282,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     "type": "method",
                     "async": asyncio.iscoroutinefunction(value),
                     "parameters": parameters,
-                    "doc": inspect.getdoc(value),
+                    "doc": get_attribute_doc(value),
                     "readonly": True,
                     "value": running_task_info,
                 }
@@ -281,7 +294,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     if not isinstance(value, u.Quantity)
                     else {"magnitude": value.m, "unit": str(value.u)},
                     "readonly": prop.fset is None,
-                    "doc": inspect.getdoc(prop),
+                    "doc": get_attribute_doc(prop),
                 }
             elif isinstance(value, Enum):
                 result[key] = {
@@ -292,6 +305,7 @@ class DataService(rpyc.Service, AbstractDataService):
                         for name, member in value.__class__.__members__.items()
                     },
                     "readonly": False,
+                    "doc": get_attribute_doc(value),
                 }
             else:
                 result[key] = {
@@ -300,6 +314,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     if not isinstance(value, u.Quantity)
                     else {"magnitude": value.m, "unit": str(value.u)},
                     "readonly": False,
+                    "doc": get_attribute_doc(value),
                 }
 
         return result
