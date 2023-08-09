@@ -14,9 +14,9 @@ class NumberSlider(DataService):
     -----------
     value (float | int, optional):
         The initial value of the slider. Defaults to 0.
-    min (int, optional):
+    min (float, optional):
         The minimum value of the slider. Defaults to 0.
-    max (int, optional):
+    max (float, optional):
         The maximum value of the slider. Defaults to 100.
     step_size (float, optional):
         The increment/decrement step size of the slider. Defaults to 1.0.
@@ -40,8 +40,8 @@ class NumberSlider(DataService):
     def __init__(
         self,
         value: float | int = 0,
-        min: int = 0,
-        max: int = 100,
+        min: float = 0.0,
+        max: float = 100.0,
         step_size: float = 1.0,
         type: Literal["int"] | Literal["float"] = "float",
     ) -> None:
@@ -61,5 +61,7 @@ class NumberSlider(DataService):
     def __setattr__(self, name: str, value: Any) -> None:
         if name == "value":
             value = int(value) if self._type == "int" else float(value)
+        elif not name.startswith("_"):
+            value = float(value)
 
         return super().__setattr__(name, value)
