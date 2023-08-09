@@ -141,6 +141,15 @@ class DataService(rpyc.Service, AbstractDataService):
                 serialized_class, path=path, key="type"
             )
             if class_value_type == value_type:
+                class_attr_is_read_only = get_nested_value_by_path_and_key(
+                    serialized_class, path=path, key="readonly"
+                )
+                if class_attr_is_read_only:
+                    logger.debug(
+                        f'Attribute "{path}" is read-only. Ignoring value from JSON '
+                        "file..."
+                    )
+                    continue
                 # Split the path into parts
                 parts = path.split(".")
                 attr_name = parts[-1]
