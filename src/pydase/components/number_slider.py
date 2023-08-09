@@ -45,16 +45,15 @@ class NumberSlider(DataService):
         step_size: float | int = 1.0,
         type: Literal["int"] | Literal["float"] = "float",
     ) -> None:
-        self.min = min
-        self.max = max
-        self.step_size = step_size
-
         if type not in {"float", "int"}:
             logger.error(f"Unknown type '{type}'. Using 'float'.")
             type = "float"
 
         self._type = type
+        self.step_size = step_size
         self.value = value
+        self.min = min
+        self.max = max
 
         super().__init__()
 
