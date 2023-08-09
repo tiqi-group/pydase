@@ -8,6 +8,7 @@ import { AsyncMethodComponent } from './AsyncMethodComponent';
 import { StringComponent } from './StringComponent';
 import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
+import { ImageComponent } from './ImageComponent';
 
 type AttributeType =
   | 'str'
@@ -19,7 +20,8 @@ type AttributeType =
   | 'method'
   | 'DataService'
   | 'Enum'
-  | 'NumberSlider';
+  | 'NumberSlider'
+  | 'Image';
 
 type ValueType = boolean | string | number | object;
 export interface Attribute {
@@ -147,6 +149,17 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           parent_path={parentPath}
           isInstantUpdate={isInstantUpdate}
+        />
+      );
+    } else if (attribute.type === 'Image') {
+      return (
+        <ImageComponent
+          name={name}
+          parentPath={parentPath}
+          value={attribute.value['value']['value'] as string}
+          readOnly={attribute.readonly}
+          docString={attribute.doc}
+          // Add any other specific props for the ImageComponent here
         />
       );
     } else {
