@@ -8,6 +8,7 @@ import {
 import './App.css';
 import { getDataServiceJSONValueByPathAndKey } from './utils/nestedObjectUtils';
 import { Notifications } from './components/NotificationsComponent';
+import { useNotification } from './hooks/useNotification';
 
 type ValueType = boolean | string | number | object;
 
@@ -117,18 +118,12 @@ const App = () => {
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [exceptions, setExceptions] = useState([]); // Exception notifications
-
-  const removeNotificationById = (id: number) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.filter((n) => n.id !== id)
-    );
-  };
-
-  const removeExceptionById = (id: number) => {
-    setExceptions((prevNotifications) => prevNotifications.filter((n) => n.id !== id));
-  };
+  const { notifications, notify, removeNotificationById } = useNotification();
+  const {
+    notifications: exceptions,
+    notify: notifyException,
+    removeNotificationById: removeExceptionById
+  } = useNotification();
 
   const handleCloseSettings = () => setShowSettings(false);
   const handleShowSettings = () => setShowSettings(true);
@@ -165,7 +160,7 @@ const App = () => {
     };
 
     // Adding the new notification to the list
-    setNotifications((prevNotifications) => [newNotification, ...prevNotifications]);
+    notify(newNotification);
   }
 
   function onException(value: ExceptionMessage) {
@@ -177,7 +172,7 @@ const App = () => {
       time: timeString,
       text: `${value.data.type}: ${value.data.exception}.`
     };
-    setExceptions((prevNotifications) => [newNotification, ...prevNotifications]);
+    notifyException(newNotification);
   }
 
   // Keep the state reference up to date
