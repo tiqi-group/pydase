@@ -33,6 +33,7 @@ flake8-comprehensions = "^3.11.1"
 flake8-pep585 = "^0.1.7"
 flake8-pep604 = "^0.1.0"
 flake8-eradicate = "^1.4.0"
+pillow = "^10.0.0"
 
 [build-system]
 requires = ["poetry-core"]
