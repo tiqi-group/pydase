@@ -36,7 +36,7 @@ def test_instance_list_attribute(capsys: CaptureFixture) -> None:
     assert (
         captured.out.strip()
         == "ServiceClass.attr[1] = {'name': {'type': 'str', 'value': 'SubClass',"
-        " 'readonly': False}}"
+        " 'readonly': False, 'doc': None}}"
     )
 
 
