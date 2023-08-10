@@ -132,9 +132,6 @@ const App = () => {
     // Extracting data from the notification
     const { parent_path, name, value: newValue } = value.data;
 
-    // Getting the current time in the required format
-    const timeString = new Date().toISOString().substring(11, 19);
-
     // Dispatching the update to the reducer
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
@@ -153,25 +150,13 @@ const App = () => {
     }
 
     // Creating a new notification
-    const newNotification = {
-      id: Math.random(),
-      time: timeString,
-      text: `${parent_path}.${name} changed to ${notificationMsg}.`
-    };
-
+    const newNotification = `${parent_path}.${name} changed to ${notificationMsg}.`;
     // Adding the new notification to the list
     notify(newNotification);
   }
 
   function onException(value: ExceptionMessage) {
-    const currentTime = new Date();
-    const timeString = currentTime.toISOString().substr(11, 8);
-
-    const newNotification = {
-      id: Math.random(),
-      time: timeString,
-      text: `${value.data.type}: ${value.data.exception}.`
-    };
+    const newNotification = `${value.data.type}: ${value.data.exception}.`;
     notifyException(newNotification);
   }
 

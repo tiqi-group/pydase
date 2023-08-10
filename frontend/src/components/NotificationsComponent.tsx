@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToastContainer, Toast } from 'react-bootstrap';
 
-type Notification = {
+export type Notification = {
   id: number;
   time: string;
   text: string;
