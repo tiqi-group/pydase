@@ -3,7 +3,7 @@ import inspect
 import json
 import os
 from enum import Enum
-from typing import Any, Optional, cast, get_type_hints
+from typing import Any, Optional, Union, cast, get_args, get_type_hints
 
 import rpyc
 from loguru import logger
@@ -265,12 +265,28 @@ class DataService(rpyc.Service, AbstractDataService):
                 }
             elif inspect.isfunction(value) or inspect.ismethod(value):
                 sig = inspect.signature(value)
-                parameters = {
-                    k: v.annotation.__name__
-                    if v.annotation is not inspect._empty
-                    else None
-                    for k, v in sig.parameters.items()
-                }
+                parameters: dict[str, Optional[str]] = {}
+                for k, v in sig.parameters.items():
+                    annotation = v.annotation
+                    if annotation is not inspect._empty:
+                        if (
+                            hasattr(annotation, "__origin__")
+                            and annotation.__origin__ is Union
+                        ):
+                            # Handle union types
+                            union_types = get_args(annotation)
+                            type_names = [
+                                t.__name__ if isinstance(t, type) else str(t)
+                                for t in union_types
+                            ]
+                            parameters[k] = " | ".join(type_names)
+                        elif isinstance(annotation, type):
+                            # Handle regular types
+                            parameters[k] = annotation.__name__
+                        else:
+                            parameters[k] = str(annotation)
+                    else:
+                        parameters[k] = None
                 running_task_info = None
                 if (
                     key in self._task_manager.tasks
