@@ -5,7 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 
 interface EnumComponentProps {
   name: string;
-  parent_path: string;
+  parentPath: string;
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
@@ -18,14 +18,14 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
     renderCount.current++;
   });
 
-  const { name, parent_path, value, docString, enumDict } = props;
+  const { name, parentPath: parentPath, value, docString, enumDict } = props;
 
   const handleValueChange = (newValue: string) => {
-    emit_update(name, parent_path, newValue);
+    emit_update(name, parentPath, newValue);
   };
 
   return (
-    <div className={'enumComponent'} id={parent_path.concat('.' + name)}>
+    <div className={'enumComponent'} id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

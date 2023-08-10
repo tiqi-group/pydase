@@ -15,7 +15,7 @@ type ValueType = boolean | string | number | object;
 type State = DataServiceJSON | null;
 type Action =
   | { type: 'SET_DATA'; data: DataServiceJSON }
-  | { type: 'UPDATE_ATTRIBUTE'; parent_path: string; name: string; value: ValueType };
+  | { type: 'UPDATE_ATTRIBUTE'; parentPath: string; name: string; value: ValueType };
 type UpdateMessage = {
   data: { parent_path: string; name: string; value: object };
 };
@@ -102,7 +102,7 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_DATA':
       return action.data;
     case 'UPDATE_ATTRIBUTE': {
-      const path = action.parent_path.split('.').slice(1).concat(action.name);
+      const path = action.parentPath.split('.').slice(1).concat(action.name);
 
       return updateNestedObject(path, state, action.value);
     }
@@ -130,19 +130,19 @@ const App = () => {
 
   function onNotify(value: UpdateMessage) {
     // Extracting data from the notification
-    const { parent_path, name, value: newValue } = value.data;
+    const { parent_path: parentPath, name, value: newValue } = value.data;
 
     // Dispatching the update to the reducer
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
-      parent_path,
+      parentPath,
       name,
       value: newValue
     });
 
     // Formatting the value if it is of type 'Quantity'
     let notificationMsg: object | string = newValue;
-    const path = parent_path.concat('.', name);
+    const path = parentPath.concat('.', name);
     if (
       getDataServiceJSONValueByPathAndKey(stateRef.current, path, 'type') === 'Quantity'
     ) {
@@ -150,7 +150,7 @@ const App = () => {
     }
 
     // Creating a new notification
-    const newNotification = `${parent_path}.${name} changed to ${notificationMsg}.`;
+    const newNotification = `${parentPath}.${name} changed to ${notificationMsg}.`;
     // Adding the new notification to the list
     notify(newNotification);
   }

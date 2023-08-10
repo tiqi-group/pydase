@@ -4,7 +4,7 @@ import { Attribute, GenericComponent } from './GenericComponent';
 
 interface ListComponentProps {
   name: string;
-  parent_path?: string;
+  parentPath?: string;
   value: Attribute[];
   docString: string;
   isInstantUpdate: boolean;
@@ -17,10 +17,10 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
     renderCount.current++;
   });
 
-  const { name, parent_path, value, docString, isInstantUpdate } = props;
+  const { name, parentPath, value, docString, isInstantUpdate } = props;
 
   return (
-    <div className={'listComponent'} id={parent_path.concat(name)}>
+    <div className={'listComponent'} id={parentPath.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -31,7 +31,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
             key={`${name}[${index}]`}
             attribute={item}
             name={`${name}[${index}]`}
-            parentPath={parent_path}
+            parentPath={parentPath}
             isInstantUpdate={isInstantUpdate}
           />
         );

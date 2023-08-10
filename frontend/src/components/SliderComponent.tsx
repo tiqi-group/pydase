@@ -9,7 +9,7 @@ interface SliderComponentProps {
   name: string;
   min: number;
   max: number;
-  parent_path?: string;
+  parentPath?: string;
   value: number;
   readOnly: boolean;
   docString: string;
@@ -27,7 +27,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   const {
     name,
-    parent_path,
+    parentPath,
     value,
     min,
     max,
@@ -39,7 +39,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   const emitSliderUpdate = (
     name: string,
-    parent_path: string,
+    parentPath: string,
     value: number,
     callback?: (ack: unknown) => void,
     min: number = props.min,
@@ -48,7 +48,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   ) => {
     emit_update(
       name,
-      parent_path,
+      parentPath,
       {
         value: value,
         min: min,
@@ -64,19 +64,19 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    emitSliderUpdate(name, parent_path, newNumber);
+    emitSliderUpdate(name, parentPath, newNumber);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
     switch (valueType) {
       case 'min':
-        emitSliderUpdate(name, parent_path, value, undefined, newValue);
+        emitSliderUpdate(name, parentPath, value, undefined, newValue);
         break;
       case 'max':
-        emitSliderUpdate(name, parent_path, value, undefined, min, newValue);
+        emitSliderUpdate(name, parentPath, value, undefined, min, newValue);
         break;
       case 'stepSize':
-        emitSliderUpdate(name, parent_path, value, undefined, min, max, newValue);
+        emitSliderUpdate(name, parentPath, value, undefined, min, max, newValue);
         break;
       default:
         break;
@@ -84,7 +84,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   };
 
   return (
-    <div className="sliderComponent" id={parent_path.concat('.' + name)}>
+    <div className="sliderComponent" id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -114,7 +114,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         <Col xs="3" xl>
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
-            parent_path={parent_path}
+            parentPath={parentPath}
             name={name}
             docString=""
             readOnly={readOnly}

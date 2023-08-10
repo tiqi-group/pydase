@@ -46,7 +46,7 @@ export const GenericComponent = React.memo(
       return (
         <ButtonComponent
           name={name}
-          parent_path={parentPath}
+          parentPath={parentPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Boolean(attribute.value)}
@@ -57,7 +57,7 @@ export const GenericComponent = React.memo(
         <NumberComponent
           name={name}
           type={attribute.type}
-          parent_path={parentPath}
+          parentPath={parentPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value)}
@@ -69,7 +69,7 @@ export const GenericComponent = React.memo(
         <NumberComponent
           name={name}
           type="float"
-          parent_path={parentPath}
+          parentPath={parentPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value['magnitude'])}
@@ -81,7 +81,7 @@ export const GenericComponent = React.memo(
       return (
         <SliderComponent
           name={name}
-          parent_path={parentPath}
+          parentPath={parentPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={attribute.value['value']['value']}
@@ -95,7 +95,7 @@ export const GenericComponent = React.memo(
       return (
         <EnumComponent
           name={name}
-          parent_path={parentPath}
+          parentPath={parentPath}
           docString={attribute.doc}
           value={String(attribute.value)}
           enumDict={attribute.enum}
@@ -106,7 +106,7 @@ export const GenericComponent = React.memo(
         return (
           <MethodComponent
             name={name}
-            parent_path={parentPath}
+            parentPath={parentPath}
             docString={attribute.doc}
             parameters={attribute.parameters}
           />
@@ -115,7 +115,7 @@ export const GenericComponent = React.memo(
         return (
           <AsyncMethodComponent
             name={name}
-            parent_path={parentPath}
+            parentPath={parentPath}
             docString={attribute.doc}
             parameters={attribute.parameters}
             value={attribute.value as Record<string, string>}
@@ -129,7 +129,7 @@ export const GenericComponent = React.memo(
           value={attribute.value as string}
           readOnly={attribute.readonly}
           docString={attribute.doc}
-          parent_path={parentPath}
+          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
         />
       );
@@ -147,7 +147,7 @@ export const GenericComponent = React.memo(
           name={name}
           value={attribute.value as Attribute[]}
           docString={attribute.doc}
-          parent_path={parentPath}
+          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
         />
       );

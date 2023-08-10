@@ -5,7 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 
 interface AsyncMethodProps {
   name: string;
-  parent_path: string;
+  parentPath: string;
   parameters: Record<string, string>;
   value: Record<string, string>;
   docString?: string;
@@ -15,7 +15,7 @@ interface AsyncMethodProps {
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const renderCount = useRef(0);
   const formRef = useRef(null);
-  const { name, parent_path, docString, value: runningTask } = props;
+  const { name, parentPath, docString, value: runningTask } = props;
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -31,7 +31,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       method_name = `start_${name}`;
     }
 
-    emit_update(method_name, parent_path, { args: args });
+    emit_update(method_name, parentPath, { args: args });
   };
 
   useEffect(() => {
@@ -73,7 +73,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   return (
     <div
       className="align-items-center asyncMethodComponent"
-      id={parent_path.concat('.' + name)}>
+      id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -84,9 +84,9 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       <Form onSubmit={execute} ref={formRef}>
         {args}
         <Button
-          id={`button-${parent_path}.${name}`}
+          id={`button-${parentPath}.${name}`}
           name={name}
-          value={parent_path}
+          value={parentPath}
           type="submit">
           {runningTask ? 'Stop' : 'Start'}
         </Button>

@@ -5,7 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 
 interface ButtonComponentProps {
   name: string;
-  parent_path?: string;
+  parentPath?: string;
   value: boolean;
   readOnly: boolean;
   docString: string;
@@ -18,27 +18,27 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   useEffect(() => {
     renderCount.current++;
   });
-  const { name, parent_path, value, readOnly, docString, mapping } = props;
+  const { name, parentPath, value, readOnly, docString, mapping } = props;
 
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
 
   const setChecked = (checked: boolean) => {
-    emit_update(name, parent_path, checked);
+    emit_update(name, parentPath, checked);
   };
 
   return (
-    <div className={'buttonComponent'} id={parent_path.concat('.' + name)}>
+    <div className={'buttonComponent'} id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
 
       <DocStringComponent docString={docString} />
       <ToggleButton
-        id={`toggle-check-${parent_path}.${name}`}
+        id={`toggle-check-${parentPath}.${name}`}
         type="checkbox"
         variant={value ? 'success' : 'secondary'}
         checked={value}
-        value={parent_path}
+        value={parentPath}
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         <p>{buttonName}</p>

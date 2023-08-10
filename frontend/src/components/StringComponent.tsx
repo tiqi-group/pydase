@@ -8,7 +8,7 @@ import '../App.css';
 
 interface StringComponentProps {
   name: string;
-  parent_path?: string;
+  parentPath?: string;
   value: string;
   readOnly: boolean;
   docString: string;
@@ -19,7 +19,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
 
-  const { name, parent_path, readOnly, docString, isInstantUpdate } = props;
+  const { name, parentPath, readOnly, docString, isInstantUpdate } = props;
   useEffect(() => {
     renderCount.current++;
   }, [isInstantUpdate, inputString, renderCount]);
@@ -34,24 +34,24 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleChange = (event) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
-      emit_update(name, parent_path, event.target.value);
+      emit_update(name, parentPath, event.target.value);
     }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      emit_update(name, parent_path, inputString);
+      emit_update(name, parentPath, inputString);
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      emit_update(name, parent_path, inputString);
+      emit_update(name, parentPath, inputString);
     }
   };
 
   return (
-    <div className={'stringComponent'} id={parent_path.concat(name)}>
+    <div className={'stringComponent'} id={parentPath.concat(name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

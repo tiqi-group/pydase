@@ -5,7 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 
 interface MethodProps {
   name: string;
-  parent_path: string;
+  parentPath: string;
   parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
@@ -18,7 +18,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   // Add a new state variable to hold the list of function calls
   const [functionCalls, setFunctionCalls] = useState([]);
 
-  const { name, parent_path, docString } = props;
+  const { name, parentPath, docString } = props;
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -27,7 +27,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     Object.keys(props.parameters).forEach(
       (name) => (args[name] = event.target[name].value)
     );
-    emit_update(name, parent_path, { args: args }, (ack) => {
+    emit_update(name, parentPath, { args: args }, (ack) => {
       // Update the functionCalls state with the new call if we get an acknowledge msg
       if (ack !== undefined) {
         setFunctionCalls((prevCalls) => [...prevCalls, { name, args, result: ack }]);
@@ -55,7 +55,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   return (
     <div
       className="align-items-center methodComponent"
-      id={parent_path.concat('.' + name)}>
+      id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

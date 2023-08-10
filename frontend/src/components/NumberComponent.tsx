@@ -9,7 +9,7 @@ import '../App.css';
 interface NumberComponentProps {
   name: string;
   type: 'float' | 'int';
-  parent_path?: string;
+  parentPath?: string;
   value: number;
   readOnly: boolean;
   docString: string;
@@ -108,7 +108,7 @@ const handleDeleteKey = (
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
-  const { name, parent_path, readOnly, docString, isInstantUpdate, unit } = props;
+  const { name, parentPath, readOnly, docString, isInstantUpdate, unit } = props;
 
   // Whether to show the name infront of the component (false if used with a slider)
   const showName = props.showName !== undefined ? props.showName : true;
@@ -128,7 +128,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Set the cursor position after the component re-renders
     const inputElement = document.getElementsByName(
-      parent_path.concat(name)
+      parentPath.concat(name)
     )[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
@@ -214,7 +214,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      emitUpdate(name, parent_path, Number(newValue));
+      emitUpdate(name, parentPath, Number(newValue));
       return;
     } else {
       console.debug(key);
@@ -223,7 +223,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      emitUpdate(name, parent_path, Number(newValue));
+      emitUpdate(name, parentPath, Number(newValue));
     }
 
     setInputString(newValue);
@@ -235,12 +235,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      emitUpdate(name, parent_path, Number(inputString));
+      emitUpdate(name, parentPath, Number(inputString));
     }
   };
 
   return (
-    <div className="numberComponent" id={parent_path.concat('.' + name)}>
+    <div className="numberComponent" id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && showName && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -252,7 +252,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
             type="text"
             value={inputString}
             disabled={readOnly}
-            name={parent_path.concat(name)}
+            name={parentPath.concat(name)}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}

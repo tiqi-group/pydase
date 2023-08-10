@@ -11,13 +11,13 @@ export const socket = io(URL, { path: '/ws/socket.io', transports: ['websocket']
 
 export const emit_update = (
   name: string,
-  parent_path: string,
+  parentPath: string,
   value: unknown,
   callback?: (ack: unknown) => void
 ) => {
   if (callback) {
-    socket.emit('frontend_update', { name, parent_path, value }, callback);
+    socket.emit('frontend_update', { name, parent_path: parentPath, value }, callback);
   } else {
-    socket.emit('frontend_update', { name, parent_path, value });
+    socket.emit('frontend_update', { name, parent_path: parentPath, value });
   }
 };
