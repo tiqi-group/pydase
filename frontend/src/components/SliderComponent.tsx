@@ -15,6 +15,7 @@ interface SliderComponentProps {
   docString: string;
   stepSize: number;
   isInstantUpdate: boolean;
+  addNotification: (string) => void;
 }
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
@@ -34,8 +35,25 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     stepSize,
     readOnly,
     docString,
-    isInstantUpdate
+    isInstantUpdate,
+    addNotification
   } = props;
+
+  useEffect(() => {
+    addNotification(`${parentPath}.${name} changed to ${value}.`);
+  }, [props.value]);
+
+  useEffect(() => {
+    addNotification(`${parentPath}.${name}.min changed to ${min}.`);
+  }, [props.min]);
+
+  useEffect(() => {
+    addNotification(`${parentPath}.${name}.max changed to ${max}.`);
+  }, [props.max]);
+
+  useEffect(() => {
+    addNotification(`${parentPath}.${name}.stepSize changed to ${stepSize}.`);
+  }, [props.stepSize]);
 
   const emitSliderUpdate = (
     name: string,
@@ -122,6 +140,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
             value={value}
             showName={false}
             customEmitUpdate={emitSliderUpdate}
+            addNotification={() => null}
           />
         </Col>
         <Col xs="auto">

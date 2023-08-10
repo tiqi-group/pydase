@@ -10,17 +10,23 @@ interface ButtonComponentProps {
   readOnly: boolean;
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
+  addNotification: (string) => void;
 }
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
+  const { name, parentPath, value, readOnly, docString, mapping, addNotification } =
+    props;
+  const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
+
   const renderCount = useRef(0);
 
   useEffect(() => {
     renderCount.current++;
   });
-  const { name, parentPath, value, readOnly, docString, mapping } = props;
 
-  const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
+  useEffect(() => {
+    addNotification(`${parentPath}.${name} changed to ${value}.`);
+  }, [props.value]);
 
   const setChecked = (checked: boolean) => {
     emit_update(name, parentPath, checked);

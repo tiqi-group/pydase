@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { emit_update } from '../socket';
 import { Card, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 
@@ -10,15 +9,21 @@ interface ImageComponentProps {
   readOnly: boolean;
   docString: string;
   format: string;
+  addNotification: (string) => void;
 }
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
+  const { name, parentPath, value, docString, format, addNotification } = props;
+
   const renderCount = useRef(0);
-  const { name, parentPath, value, docString, format } = props;
 
   useEffect(() => {
     renderCount.current++;
   });
+
+  useEffect(() => {
+    addNotification(`${parentPath}.${name} changed.`);
+  }, [props.value]);
 
   return (
     <div className={'imageComponent'} id={parentPath.concat('.' + name)}>

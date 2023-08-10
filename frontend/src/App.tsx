@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
@@ -6,9 +6,7 @@ import {
   DataServiceJSON
 } from './components/DataServiceComponent';
 import './App.css';
-import { getDataServiceJSONValueByPathAndKey } from './utils/nestedObjectUtils';
 import { Notifications } from './components/NotificationsComponent';
-import { useNotification } from './hooks/useNotification';
 
 type ValueType = boolean | string | number | object;
 
@@ -114,51 +112,11 @@ const reducer = (state: State, action: Action): State => {
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const stateRef = useRef(state); // Declare a reference to hold the current state
-
   const [isInstantUpdate, setIsInstantUpdate] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
-  const { notifications, notify, removeNotificationById } = useNotification();
-  const {
-    notifications: exceptions,
-    notify: notifyException,
-    removeNotificationById: removeExceptionById
-  } = useNotification();
-
-  const handleCloseSettings = () => setShowSettings(false);
-  const handleShowSettings = () => setShowSettings(true);
-
-  function onNotify(value: UpdateMessage) {
-    // Extracting data from the notification
-    const { parent_path: parentPath, name, value: newValue } = value.data;
-
-    // Dispatching the update to the reducer
-    dispatch({
-      type: 'UPDATE_ATTRIBUTE',
-      parentPath,
-      name,
-      value: newValue
-    });
-
-    // Formatting the value if it is of type 'Quantity'
-    let notificationMsg: object | string = newValue;
-    const path = parentPath.concat('.', name);
-    if (
-      getDataServiceJSONValueByPathAndKey(stateRef.current, path, 'type') === 'Quantity'
-    ) {
-      notificationMsg = `${newValue['magnitude']} ${newValue['unit']}`;
-    }
-
-    // Creating a new notification
-    const newNotification = `${parentPath}.${name} changed to ${notificationMsg}.`;
-    // Adding the new notification to the list
-    notify(newNotification);
-  }
-
-  function onException(value: ExceptionMessage) {
-    const newNotification = `${value.data.type}: ${value.data.exception}.`;
-    notifyException(newNotification);
-  }
+  const [showNotification, setShowNotification] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [exceptions, setExceptions] = useState([]);
 
   // Keep the state reference up to date
   useEffect(() => {
@@ -179,6 +137,64 @@ const App = () => {
       socket.off('exception', onException);
     };
   }, []);
+
+  // Adding useCallback to prevent notify to change causing a re-render of all
+  // components
+  const addNotification = useCallback((text: string) => {
+    // Getting the current time in the required format
+    const timeString = new Date().toISOString().substring(11, 19);
+    // Adding an id to the notification to provide a way of removing it
+    const id = Math.random();
+
+    // Custom logic for notifications
+    setNotifications((prevNotifications) => [
+      { id, text, time: timeString },
+      ...prevNotifications
+    ]);
+  }, []);
+
+  const notifyException = (text: string) => {
+    // Getting the current time in the required format
+    const timeString = new Date().toISOString().substring(11, 19);
+    // Adding an id to the notification to provide a way of removing it
+    const id = Math.random();
+
+    // Custom logic for notifications
+    setExceptions((prevNotifications) => [
+      { id, text, time: timeString },
+      ...prevNotifications
+    ]);
+  };
+  const removeNotificationById = (id: number) => {
+    setNotifications((prevNotifications) =>
+      prevNotifications.filter((n) => n.id !== id)
+    );
+  };
+
+  const removeExceptionById = (id: number) => {
+    setExceptions((prevNotifications) => prevNotifications.filter((n) => n.id !== id));
+  };
+
+  const handleCloseSettings = () => setShowSettings(false);
+  const handleShowSettings = () => setShowSettings(true);
+
+  function onNotify(value: UpdateMessage) {
+    // Extracting data from the notification
+    const { parent_path: parentPath, name, value: newValue } = value.data;
+
+    // Dispatching the update to the reducer
+    dispatch({
+      type: 'UPDATE_ATTRIBUTE',
+      parentPath,
+      name,
+      value: newValue
+    });
+  }
+
+  function onException(value: ExceptionMessage) {
+    const newException = `${value.data.type}: ${value.data.exception}.`;
+    notifyException(newException);
+  }
 
   // While the data is loading
   if (!state) {
@@ -230,6 +246,7 @@ const App = () => {
         <DataServiceComponent
           props={state as DataServiceJSON}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       </div>
     </>

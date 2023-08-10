@@ -9,16 +9,37 @@ interface MethodProps {
   parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
+  addNotification: (string) => void;
 }
 
 export const MethodComponent = React.memo((props: MethodProps) => {
+  const { name, parentPath, docString, addNotification } = props;
+
   const renderCount = useRef(0);
   const [hideOutput, setHideOutput] = useState(false);
-
   // Add a new state variable to hold the list of function calls
   const [functionCalls, setFunctionCalls] = useState([]);
 
-  const { name, parentPath, docString } = props;
+  useEffect(() => {
+    renderCount.current++;
+    if (props.hideOutput !== undefined) {
+      setHideOutput(props.hideOutput);
+    }
+  });
+
+  const triggerNotification = (args: Record<string, string>) => {
+    const argsString = Object.entries(args)
+      .map(([key, value]) => `${key}: "${value}"`)
+      .join(', ');
+    let message = `Method ${parentPath}.${name} was triggered`;
+
+    if (argsString === '') {
+      message += '.';
+    } else {
+      message += ` with arguments {${argsString}}.`;
+    }
+    addNotification(message);
+  };
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -33,14 +54,9 @@ export const MethodComponent = React.memo((props: MethodProps) => {
         setFunctionCalls((prevCalls) => [...prevCalls, { name, args, result: ack }]);
       }
     });
-  };
 
-  useEffect(() => {
-    renderCount.current++;
-    if (props.hideOutput !== undefined) {
-      setHideOutput(props.hideOutput);
-    }
-  });
+    triggerNotification(args);
+  };
 
   const args = Object.entries(props.parameters).map(([name, type], index) => {
     const form_name = `${name} (${type})`;

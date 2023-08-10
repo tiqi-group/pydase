@@ -10,29 +10,13 @@ interface AsyncMethodProps {
   value: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
+  addNotification: (string) => void;
 }
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
+  const { name, parentPath, docString, value: runningTask, addNotification } = props;
   const renderCount = useRef(0);
   const formRef = useRef(null);
-  const { name, parentPath, docString, value: runningTask } = props;
-
-  const execute = async (event: React.FormEvent) => {
-    event.preventDefault();
-    let method_name: string;
-    const args = {};
-
-    if (runningTask !== undefined && runningTask !== null) {
-      method_name = `stop_${name}`;
-    } else {
-      Object.keys(props.parameters).forEach(
-        (name) => (args[name] = event.target[name].value)
-      );
-      method_name = `start_${name}`;
-    }
-
-    emit_update(method_name, parentPath, { args: args });
-  };
 
   useEffect(() => {
     renderCount.current++;
@@ -51,6 +35,38 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       }
     }
   }, [runningTask]);
+
+  useEffect(() => {
+    let message: string;
+
+    if (runningTask === null) {
+      message = `${parentPath}.${name} task was stopped.`;
+    } else {
+      const runningTaskEntries = Object.entries(runningTask)
+        .map(([key, value]) => `${key}: "${value}"`)
+        .join(', ');
+
+      message = `${parentPath}.${name} was started with parameters { ${runningTaskEntries} }.`;
+    }
+    addNotification(message);
+  }, [props.value]);
+
+  const execute = async (event: React.FormEvent) => {
+    event.preventDefault();
+    let method_name: string;
+    const args = {};
+
+    if (runningTask !== undefined && runningTask !== null) {
+      method_name = `stop_${name}`;
+    } else {
+      Object.keys(props.parameters).forEach(
+        (name) => (args[name] = event.target[name].value)
+      );
+      method_name = `start_${name}`;
+    }
+
+    emit_update(method_name, parentPath, { args: args });
+  };
 
   const args = Object.entries(props.parameters).map(([name, type], index) => {
     const form_name = `${name} (${type})`;

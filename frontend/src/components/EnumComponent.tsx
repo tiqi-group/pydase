@@ -9,16 +9,28 @@ interface EnumComponentProps {
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
+  addNotification: (string) => void;
 }
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
+  const {
+    name,
+    parentPath: parentPath,
+    value,
+    docString,
+    enumDict,
+    addNotification
+  } = props;
+
   const renderCount = useRef(0);
 
   useEffect(() => {
     renderCount.current++;
   });
 
-  const { name, parentPath: parentPath, value, docString, enumDict } = props;
+  useEffect(() => {
+    addNotification(`${parentPath}.${name} changed to ${value}.`);
+  }, [props.value]);
 
   const handleValueChange = (newValue: string) => {
     emit_update(name, parentPath, newValue);

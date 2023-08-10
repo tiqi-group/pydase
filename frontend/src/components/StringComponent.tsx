@@ -13,13 +13,16 @@ interface StringComponentProps {
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
+  addNotification: (string) => void;
 }
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
+  const { name, parentPath, readOnly, docString, isInstantUpdate, addNotification } =
+    props;
+
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
 
-  const { name, parentPath, readOnly, docString, isInstantUpdate } = props;
   useEffect(() => {
     renderCount.current++;
   }, [isInstantUpdate, inputString, renderCount]);
@@ -29,6 +32,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
     if (props.value !== inputString) {
       setInputString(props.value);
     }
+    addNotification(`${parentPath}.${name} changed to ${props.value}.`);
   }, [props.value]);
 
   const handleChange = (event) => {

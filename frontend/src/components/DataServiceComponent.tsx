@@ -8,12 +8,18 @@ type DataServiceProps = {
   props: DataServiceJSON;
   parentPath?: string;
   isInstantUpdate: boolean;
+  addNotification: (string) => void;
 };
 
 export type DataServiceJSON = Record<string, Attribute>;
 
 export const DataServiceComponent = React.memo(
-  ({ props, parentPath = 'DataService', isInstantUpdate }: DataServiceProps) => {
+  ({
+    props,
+    parentPath = 'DataService',
+    isInstantUpdate,
+    addNotification
+  }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
 
     return (
@@ -35,6 +41,7 @@ export const DataServiceComponent = React.memo(
                     name={key}
                     parentPath={parentPath}
                     isInstantUpdate={isInstantUpdate}
+                    addNotification={addNotification}
                   />
                 );
               })}

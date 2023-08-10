@@ -22,6 +22,7 @@ interface NumberComponentProps {
     value: number,
     callback?: (ack: unknown) => void
   ) => void;
+  addNotification: (string) => void;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
@@ -108,7 +109,15 @@ const handleDeleteKey = (
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
-  const { name, parentPath, readOnly, docString, isInstantUpdate, unit } = props;
+  const {
+    name,
+    parentPath,
+    readOnly,
+    docString,
+    isInstantUpdate,
+    unit,
+    addNotification
+  } = props;
 
   // Whether to show the name infront of the component (false if used with a slider)
   const showName = props.showName !== undefined ? props.showName : true;
@@ -143,6 +152,15 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     if (props.value !== numericInputString) {
       setInputString(props.value.toString());
     }
+
+    // emitting notification
+    let notificationMsg = `${parentPath}.${name} changed to ${props.value}`;
+    if (unit === undefined) {
+      notificationMsg += '.';
+    } else {
+      notificationMsg += ` ${unit}.`;
+    }
+    addNotification(notificationMsg);
   }, [props.value]);
 
   const handleNumericKey = (key: string, value: string, selectionStart: number) => {

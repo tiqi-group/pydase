@@ -8,16 +8,18 @@ interface ListComponentProps {
   value: Attribute[];
   docString: string;
   isInstantUpdate: boolean;
+  addNotification: (string) => void;
 }
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
+  const { name, parentPath, value, docString, isInstantUpdate, addNotification } =
+    props;
+
   const renderCount = useRef(0);
 
   useEffect(() => {
     renderCount.current++;
-  });
-
-  const { name, parentPath, value, docString, isInstantUpdate } = props;
+  }, [props]);
 
   return (
     <div className={'listComponent'} id={parentPath.concat(name)}>
@@ -33,6 +35,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
             name={`${name}[${index}]`}
             parentPath={parentPath}
             isInstantUpdate={isInstantUpdate}
+            addNotification={addNotification}
           />
         );
       })}

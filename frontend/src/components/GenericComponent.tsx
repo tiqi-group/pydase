@@ -38,10 +38,17 @@ type GenericComponentProps = {
   name: string;
   parentPath: string;
   isInstantUpdate: boolean;
+  addNotification: (string) => void;
 };
 
 export const GenericComponent = React.memo(
-  ({ attribute, name, parentPath, isInstantUpdate }: GenericComponentProps) => {
+  ({
+    attribute,
+    name,
+    parentPath,
+    isInstantUpdate,
+    addNotification
+  }: GenericComponentProps) => {
     if (attribute.type === 'bool') {
       return (
         <ButtonComponent
@@ -50,6 +57,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Boolean(attribute.value)}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'float' || attribute.type === 'int') {
@@ -62,6 +70,7 @@ export const GenericComponent = React.memo(
           readOnly={attribute.readonly}
           value={Number(attribute.value)}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'Quantity') {
@@ -75,6 +84,7 @@ export const GenericComponent = React.memo(
           value={Number(attribute.value['magnitude'])}
           unit={attribute.value['unit']}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'NumberSlider') {
@@ -89,6 +99,7 @@ export const GenericComponent = React.memo(
           max={attribute.value['max']['value']}
           stepSize={attribute.value['step_size']['value']}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'Enum') {
@@ -99,6 +110,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           value={String(attribute.value)}
           enumDict={attribute.enum}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'method') {
@@ -109,6 +121,7 @@ export const GenericComponent = React.memo(
             parentPath={parentPath}
             docString={attribute.doc}
             parameters={attribute.parameters}
+            addNotification={addNotification}
           />
         );
       } else {
@@ -119,6 +132,7 @@ export const GenericComponent = React.memo(
             docString={attribute.doc}
             parameters={attribute.parameters}
             value={attribute.value as Record<string, string>}
+            addNotification={addNotification}
           />
         );
       }
@@ -131,6 +145,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'DataService') {
@@ -139,6 +154,7 @@ export const GenericComponent = React.memo(
           props={attribute.value as DataServiceJSON}
           parentPath={parentPath.concat('.', name)}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'list') {
@@ -149,6 +165,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
         />
       );
     } else if (attribute.type === 'Image') {
@@ -161,6 +178,7 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           // Add any other specific props for the ImageComponent here
           format={attribute.value['format']['value'] as string}
+          addNotification={addNotification}
         />
       );
     } else {
