@@ -1,11 +1,12 @@
-# Installation
+# Getting Started
+## Installation
 {%
    include-markdown "../README.md"
    start="<!--installation-start-->"
    end="<!--installation-end-->"
 %}
 
-# Usage
+## Usage
 {%
    include-markdown "../README.md"
    start="<!--usage-start-->"

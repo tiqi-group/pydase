@@ -7,6 +7,7 @@ nav:
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
+    - Adding Components: dev-guide/Adding_Components.md
   - About:
     - Release Notes: about/release-notes.md
     - Contributing: about/contributing.md
