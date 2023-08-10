@@ -9,33 +9,36 @@ interface ImageComponentProps {
   value: string;
   readOnly: boolean;
   docString: string;
-  // Define your component specific props here
+  format: string;
 }
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
   const renderCount = useRef(0);
-  const { name, parentPath, value, docString } = props;
-  // Your component logic here
+  const { name, parentPath, value, docString, format } = props;
 
   useEffect(() => {
     renderCount.current++;
-    console.log(value);
   });
 
   return (
     <div className={'imageComponent'} id={parentPath.concat('.' + name)}>
-      {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
-      )}
-      <DocStringComponent docString={docString} />
-      {/* Your component JSX here */}
       <Card>
         <Card.Header
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
           {name}
         </Card.Header>
-        <Image src={`data:image/jpeg;base64,${value}`}></Image>
+
+        {process.env.NODE_ENV === 'development' && (
+          <p>Render count: {renderCount.current}</p>
+        )}
+        <DocStringComponent docString={docString} />
+        {/* Your component JSX here */}
+        {format === '' && value === '' ? (
+          <p>No image set in the backend.</p>
+        ) : (
+          <Image src={`data:image/${format.toLowerCase()};base64,${value}`}></Image>
+        )}
       </Card>
     </div>
   );

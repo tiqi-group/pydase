@@ -160,6 +160,7 @@ export const GenericComponent = React.memo(
           readOnly={attribute.readonly}
           docString={attribute.doc}
           // Add any other specific props for the ImageComponent here
+          format={attribute.value['format']['value'] as string}
         />
       );
     } else {
