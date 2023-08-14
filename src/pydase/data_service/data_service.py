@@ -17,7 +17,7 @@ from pydase.utils.helpers import (
     generate_paths_from_DataService_dict,
     get_class_and_instance_attributes,
     get_component_class_names,
-    get_nested_value_by_path_and_key,
+    get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
     parse_list_attr_and_index,
     update_value_if_changed,
@@ -133,16 +133,20 @@ class DataService(rpyc.Service, AbstractDataService):
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
         for path in generate_paths_from_DataService_dict(json_dict):
-            value = get_nested_value_by_path_and_key(json_dict, path=path)
-            value_type = get_nested_value_by_path_and_key(
+            value = get_nested_value_from_DataService_by_path_and_key(
+                json_dict, path=path
+            )
+            value_type = get_nested_value_from_DataService_by_path_and_key(
                 json_dict, path=path, key="type"
             )
-            class_value_type = get_nested_value_by_path_and_key(
+            class_value_type = get_nested_value_from_DataService_by_path_and_key(
                 serialized_class, path=path, key="type"
             )
             if class_value_type == value_type:
-                class_attr_is_read_only = get_nested_value_by_path_and_key(
-                    serialized_class, path=path, key="readonly"
+                class_attr_is_read_only = (
+                    get_nested_value_from_DataService_by_path_and_key(
+                        serialized_class, path=path, key="readonly"
+                    )
                 )
                 if class_attr_is_read_only:
                     logger.debug(
