@@ -100,7 +100,7 @@ Navigate to the `frontend/src/components/` directory and create a new React comp
 
 For example, for an `Image` component, create a file named `ImageComponent.tsx`.
 
-### Step 3: Write the React Component Code
+### Step 2: Write the React Component Code
 
 Write the React component code, following the structure and patterns used in existing components. Make sure to import necessary libraries and dependencies.
 
@@ -147,6 +147,55 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   );
 });
 ```
+
+### Step 3: Emitting Updates to the Backend
+
+Often, React components in the frontend will need to send updates to the backend, especially when user interactions result in a change of state or data. In `pydase`, we use `socketio` to seamlessly communicate these changes. Here's a detailed guide on how to emit update events from your frontend component:
+
+1. **Setting Up Emission**: Ensure you've imported the required functions and methods for emission. The main function we'll use for this is `emit_update` from the `socket` module:
+
+    ```tsx
+    import { emit_update } from '../socket';
+    ```
+
+2. **Understanding the Emission Parameters**:
+   
+   When emitting an update, we send three main pieces of data:
+
+   - `parentPath`: This is the access path for the parent object of the attribute to be updated. This forms the basis to create the full access path for the attribute. For instance, for the attribute access path `attr1.list_attr[0].attr2`, `attr1.list_attr[0]` would be the `parentPath`.
+
+   - `name`: This represents the name of the attribute to be updated within the `DataService` instance. If the attribute is part of a nested structure, this would be the name of the attribute in the last nested object. So, for `attr1.list_attr[0].attr2`, `attr2` would be the name.
+
+   - `value`: This is the new value intended for the attribute. Ensure that the type of this value matches the type of the attribute in the backend.
+
+3. **Implementing the Emission**:
+
+   To illustrate the emission process, let's consider the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
+
+   ```tsx
+   // ... (other imports)
+   
+   export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
+     // ... 
+     const { name, parentPath, value } = props;
+
+     const setChecked = (checked: boolean) => {
+       emit_update(name, parentPath, checked);
+     };
+
+     return (
+       <ToggleButton
+         checked={value}
+         value={parentPath}
+         // ... other props
+         onChange={(e) => setChecked(e.currentTarget.checked)}>
+         <p>{name}</p>
+       </ToggleButton>
+     );
+   });
+   ```
+
+   In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `emit_update`.
 
 ### Step 4: Add the New Component to the GenericComponent
 
@@ -223,7 +272,7 @@ useEffect(() => {
 
 However, you might want to use the `addNotification` at different places. For an example, see the [MethodComponent](../../frontend/src/components/MethodComponent.tsx).
 
-### Step 6: Write Tests for the Component (actually not done atm)
+### Step 6: Write Tests for the Component (TODO)
 
 Test the frontend component to ensure that it renders correctly and interacts seamlessly
 with the backend. Consider writing unit tests using a testing library like Jest or React
