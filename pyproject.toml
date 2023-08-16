@@ -18,6 +18,7 @@ python-socketio = "^5.8.0"
 websockets = "^11.0.3"
 confz = "^2.0.0"
 pint = "^0.22"
+pillow = "^10.0.0"
 
 [tool.poetry.group.dev.dependencies]
 types-toml = "^0.10.8.6"
@@ -33,7 +34,7 @@ flake8-comprehensions = "^3.11.1"
 flake8-pep585 = "^0.1.7"
 flake8-pep604 = "^0.1.0"
 flake8-eradicate = "^1.4.0"
-pillow = "^10.0.0"
+matplotlib = "^3.7.2"
 
 [build-system]
 requires = ["poetry-core"]
