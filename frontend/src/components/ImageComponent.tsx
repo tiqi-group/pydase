@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import { Card, Image } from 'react-bootstrap';
+import React, { useEffect, useRef, useState } from 'react';
+import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 
 interface ImageComponentProps {
   name: string;
@@ -16,6 +17,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   const { name, parentPath, value, docString, format, addNotification } = props;
 
   const renderCount = useRef(0);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     renderCount.current++;
@@ -29,21 +31,25 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
     <div className={'imageComponent'} id={parentPath.concat('.' + name)}>
       <Card>
         <Card.Header
+          onClick={() => setOpen(!open)}
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
-          {name}
+          {name} {open ? <ChevronDown /> : <ChevronRight />}
         </Card.Header>
-
-        {process.env.NODE_ENV === 'development' && (
-          <p>Render count: {renderCount.current}</p>
-        )}
-        <DocStringComponent docString={docString} />
-        {/* Your component JSX here */}
-        {format === '' && value === '' ? (
-          <p>No image set in the backend.</p>
-        ) : (
-          <Image src={`data:image/${format.toLowerCase()};base64,${value}`}></Image>
-        )}
+        <Collapse in={open}>
+          <Card.Body>
+            {process.env.NODE_ENV === 'development' && (
+              <p>Render count: {renderCount.current}</p>
+            )}
+            <DocStringComponent docString={docString} />
+            {/* Your component JSX here */}
+            {format === '' && value === '' ? (
+              <p>No image set in the backend.</p>
+            ) : (
+              <Image src={`data:image/${format.toLowerCase()};base64,${value}`}></Image>
+            )}
+          </Card.Body>
+        </Collapse>
       </Card>
     </div>
   );
