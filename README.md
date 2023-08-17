@@ -20,6 +20,7 @@
 - [Understanding Service Persistence](#understanding-service-persistence)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Understanding Units in pydase](#understanding-units-in-pydase)
+- [Changing the Log Level](#changing-the-log-level)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -376,6 +377,27 @@ if __name__ == "__main__":
 ```
 
 For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
+
+## Changing the Log Level
+
+You can change the log level of loguru by either
+1. (RECOMMENDED) setting the `ENVIRONMENT` environment variable to "production" or "development"
+
+    ```bash
+    ENVIRONMENT="production" python -m <module_using_pydase>
+    ```
+    
+    The production environment will only log messages above "INFO", the development environment (default) logs everything above "DEBUG".
+
+2. calling the `pydase.utils.logging.setup_logging` function with the desired log level
+
+    ```python
+    # <your_script.py>
+
+    from pydase.utils.logging import setup_logging
+
+    setup_logging("INFO")
+    ```
 
 ## Documentation
 
