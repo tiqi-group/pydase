@@ -8,7 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from pydase import DataService
-from pydase.config import OperationMode
 from pydase.version import __version__
 
 
@@ -115,14 +114,13 @@ class WebAPI:
         def service_properties() -> dict[str, Any]:
             return self.service.serialize()
 
-        if OperationMode().environment == "production":
-            app.mount(
-                "/",
-                StaticFiles(
-                    directory=Path(__file__).parent.parent / "frontend",
-                    html=True,
-                ),
-            )
+        app.mount(
+            "/",
+            StaticFiles(
+                directory=Path(__file__).parent.parent / "frontend",
+                html=True,
+            ),
+        )
 
         self.__fastapi_app = app
 
