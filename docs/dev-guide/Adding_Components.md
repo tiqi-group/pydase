@@ -107,23 +107,29 @@ Write the React component code, following the structure and patterns used in exi
 For example, for the `Image` component, a template could look like this:
 
 ```tsx
-import React, { useEffect, useRef } from 'react';
 import { emit_update } from '../socket';  // use this when your component should update values in the backend
-import { Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import React, { useEffect, useRef, useState } from 'react';
+import { Card, Collapse, Image } from 'react-bootstrap';
+import { DocStringComponent } from './DocStringComponent';
+import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 
 interface ImageComponentProps {
   name: string;
   parentPath: string;
-  value: boolean;
   readOnly: boolean;
   docString: string;
+  addNotification: (string) => void;
   // Define your component specific props here
+  value: string;
+  format: string;
 }
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
+  const { name, parentPath, value, docString, format, addNotification } = props;
+
   const renderCount = useRef(0);
-  const { name, parentPath, value, readOnly, docString, addNotification } = props;
+  const [open, setOpen] = useState(true);  // add this if you want to expand/collapse your component
 
   useEffect(() => {
     renderCount.current++;
@@ -138,11 +144,25 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   return (
     <div className={'imageComponent'} id={parentPath.concat('.' + name)}>
-      {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
-      )}
-      <DocStringComponent docString={docString} />
-      {/* Your component TSX here */}
+      {/* Add the Card and Collapse components here if you want to be able to expand and
+       collapse your component.  */}
+      <Card>
+        <Card.Header
+          onClick={() => setOpen(!open)}
+          style={{ cursor: 'pointer' }} // Change cursor style on hover
+        >
+          {name} {open ? <ChevronDown /> : <ChevronRight />}
+        </Card.Header>
+        <Collapse in={open}>
+          <Card.Body>
+            {process.env.NODE_ENV === 'development' && (
+              <p>Render count: {renderCount.current}</p>
+            )}
+            <DocStringComponent docString={docString} />
+            {/* Your component TSX here */}
+          </Card.Body>
+        </Collapse>
+      </Card>
     </div>
   );
 });
