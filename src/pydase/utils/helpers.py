@@ -197,7 +197,7 @@ def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any]
     # When the attribute is a class instance, the attributes are nested in the
     # "value" key
     if current_data["type"] not in STANDARD_TYPES:
-        current_data = cast(dict[str, Any], current_data.get("value", None))
+        current_data = cast(dict[str, Any], current_data.get("value", None))  # type: ignore
         assert isinstance(current_data, dict)
 
     return current_data
