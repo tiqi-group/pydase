@@ -15,8 +15,11 @@
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Understanding the Component System](#understanding-the-component-system)
-  - [Available Components](#available-components)
-  - [Extending with New Components](#extending-with-new-components)
+  - [Built-in Type and Enum Components](#built-in-type-and-enum-components)
+  - [Method Components](#method-components)
+  - [DataService Instances (Nested Classes)](#dataservice-instances-nested-classes)
+  - [Custom Components (`pydase.components`)](#custom-components-pydasecomponents)
+    - [Extending with New Components](#extending-with-new-components)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -289,43 +292,34 @@ For more information about what you can do with the units, please consult the do
 ## Understanding the Component System
 In `pydase`, components are fundamental building blocks that bridge the Python backend logic with frontend visual representation and interactions. This system can be understood based on the following categories:
 
-1. **Built-in Type and Enum Components:** 
+### Built-in Type and Enum Components
 
-    `pydase` automatically maps standard Python data types to corresponding frontend components.
-    - `str`: rendered as a `StringComponent` in the frontend.
-    - `int` and `float`: Represented by the `NumberComponent`.
-    - `bool`: displayed as a `ButtonComponent`.
-    - `list`: each entry of the list is rendered separately. Its name corresponds to the list attribute name and the element index.
-    - `enum.Enum`: rendered as an `EnumComponent` which provides a dropdown selection.
+`pydase` automatically maps standard Python data types to their corresponding frontend components:
+- `str`: Translated into a `StringComponent` on the frontend.
+- `int` and `float`: Manifested as the `NumberComponent`.
+- `bool`: Rendered as a `ButtonComponent`.
+- `list`: Each item displayed individually, named after the list attribute and its index.
+- `enum.Enum`: Presented as an `EnumComponent`, facilitating dropdown selection.
 
-2. **Method Components:** 
+### Method Components
 
-    Methods within the `DataService` class can also have visual representation and interactivity in the frontend.
-    - Regular Methods: Rendered as a `MethodComponent` with an execute button.
-    - Asynchronous Methods: Displayed with a start/stop button in lieu of the standard execute button.
+Methods within the `DataService` class have frontend representations:
+- Regular Methods: These are rendered as a `MethodComponent` in the frontend, allowing users to execute the method via an "execute" button.
+- Asynchronous Methods: These are manifested as the `AsyncMethodComponent` with "start"/"stop" buttons to manage the execution of [tasks](#understanding-tasks-in-pydase).
 
-3. **DataService Instances (Nested Classes):**
+### DataService Instances (Nested Classes)
 
-    Nested `DataService` instances allow for a hierarchy of components and more complex applications. Each nested instance can have its attributes and methods, which also get corresponding frontend components.
+Nested `DataService` instances offer an organized hierarchy for components, enabling richer applications. Each nested class might have its own attributes and methods, each mapped to a frontend component.
 
-4. **`pydase.components` and Custom Components:** 
+### Custom Components (`pydase.components`)
+The custom components in `pydase` have two main parts: 
 
-    Beyond built-in types and methods, `pydase` provides specialized components, such as `Image` and `NumberSlider`. These can be found in the `pydase.components` module.
+- A **Python Component Class** in the backend, implementing the logic needed to set, update, and manage the component's state and data.
+- A **Frontend React Component** that renders and manages user interaction in the browser.
 
+Below are the components available in the `pydase.components` module, accompanied by their Python usage:
 
-### Available Components
-
-As of the current version, pydase includes the following components:
-
-- `ButtonComponent`: This component corresponds to attributes of type `bool` in your `DataService` class
-
-- `NumberComponent`: this component corresponds to attribute of type `int` or `float` in your `DataService` class
-
-- `StringComponent`: this component corresponds to attribute of type `str` in your `DataService` class
-
-- `MethodComponent`: this component corresponds to methods in your `DataService` class. If the method is asynchronous (see [tasks in `pydase`](#understanding-tasks-in-pydase)), the frontend will render a start / stop button instead of the execute button of synchronous functions.
-
-- `Image`: This component allows users to display and update images within the application. It comprises an Image backend class and a frontend React component for rendering.
+- `Image`: This component allows users to display and update images within the application.
 
     ```python
     import matplotlib.pyplot as plt
@@ -361,9 +355,26 @@ As of the current version, pydase includes the following components:
 
 - `NumberSlider`: An interactive slider component to adjust numerical values, including floats and integers, on the frontend while synchronizing the data with the backend in real-time.
 
-### Extending with New Components
+    ```python
+    import pydase
+    from pydase.components import NumberSlider
+
+
+    class MyService(pydase.DataService):
+        slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1)
+
+
+    if __name__ == "__main__":
+        service = MyService()
+        pydase.Server(service).run()
+    ```
+
+    ![Slider Component](docs/images/Slider_component.png)
+
+#### Extending with New Components
 
 Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](./docs/dev-guide/Adding_Components.md) provides detailed steps on achieving this.
+
 ## Documentation
 
 The full documentation provides more detailed information about `pydase`, including advanced usage examples, API references, and tips for troubleshooting common issues. See the [full documentation](URL_TO_YOUR_DOCUMENTATION) for more information.
