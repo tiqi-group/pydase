@@ -9,14 +9,20 @@
             "type": "python",
             "request": "launch",
             "module": "foo",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "ENVIRONMENT": "development"
+            }
         },
         {
             "name": "bar",
             "type": "python",
             "request": "launch",
             "module": "bar",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "ENVIRONMENT": "development"
+            }
         },
         {
             "type": "firefox",
