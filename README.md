@@ -11,15 +11,15 @@
   - [Running the Server](#running-the-server)
   - [Accessing the Web Interface](#accessing-the-web-interface)
   - [Connecting to the Service using rpyc](#connecting-to-the-service-using-rpyc)
-- [Understanding Service Persistence](#understanding-service-persistence)
-- [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
-- [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Understanding the Component System](#understanding-the-component-system)
   - [Built-in Type and Enum Components](#built-in-type-and-enum-components)
   - [Method Components](#method-components)
   - [DataService Instances (Nested Classes)](#dataservice-instances-nested-classes)
   - [Custom Components (`pydase.components`)](#custom-components-pydasecomponents)
     - [Extending with New Components](#extending-with-new-components)
+- [Understanding Service Persistence](#understanding-service-persistence)
+- [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
+- [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -27,13 +27,15 @@
 ## Features
 
 <!-- no toc -->
+* [Simple data service definition through class-based interface](#defining-a-dataService)
 * [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
 * [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
+* [Component system bridging Python backend with frontend visual representation](#understanding-the-component-system)
 * [Saving and restoring the service state for service persistence](#understanding-service-persistence)
 * [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
 * [Support for units](#understanding-units-in-pydase)
-* Event-based callback functionality for real-time updates
-* Support for additional servers for specific use-cases
+<!-- * Event-based callback functionality for real-time updates
+* Support for additional servers for specific use-cases -->
 
 ## Installation
 <!--installation-start-->
@@ -153,6 +155,92 @@ print(client.voltage)  # prints 5.0
 
 In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
 <!--usage-end-->
+
+## Understanding the Component System
+In `pydase`, components are fundamental building blocks that bridge the Python backend logic with frontend visual representation and interactions. This system can be understood based on the following categories:
+
+### Built-in Type and Enum Components
+
+`pydase` automatically maps standard Python data types to their corresponding frontend components:
+- `str`: Translated into a `StringComponent` on the frontend.
+- `int` and `float`: Manifested as the `NumberComponent`.
+- `bool`: Rendered as a `ButtonComponent`.
+- `list`: Each item displayed individually, named after the list attribute and its index.
+- `enum.Enum`: Presented as an `EnumComponent`, facilitating dropdown selection.
+
+### Method Components
+
+Methods within the `DataService` class have frontend representations:
+- Regular Methods: These are rendered as a `MethodComponent` in the frontend, allowing users to execute the method via an "execute" button.
+- Asynchronous Methods: These are manifested as the `AsyncMethodComponent` with "start"/"stop" buttons to manage the execution of [tasks](#understanding-tasks-in-pydase).
+
+### DataService Instances (Nested Classes)
+
+Nested `DataService` instances offer an organized hierarchy for components, enabling richer applications. Each nested class might have its own attributes and methods, each mapped to a frontend component.
+
+### Custom Components (`pydase.components`)
+The custom components in `pydase` have two main parts: 
+
+- A **Python Component Class** in the backend, implementing the logic needed to set, update, and manage the component's state and data.
+- A **Frontend React Component** that renders and manages user interaction in the browser.
+
+Below are the components available in the `pydase.components` module, accompanied by their Python usage:
+
+- `Image`: This component allows users to display and update images within the application.
+
+    ```python
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    import pydase
+    from pydase.components.image import Image
+
+
+    class MyDataService(pydase.DataService):
+        my_image = Image()
+
+
+    if __name__ == "__main__":
+        service = MyDataService()
+        # loading from local path
+        service.my_image.load_from_path("/your/image/path/")
+
+        # loading from a URL
+        service.my_image.load_from_url("https://cataas.com/cat")
+
+        # loading a matplotlib figure
+        fig = plt.figure()
+        x = np.linspace(0, 2 * np.pi)
+        plt.plot(x, np.sin(x))
+        plt.grid()
+        service.my_image.load_from_matplotlib_figure(fig)
+
+        pydase.Server(service).run()
+    ```
+
+    ![Image Component](docs/images/Image_component.png)
+
+- `NumberSlider`: An interactive slider component to adjust numerical values, including floats and integers, on the frontend while synchronizing the data with the backend in real-time.
+
+    ```python
+    import pydase
+    from pydase.components import NumberSlider
+
+
+    class MyService(pydase.DataService):
+        slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1)
+
+
+    if __name__ == "__main__":
+        service = MyService()
+        pydase.Server(service).run()
+    ```
+
+    ![Slider Component](docs/images/Slider_component.png)
+
+#### Extending with New Components
+
+Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](./docs/dev-guide/Adding_Components.md) provides detailed steps on achieving this.
 
 ## Understanding Service Persistence
 
@@ -288,92 +376,6 @@ if __name__ == "__main__":
 ```
 
 For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
-
-## Understanding the Component System
-In `pydase`, components are fundamental building blocks that bridge the Python backend logic with frontend visual representation and interactions. This system can be understood based on the following categories:
-
-### Built-in Type and Enum Components
-
-`pydase` automatically maps standard Python data types to their corresponding frontend components:
-- `str`: Translated into a `StringComponent` on the frontend.
-- `int` and `float`: Manifested as the `NumberComponent`.
-- `bool`: Rendered as a `ButtonComponent`.
-- `list`: Each item displayed individually, named after the list attribute and its index.
-- `enum.Enum`: Presented as an `EnumComponent`, facilitating dropdown selection.
-
-### Method Components
-
-Methods within the `DataService` class have frontend representations:
-- Regular Methods: These are rendered as a `MethodComponent` in the frontend, allowing users to execute the method via an "execute" button.
-- Asynchronous Methods: These are manifested as the `AsyncMethodComponent` with "start"/"stop" buttons to manage the execution of [tasks](#understanding-tasks-in-pydase).
-
-### DataService Instances (Nested Classes)
-
-Nested `DataService` instances offer an organized hierarchy for components, enabling richer applications. Each nested class might have its own attributes and methods, each mapped to a frontend component.
-
-### Custom Components (`pydase.components`)
-The custom components in `pydase` have two main parts: 
-
-- A **Python Component Class** in the backend, implementing the logic needed to set, update, and manage the component's state and data.
-- A **Frontend React Component** that renders and manages user interaction in the browser.
-
-Below are the components available in the `pydase.components` module, accompanied by their Python usage:
-
-- `Image`: This component allows users to display and update images within the application.
-
-    ```python
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    import pydase
-    from pydase.components.image import Image
-
-
-    class MyDataService(pydase.DataService):
-        my_image = Image()
-
-
-    if __name__ == "__main__":
-        service = MyDataService()
-        # loading from local path
-        service.my_image.load_from_path("/your/image/path/")
-
-        # loading from a URL
-        service.my_image.load_from_url("https://cataas.com/cat")
-
-        # loading a matplotlib figure
-        fig = plt.figure()
-        x = np.linspace(0, 2 * np.pi)
-        plt.plot(x, np.sin(x))
-        plt.grid()
-        service.my_image.load_from_matplotlib_figure(fig)
-
-        pydase.Server(service).run()
-    ```
-
-    ![Image Component](docs/images/Image_component.png)
-
-- `NumberSlider`: An interactive slider component to adjust numerical values, including floats and integers, on the frontend while synchronizing the data with the backend in real-time.
-
-    ```python
-    import pydase
-    from pydase.components import NumberSlider
-
-
-    class MyService(pydase.DataService):
-        slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1)
-
-
-    if __name__ == "__main__":
-        service = MyService()
-        pydase.Server(service).run()
-    ```
-
-    ![Slider Component](docs/images/Slider_component.png)
-
-#### Extending with New Components
-
-Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](./docs/dev-guide/Adding_Components.md) provides detailed steps on achieving this.
 
 ## Documentation
 
