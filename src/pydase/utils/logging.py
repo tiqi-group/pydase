@@ -4,6 +4,7 @@ from types import FrameType
 from typing import Optional
 
 import loguru
+import rpyc
 from uvicorn.config import LOGGING_CONFIG
 
 import pydase.config
@@ -61,7 +62,10 @@ def setup_logging(level: Optional[str] = None) -> None:
     loguru.logger.remove()
     loguru.logger.add(sys.stderr, level=log_level)
 
-    logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+    # set up the rpyc logger *before* adding the InterceptHandler to the logging module
+    rpyc.setup_logger(quiet=True)  # type: ignore
+
+    logging.basicConfig(handlers=[InterceptHandler()], level=0)
     logging.getLogger("asyncio").setLevel(logging.INFO)
     logging.getLogger("urllib3").setLevel(logging.INFO)
 
