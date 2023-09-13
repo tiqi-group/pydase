@@ -87,7 +87,7 @@ class DataService(rpyc.Service, AbstractDataService):
             if not attr_name.startswith("_DataService__"):
                 warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
 
-    def __set_attribute_based_on_type(
+    def __set_attribute_based_on_type(  # noqa:CFQ002
         self,
         target_obj: Any,
         attr_name: str,
