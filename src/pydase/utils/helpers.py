@@ -394,3 +394,7 @@ def get_component_class_names() -> list[str]:
     import pydase.components
 
     return pydase.components.__all__
+
+
+def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
+    return isinstance(getattr(type(target_obj), attr_name, None), property)

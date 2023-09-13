@@ -1,6 +1,9 @@
+import pytest
+
 from pydase.utils.helpers import (
     extract_dict_or_list_entry,
     get_nested_value_from_DataService_by_path_and_key,
+    is_property_attribute,
 )
 
 # Sample data for the tests
@@ -62,3 +65,29 @@ def test_get_nested_value_with_invalid_path() -> None:
         data_sample, "class_attr.nonexistent_attr"
     )
     assert result is None
+
+
+@pytest.mark.parametrize(
+    "attr_name, expected",
+    [
+        ("regular_attribute", False),
+        ("my_property", True),
+        ("my_method", False),
+        ("non_existent_attr", False),
+    ],
+)
+def test_is_property_attribute(attr_name: str, expected: bool) -> None:
+    # Test Suite
+    class DummyClass:
+        def __init__(self) -> None:
+            self.regular_attribute = "I'm just an attribute"
+
+        @property
+        def my_property(self) -> str:
+            return "I'm a property"
+
+        def my_method(self) -> str:
+            return "I'm a method"
+
+    dummy = DummyClass()
+    assert is_property_attribute(dummy, attr_name) == expected
