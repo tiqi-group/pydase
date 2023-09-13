@@ -19,6 +19,7 @@ from pydase.utils.helpers import (
     get_component_class_names,
     get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
+    is_property_attribute,
     parse_list_attr_and_index,
     update_value_if_changed,
 )
@@ -58,13 +59,15 @@ class DataService(rpyc.Service, AbstractDataService):
         self._load_values_from_json()
 
     def __setattr__(self, __name: str, __value: Any) -> None:
-        current_value = getattr(self, __name, None)
-        # parse ints into floats if current value is a float
-        if isinstance(current_value, float) and isinstance(__value, int):
-            __value = float(__value)
+        # converting attributes that are not properties
+        if not isinstance(getattr(type(self), __name, None), property):
+            current_value = getattr(self, __name, None)
+            # parse ints into floats if current value is a float
+            if isinstance(current_value, float) and isinstance(__value, int):
+                __value = float(__value)
 
-        if isinstance(current_value, u.Quantity):
-            __value = u.convert_to_quantity(__value, str(current_value.u))
+            if isinstance(current_value, u.Quantity):
+                __value = u.convert_to_quantity(__value, str(current_value.u))
 
         super().__setattr__(__name, __value)
 
@@ -83,6 +86,27 @@ class DataService(rpyc.Service, AbstractDataService):
             # every class defined by the user should inherit from DataService
             if not attr_name.startswith("_DataService__"):
                 warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
+
+    def __set_attribute_based_on_type(
+        self,
+        target_obj: Any,
+        attr_name: str,
+        attr: Any,
+        value: Any,
+        index: Optional[int],
+        path_list: list[str],
+    ) -> None:
+        if isinstance(attr, Enum):
+            update_value_if_changed(target_obj, attr_name, attr.__class__[value])
+        elif isinstance(attr, list) and index is not None:
+            update_value_if_changed(attr, index, value)
+        elif isinstance(attr, DataService) and isinstance(value, dict):
+            for key, v in value.items():
+                self.update_DataService_attribute([*path_list, attr_name], key, v)
+        elif callable(attr):
+            process_callable_attribute(attr, value["args"])
+        else:
+            update_value_if_changed(target_obj, attr_name, value)
 
     def _rpyc_getattr(self, name: str) -> Any:
         if name.startswith("_"):
@@ -338,24 +362,19 @@ class DataService(rpyc.Service, AbstractDataService):
     ) -> None:
         # If attr_name corresponds to a list entry, extract the attr_name and the index
         attr_name, index = parse_list_attr_and_index(attr_name)
-
         # Traverse the object according to the path parts
         target_obj = get_object_attr_from_path(self, path_list)
 
-        attr = get_object_attr_from_path(target_obj, [attr_name])
+        # If the attribute is a property, change it using the setter without getting the
+        # property value (would otherwise be bad for expensive getter methods)
+        if is_property_attribute(target_obj, attr_name):
+            setattr(target_obj, attr_name, value)
+            return
 
+        attr = get_object_attr_from_path(target_obj, [attr_name])
         if attr is None:
             return
 
-        # Set the attribute at the terminal point of the path
-        if isinstance(attr, Enum):
-            update_value_if_changed(target_obj, attr_name, attr.__class__[value])
-        elif isinstance(attr, list) and index is not None:
-            update_value_if_changed(attr, index, value)
-        elif isinstance(attr, DataService) and isinstance(value, dict):
-            for key, v in value.items():
-                self.update_DataService_attribute([*path_list, attr_name], key, v)
-        elif callable(attr):
-            return process_callable_attribute(attr, value["args"])
-        else:
-            update_value_if_changed(target_obj, attr_name, value)
+        self.__set_attribute_based_on_type(
+            target_obj, attr_name, attr, value, index, path_list
+        )
