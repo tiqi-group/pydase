@@ -267,6 +267,20 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     setCursorPosition(selectionStart);
   };
 
+  const handleClick = (event, action: 'plus' | 'minus') => {
+    const keyAction = action == 'plus' ? 'ArrowUp' : 'ArrowDown';
+    const { value: newValue } = handleArrowKey(
+      keyAction,
+      inputString,
+      inputString.length,
+      inputString.length
+    );
+
+    emitUpdate(name, parentPath, Number(newValue));
+
+    setInputString(newValue);
+  };
+
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
@@ -296,10 +310,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         </InputGroup>
         {!readOnly && (
           <div className="d-flex flex-column">
-            <Button className="numberComponentButton" variant="outline-secondary">
+            <Button
+              className="numberComponentButton"
+              variant="outline-secondary"
+              onClick={(event) => handleClick(event, 'plus')}>
               +
             </Button>
-            <Button className="numberComponentButton" variant="outline-secondary">
+            <Button
+              className="numberComponentButton"
+              variant="outline-secondary"
+              onClick={(event) => handleClick(event, 'minus')}>
               -
             </Button>
           </div>
