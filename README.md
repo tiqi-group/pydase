@@ -179,6 +179,46 @@ Methods within the `DataService` class have frontend representations:
 
 Nested `DataService` instances offer an organized hierarchy for components, enabling richer applications. Each nested class might have its own attributes and methods, each mapped to a frontend component.
 
+Here is an example:
+
+```python
+from pydase import DataService, Server
+
+
+class Channel(DataService):
+    def __init__(self, channel_id: int) -> None:
+        self._channel_id = channel_id
+        self._current = 0.0
+        super().__init__()
+
+    @property
+    def current(self) -> float:
+        # run code to get current
+        result = self._current
+        return result
+
+    @current.setter
+    def current(self, value: float) -> None:
+        # run code to set current
+        self._current = value
+
+
+class Device(DataService):
+    def __init__(self) -> None:
+        self.channels = [Channel(i) for i in range(2)]
+
+        super().__init__()
+
+
+if __name__ == "__main__":
+    service = Device()
+    Server(service).run()
+```
+
+![Nested Classes App](docs/images/Nested_Class_App.png)
+
+**Note** that defining classes within `DataService` classes is not supported (see  [this issue](https://github.com/tiqi-group/pydase/issues/16)).
+
 ### Custom Components (`pydase.components`)
 The custom components in `pydase` have two main parts: 
 
