@@ -163,7 +163,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     addNotification(notificationMsg);
   }, [props.value]);
 
-  const handleNumericKey = (key: string, value: string, selectionStart: number) => {
+  const handleNumericKey = (
+    key: string,
+    value: string,
+    selectionStart: number,
+    selectionEnd: number
+  ) => {
     // Check if a number key or a decimal point key is pressed
     if (key === '.' && (value.includes('.') || props.type === 'int')) {
       // Check if value already contains a decimal. If so, ignore input.
@@ -171,8 +176,18 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       console.warn('Invalid input! Ignoring...');
       return { value, selectionStart };
     }
+
+    let newValue = value;
+
     // Add the new key at the cursor's position
-    const newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
+    if (selectionEnd > selectionStart) {
+      // If there is a selection, replace it with the key
+      newValue = value.slice(0, selectionStart) + key + value.slice(selectionEnd);
+    } else {
+      // otherwise, append the key after the selection start
+      newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
+    }
+
     return { value: newValue, selectionStart: selectionStart + 1 };
   };
   const handleKeyDown = (event) => {
@@ -204,13 +219,15 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
-        selectionStart
+        selectionStart,
+        selectionEnd
       ));
     } else if (key === '.') {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
-        selectionStart
+        selectionStart,
+        selectionEnd
       ));
     } else if (key === 'ArrowUp' || key === 'ArrowDown') {
       ({ value: newValue, selectionStart } = handleArrowKey(
