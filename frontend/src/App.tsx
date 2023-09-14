@@ -112,7 +112,7 @@ const reducer = (state: State, action: Action): State => {
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const stateRef = useRef(state); // Declare a reference to hold the current state
-  const [isInstantUpdate, setIsInstantUpdate] = useState(true);
+  const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(true);
   const [notifications, setNotifications] = useState([]);
