@@ -52,48 +52,54 @@ To use pydase, you'll first need to create a class that inherits from `DataServi
 Here's an example:
 
 ```python
-from pydase import DataService
+from pydase import DataService, Server
+
 
 class Device(DataService):
-
     _current = 0.0
     _voltage = 0.0
     _power = False
 
     @property
-    def current(self):
+    def current(self) -> float:
         # run code to get current
         return self._current
 
     @current.setter
-    def current(self, value):
+    def current(self, value: float) -> None:
         # run code to set current
         self._current = value
 
     @property
-    def voltage(self):
+    def voltage(self) -> float:
         # run code to get voltage
         return self._voltage
 
     @voltage.setter
-    def voltage(self, value):
+    def voltage(self, value: float) -> None:
         # run code to set voltage
         self._voltage = value
 
     @property
-    def power(self):
+    def power(self) -> bool:
         # run code to get power state
         return self._power
 
     @power.setter
-    def power(self, value):
+    def power(self, value: bool) -> None:
         # run code to set power state
         self._power = value
 
-    def reset(self):
+    def reset(self) -> None:
         self.current = 0.0
         self.voltage = 0.0
+
+
+if __name__ == "__main__":
+    service = Device()
+    Server(service).run()
 ```
+
 In the above example, we define a Device class that extends DataService. We define a few properties (current, voltage, power) and their getter and setter methods.
 
 ### Running the Server
