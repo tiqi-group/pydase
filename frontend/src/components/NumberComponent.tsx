@@ -294,16 +294,6 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
           />
           {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
         </InputGroup>
-        {!readOnly && (
-          <div className="d-flex flex-column">
-            <Button className="numberComponentButton" variant="outline-secondary">
-              +
-            </Button>
-            <Button className="numberComponentButton" variant="outline-secondary">
-              -
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
