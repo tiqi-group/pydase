@@ -2,8 +2,15 @@ import asyncio
 import inspect
 import json
 import os
+import sys
 from enum import Enum
-from typing import Any, Dict, List, Optional, cast, get_type_hints
+from typing import Any, Optional, cast, get_type_hints
+
+if sys.version_info < (3, 9):
+    from typing import Dict, List  # noqa
+else:
+    Dict = dict
+    List = list
 
 import rpyc
 from loguru import logger

@@ -1,5 +1,11 @@
+import sys
 from pathlib import Path
-from typing import Any, Dict, TypedDict, Union
+from typing import Any, TypedDict, Union
+
+if sys.version_info < (3, 9):
+    from typing import Dict  # noqa
+else:
+    Dict = dict
 
 import socketio
 from fastapi import FastAPI

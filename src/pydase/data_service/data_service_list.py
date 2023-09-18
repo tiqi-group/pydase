@@ -1,11 +1,13 @@
 import sys
 
-if sys.version_info < (3, 10):
-    from typing import Callable
+if sys.version_info < (3, 9):
+    from typing import Callable, List  # noqa
 else:
     from collections.abc import Callable
 
-from typing import Any, List, Union
+    List = list
+
+from typing import Any, Union
 
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,

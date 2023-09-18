@@ -4,9 +4,11 @@ import inspect
 import sys
 
 if sys.version_info < (3, 9):
-    from typing import Callable  # noqa
+    from typing import Callable, Dict  # noqa
 else:
     from collections.abc import Callable
+
+    Dict = dict
 
 from typing import TYPE_CHECKING, Any, Union
 
@@ -43,7 +45,7 @@ class CallbackManager:
     This implementation follows the observer pattern, with the DataService instance as
     the "subject" and the callback functions as the "observers".
     """
-    _list_mapping: dict[int, DataServiceList] = {}
+    _list_mapping: Dict[int, DataServiceList] = {}
     """
     A dictionary mapping the id of the original lists to the corresponding
     DataServiceList instances.

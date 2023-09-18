@@ -1,11 +1,19 @@
 import asyncio
 import os
 import signal
+import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from types import FrameType
-from typing import Any, Dict, List, Optional, Protocol, Type, TypedDict, Union
+from typing import Any, Optional, Protocol, TypedDict, Union
+
+if sys.version_info < (3, 9):
+    from typing import Dict, List, Type  # noqa
+else:
+    Dict = dict
+    List = list
+    Type = type
 
 import uvicorn
 from loguru import logger

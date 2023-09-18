@@ -1,6 +1,14 @@
 import re
+import sys
 from itertools import chain
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, Union, cast
+
+if sys.version_info < (3, 9):
+    from typing import Dict, List, Tuple  # noqa
+else:
+    Dict = dict
+    List = list
+    Tuple = tuple
 
 from loguru import logger
 
