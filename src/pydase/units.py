@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Union
 
 import pint
 
@@ -10,12 +10,12 @@ Unit = units.Unit
 
 
 class QuantityDict(TypedDict):
-    magnitude: int | float
+    magnitude: Union[int, float]
     unit: str
 
 
 def convert_to_quantity(
-    value: QuantityDict | float | int | Quantity, unit: str = ""
+    value: Union[QuantityDict, float, int, Quantity], unit: str = ""
 ) -> Quantity:
     """
     Convert a given value into a pint.Quantity object with the specified unit.
@@ -47,7 +47,7 @@ def convert_to_quantity(
           will be unitless.
     """
 
-    if isinstance(value, int | float):
+    if isinstance(value, (int, float)):
         quantity = float(value) * Unit(unit)
     elif isinstance(value, dict):
         quantity = float(value["magnitude"]) * Unit(value["unit"])

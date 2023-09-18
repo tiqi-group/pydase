@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+import sys
+
+if sys.version_info < (3, 9):
+    from typing import Callable  # noqa
+else:
+    from collections.abc import Callable
+
+from typing import TYPE_CHECKING, Any, Union
 
 from loguru import logger
 
@@ -206,8 +212,8 @@ class CallbackManager:
 
     def __register_recursive_parameter_callback(
         self,
-        obj: "AbstractDataService | DataServiceList",
-        callback: Callable[[str | int, Any], None],
+        obj: Union["AbstractDataService", DataServiceList],
+        callback: Callable[[Union[str, int], Any], None],
     ) -> None:
         """
         Register callback to a DataService or DataServiceList instance and its nested
@@ -222,7 +228,7 @@ class CallbackManager:
         if isinstance(obj, DataServiceList):
             # emits callback when item in list gets reassigned
             obj.add_callback(callback=callback)
-            obj_list: DataServiceList | list[AbstractDataService] = obj
+            obj_list: Union[DataServiceList, list[AbstractDataService]] = obj
         else:
             obj_list = [obj]
 
@@ -337,7 +343,7 @@ class CallbackManager:
 
         # Create and register a callback for the object
         # only emit the notification when the call was registered by the root object
-        callback: Callable[[str, dict[str, Any] | None], None] = (
+        callback: Callable[[str, Union[dict[str, Any], None]], None] = (
             lambda name, status: obj._callback_manager.emit_notification(
                 parent_path=parent_path, name=name, value=status
             )

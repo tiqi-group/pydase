@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Dict, TypedDict, Union
 
 import socketio
 from fastapi import FastAPI
@@ -47,10 +47,10 @@ class WebAPI:
     def __init__(  # noqa: CFQ002
         self,
         service: DataService,
-        frontend: str | Path | None = None,
-        css: str | Path | None = None,
+        frontend: Union[str, Path, None] = None,
+        css: Union[str, Path, None] = None,
         enable_CORS: bool = True,
-        info: dict[str, Any] = {},
+        info: Dict[str, Any] = {},
         *args: Any,
         **kwargs: Any,
     ):
@@ -107,11 +107,11 @@ class WebAPI:
             return self.service.get_service_name()
 
         @app.get("/info")
-        def info() -> dict[str, Any]:
+        def info() -> Dict[str, Any]:
             return self.info
 
         @app.get("/service-properties")
-        def service_properties() -> dict[str, Any]:
+        def service_properties() -> Dict[str, Any]:
             return self.service.serialize()
 
         app.mount(

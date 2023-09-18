@@ -1,5 +1,11 @@
-from collections.abc import Callable
-from typing import Any
+import sys
+
+if sys.version_info < (3, 10):
+    from typing import Callable
+else:
+    from collections.abc import Callable
+
+from typing import Any, List, Union
 
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
@@ -30,11 +36,11 @@ class DataServiceList(list):
 
     def __init__(
         self,
-        *args: list[Any],
-        callback: list[Callable[[int, Any], None]] | None = None,
+        *args: List[Any],
+        callback: Union[List[Callable[[int, Any], None]], None] = None,
         **kwargs: Any,
     ) -> None:
-        self.callbacks: list[Callable[[int, Any], None]] = []
+        self.callbacks: List[Callable[[int, Any], None]] = []
         if isinstance(callback, list):
             self.callbacks = callback
 

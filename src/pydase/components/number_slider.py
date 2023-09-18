@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, Union
 
 from loguru import logger
 
@@ -39,11 +39,11 @@ class NumberSlider(DataService):
 
     def __init__(
         self,
-        value: float | int = 0,
+        value: Union[float, int] = 0,
         min: float = 0.0,
         max: float = 100.0,
-        step_size: float | int = 1.0,
-        type: Literal["int"] | Literal["float"] = "float",
+        step_size: Union[float, int] = 1.0,
+        type: Union[Literal["int"], Literal["float"]] = "float",
     ) -> None:
         if type not in {"float", "int"}:
             logger.error(f"Unknown type '{type}'. Using 'float'.")

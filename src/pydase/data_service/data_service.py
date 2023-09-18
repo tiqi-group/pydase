@@ -3,7 +3,7 @@ import inspect
 import json
 import os
 from enum import Enum
-from typing import Any, Optional, cast, get_type_hints
+from typing import Any, Dict, List, Optional, cast, get_type_hints
 
 import rpyc
 from loguru import logger
@@ -28,7 +28,7 @@ from pydase.utils.warnings import (
 )
 
 
-def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
+def process_callable_attribute(attr: Any, args: Dict[str, Any]) -> Any:
     converted_args_or_error_msg = convert_arguments_to_hinted_types(
         args, get_type_hints(attr)
     )
@@ -94,7 +94,7 @@ class DataService(rpyc.Service, AbstractDataService):
         attr: Any,
         value: Any,
         index: Optional[int],
-        path_list: list[str],
+        path_list: List[str],
     ) -> None:
         if isinstance(attr, Enum):
             update_value_if_changed(target_obj, attr_name, attr.__class__[value])
@@ -135,7 +135,7 @@ class DataService(rpyc.Service, AbstractDataService):
                 with open(self._filename, "r") as f:
                     # Load JSON data from file and update class attributes with these
                     # values
-                    self.load_DataService_from_JSON(cast(dict[str, Any], json.load(f)))
+                    self.load_DataService_from_JSON(cast(Dict[str, Any], json.load(f)))
 
     def write_to_file(self) -> None:
         """
@@ -153,7 +153,7 @@ class DataService(rpyc.Service, AbstractDataService):
                 'Skipping "write_to_file"...'
             )
 
-    def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
+    def load_DataService_from_JSON(self, json_dict: Dict[str, Any]) -> None:
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
         for path in generate_paths_from_DataService_dict(json_dict):
@@ -189,7 +189,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     f'"{class_value_type}". Ignoring value from JSON file...'
                 )
 
-    def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
+    def serialize(self) -> Dict[str, Dict[str, Any]]:  # noqa
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.
@@ -218,7 +218,7 @@ class DataService(rpyc.Service, AbstractDataService):
         Returns:
             dict: The serialized instance.
         """
-        result: dict[str, dict[str, Any]] = {}
+        result: Dict[str, Dict[str, Any]] = {}
 
         # Get the dictionary of the base class
         base_set = set(type(super()).__dict__)
@@ -295,7 +295,7 @@ class DataService(rpyc.Service, AbstractDataService):
                 sig = inspect.signature(value)
 
                 # Store parameters and their anotations in a dictionary
-                parameters: dict[str, Optional[str]] = {}
+                parameters: Dict[str, Optional[str]] = {}
                 for k, v in sig.parameters.items():
                     annotation = v.annotation
                     if annotation is not inspect._empty:
@@ -356,7 +356,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
     def update_DataService_attribute(
         self,
-        path_list: list[str],
+        path_list: List[str],
         attr_name: str,
         value: Any,
     ) -> None:

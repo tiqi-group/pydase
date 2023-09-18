@@ -1,7 +1,7 @@
 import logging
 import sys
 from types import FrameType
-from typing import Optional
+from typing import Optional, Union
 
 import loguru
 import rpyc
@@ -21,7 +21,7 @@ class InterceptHandler(logging.Handler):
             return
 
         # Get corresponding Loguru level if it exists.
-        level: int | str
+        level: Union[int, str]
         try:
             level = loguru.logger.level(record.levelname).name
         except ValueError:

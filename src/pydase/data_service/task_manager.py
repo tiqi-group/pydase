@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-from collections.abc import Callable
+import sys
+
+if sys.version_info < (3, 9):
+    from typing import Callable  # noqa
+else:
+    from collections.abc import Callable
+
 from functools import wraps
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 from loguru import logger
 
@@ -82,7 +88,7 @@ class TaskManager:
         """
 
         self.task_status_change_callbacks: list[
-            Callable[[str, dict[str, Any] | None], Any]
+            Callable[[str, Union[dict[str, Any], None]], Any]
         ] = []
         """A list of callback functions to be invoked when the status of a task (start
         or stop) changes."""

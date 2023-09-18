@@ -1,5 +1,5 @@
 [flake8]
-ignore = E501,W503,FS003,F403,F405,E203
+ignore = E501,W503,FS003,F403,F405,E203,UNT001
 include = src
 max-line-length = 88
 max-doc-length = 88

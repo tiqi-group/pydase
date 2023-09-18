@@ -1,7 +1,7 @@
 import base64
 import io
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 from urllib.request import urlopen
 
 import PIL.Image
@@ -29,7 +29,7 @@ class Image(DataService):
     def format(self) -> str:
         return self._format
 
-    def load_from_path(self, path: Path | str) -> None:
+    def load_from_path(self, path: Union[Path, str]) -> None:
         with PIL.Image.open(path) as image:
             self._load_from_PIL(image)
 
@@ -68,7 +68,7 @@ class Image(DataService):
         else:
             logger.error("Image format is 'None'. Skipping...")
 
-    def _get_image_format_from_bytes(self, value_: bytes) -> str | None:
+    def _get_image_format_from_bytes(self, value_: bytes) -> Union[str, None]:
         image_data = base64.b64decode(value_)
         # Create a writable memory buffer for the image
         image_buffer = io.BytesIO(image_data)

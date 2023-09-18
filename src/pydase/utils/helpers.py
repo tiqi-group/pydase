@@ -1,13 +1,13 @@
 import re
 from itertools import chain
-from typing import Any, Optional, cast
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from loguru import logger
 
 STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
 
 
-def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
+def get_class_and_instance_attributes(obj: Any) -> Dict[str, Any]:
     """Dictionary containing all attributes (both instance and class level) of a
     given object.
 
@@ -22,7 +22,7 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     return attrs
 
 
-def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
+def get_object_attr_from_path(target_obj: Any, path: List[str]) -> Any:
     """
     Traverse the object tree according to the given path.
 
@@ -57,7 +57,7 @@ def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
 
 def generate_paths_from_DataService_dict(
     data: dict, parent_path: str = ""
-) -> list[str]:
+) -> List[str]:
     """
     Recursively generate paths from a dictionary representing a DataService object.
 
@@ -126,7 +126,9 @@ def generate_paths_from_DataService_dict(
     return paths
 
 
-def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any] | None:
+def extract_dict_or_list_entry(
+    data: Dict[str, Any], key: str
+) -> Union[Dict[str, Any], None]:
     """
     Extract a nested dictionary or list entry based on the provided key.
 
@@ -178,7 +180,7 @@ def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any]
         else:
             logger.error(f"Invalid index format in key: {key}")
 
-    current_data: dict[str, Any] | list[dict[str, Any]] | None = data.get(
+    current_data: Union[Dict[str, Any], List[Dict[str, Any]], None] = data.get(
         attr_name, None
     )
     if not isinstance(current_data, dict):
@@ -197,14 +199,14 @@ def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any]
     # When the attribute is a class instance, the attributes are nested in the
     # "value" key
     if current_data["type"] not in STANDARD_TYPES:
-        current_data = cast(dict[str, Any], current_data.get("value", None))  # type: ignore
+        current_data = cast(Dict[str, Any], current_data.get("value", None))  # type: ignore
         assert isinstance(current_data, dict)
 
     return current_data
 
 
 def get_nested_value_from_DataService_by_path_and_key(
-    data: dict[str, Any], path: str, key: str = "value"
+    data: Dict[str, Any], path: str, key: str = "value"
 ) -> Any:
     """
     Get the value associated with a specific key from a dictionary given a path.
@@ -250,8 +252,8 @@ def get_nested_value_from_DataService_by_path_and_key(
     """
 
     # Split the path into parts
-    parts: list[str] = re.split(r"\.", path)  # Split by '.'
-    current_data: dict[str, Any] | None = data
+    parts: List[str] = re.split(r"\.", path)  # Split by '.'
+    current_data: Union[Dict[str, Any], None] = data
 
     for part in parts:
         if current_data is None:
@@ -263,8 +265,8 @@ def get_nested_value_from_DataService_by_path_and_key(
 
 
 def convert_arguments_to_hinted_types(
-    args: dict[str, Any], type_hints: dict[str, Any]
-) -> dict[str, Any] | str:
+    args: Dict[str, Any], type_hints: Dict[str, Any]
+) -> Union[Dict[str, Any], str]:
     """
     Convert the given arguments to their types hinted in the type_hints dictionary.
 
@@ -306,7 +308,7 @@ def convert_arguments_to_hinted_types(
 
 
 def update_value_if_changed(
-    target: Any, attr_name_or_index: str | int, new_value: Any
+    target: Any, attr_name_or_index: Union[str, int], new_value: Any
 ) -> None:
     """
     Updates the value of an attribute or a list element on a target object if the new
@@ -342,7 +344,7 @@ def update_value_if_changed(
         logger.error(f"Incompatible arguments: {target}, {attr_name_or_index}.")
 
 
-def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
+def parse_list_attr_and_index(attr_string: str) -> Tuple[str, Optional[int]]:
     """
     Parses an attribute string and extracts a potential list attribute name and its
     index.
@@ -381,7 +383,7 @@ def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
     return attr_name, index
 
 
-def get_component_class_names() -> list[str]:
+def get_component_class_names() -> List[str]:
     """
     Returns the names of the component classes in a list.
 
