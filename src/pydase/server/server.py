@@ -1,19 +1,11 @@
 import asyncio
 import os
 import signal
-import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict, Union
-
-if sys.version_info < (3, 9):
-    from typing import Dict, List, Type  # noqa
-else:
-    Dict = dict
-    List = list
-    Type = type
 
 import uvicorn
 from loguru import logger
@@ -87,9 +79,9 @@ class AdditionalServer(TypedDict):
     it's instantiated.
     """
 
-    server: Type[AdditionalServerProtocol]
+    server: type[AdditionalServerProtocol]
     port: int
-    kwargs: Dict[str, Any]
+    kwargs: dict[str, Any]
 
 
 class Server:
@@ -171,8 +163,8 @@ class Server:
         enable_rpc: bool = True,
         enable_web: bool = True,
         use_forking_server: bool = False,
-        web_settings: Dict[str, Any] = {},
-        additional_servers: List[AdditionalServer] = [],
+        web_settings: dict[str, Any] = {},
+        additional_servers: list[AdditionalServer] = [],
         **kwargs: Any,
     ) -> None:
         self._service = service
@@ -187,9 +179,9 @@ class Server:
         self._rpc_server_type = ForkingServer if use_forking_server else ThreadedServer
         self._additional_servers = additional_servers
         self.should_exit = False
-        self.servers: Dict[str, asyncio.Future[Any]] = {}
+        self.servers: dict[str, asyncio.Future[Any]] = {}
         self.executor: Union[ThreadPoolExecutor, None] = None
-        self._info: Dict[str, Any] = {
+        self._info: dict[str, Any] = {
             "name": self._service.get_service_name(),
             "version": __version__,
             "rpc_port": self._rpc_port,
@@ -394,7 +386,7 @@ class Server:
             self.should_exit = True
 
     def custom_exception_handler(
-        self, loop: asyncio.AbstractEventLoop, context: Dict[str, Any]
+        self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]
     ) -> None:
         # if any background task creates an unhandled exception, shut down the entire
         # loop. It's possible we don't want to do this, maybe make this optional in the

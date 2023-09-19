@@ -1,21 +1,13 @@
 import re
-import sys
 from itertools import chain
 from typing import Any, Optional, Union, cast
-
-if sys.version_info < (3, 9):
-    from typing import Dict, List, Tuple  # noqa
-else:
-    Dict = dict
-    List = list
-    Tuple = tuple
 
 from loguru import logger
 
 STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
 
 
-def get_class_and_instance_attributes(obj: Any) -> Dict[str, Any]:
+def get_class_and_instance_attributes(obj: Any) -> dict[str, Any]:
     """Dictionary containing all attributes (both instance and class level) of a
     given object.
 
@@ -30,7 +22,7 @@ def get_class_and_instance_attributes(obj: Any) -> Dict[str, Any]:
     return attrs
 
 
-def get_object_attr_from_path(target_obj: Any, path: List[str]) -> Any:
+def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
     """
     Traverse the object tree according to the given path.
 
@@ -65,7 +57,7 @@ def get_object_attr_from_path(target_obj: Any, path: List[str]) -> Any:
 
 def generate_paths_from_DataService_dict(
     data: dict, parent_path: str = ""
-) -> List[str]:
+) -> list[str]:
     """
     Recursively generate paths from a dictionary representing a DataService object.
 
@@ -135,8 +127,8 @@ def generate_paths_from_DataService_dict(
 
 
 def extract_dict_or_list_entry(
-    data: Dict[str, Any], key: str
-) -> Union[Dict[str, Any], None]:
+    data: dict[str, Any], key: str
+) -> Union[dict[str, Any], None]:
     """
     Extract a nested dictionary or list entry based on the provided key.
 
@@ -188,7 +180,7 @@ def extract_dict_or_list_entry(
         else:
             logger.error(f"Invalid index format in key: {key}")
 
-    current_data: Union[Dict[str, Any], List[Dict[str, Any]], None] = data.get(
+    current_data: Union[dict[str, Any], list[dict[str, Any]], None] = data.get(
         attr_name, None
     )
     if not isinstance(current_data, dict):
@@ -207,14 +199,14 @@ def extract_dict_or_list_entry(
     # When the attribute is a class instance, the attributes are nested in the
     # "value" key
     if current_data["type"] not in STANDARD_TYPES:
-        current_data = cast(Dict[str, Any], current_data.get("value", None))  # type: ignore
+        current_data = cast(dict[str, Any], current_data.get("value", None))  # type: ignore
         assert isinstance(current_data, dict)
 
     return current_data
 
 
 def get_nested_value_from_DataService_by_path_and_key(
-    data: Dict[str, Any], path: str, key: str = "value"
+    data: dict[str, Any], path: str, key: str = "value"
 ) -> Any:
     """
     Get the value associated with a specific key from a dictionary given a path.
@@ -260,8 +252,8 @@ def get_nested_value_from_DataService_by_path_and_key(
     """
 
     # Split the path into parts
-    parts: List[str] = re.split(r"\.", path)  # Split by '.'
-    current_data: Union[Dict[str, Any], None] = data
+    parts: list[str] = re.split(r"\.", path)  # Split by '.'
+    current_data: Union[dict[str, Any], None] = data
 
     for part in parts:
         if current_data is None:
@@ -273,8 +265,8 @@ def get_nested_value_from_DataService_by_path_and_key(
 
 
 def convert_arguments_to_hinted_types(
-    args: Dict[str, Any], type_hints: Dict[str, Any]
-) -> Union[Dict[str, Any], str]:
+    args: dict[str, Any], type_hints: dict[str, Any]
+) -> Union[dict[str, Any], str]:
     """
     Convert the given arguments to their types hinted in the type_hints dictionary.
 
@@ -352,7 +344,7 @@ def update_value_if_changed(
         logger.error(f"Incompatible arguments: {target}, {attr_name_or_index}.")
 
 
-def parse_list_attr_and_index(attr_string: str) -> Tuple[str, Optional[int]]:
+def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
     """
     Parses an attribute string and extracts a potential list attribute name and its
     index.
@@ -391,7 +383,7 @@ def parse_list_attr_and_index(attr_string: str) -> Tuple[str, Optional[int]]:
     return attr_name, index
 
 
-def get_component_class_names() -> List[str]:
+def get_component_class_names() -> list[str]:
     """
     Returns the names of the component classes in a list.
 

@@ -1,10 +1,4 @@
-import sys
-
-if sys.version_info < (3, 10):
-    from typing import Generator
-else:
-    from collections.abc import Generator
-
+from collections.abc import Generator
 from typing import Any
 
 import pytest

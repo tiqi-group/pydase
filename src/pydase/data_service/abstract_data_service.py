@@ -1,14 +1,7 @@
 from __future__ import annotations
 
-import sys
 from abc import ABC
 from typing import TYPE_CHECKING, Any
-
-if sys.version_info < (3, 9):
-    from typing import Dict  # noqa
-else:
-    Dict = dict
-
 
 if TYPE_CHECKING:
     from .callback_manager import CallbackManager
@@ -20,4 +13,4 @@ class AbstractDataService(ABC):
     __root__: DataService
     _task_manager: TaskManager
     _callback_manager: CallbackManager
-    _autostart_tasks: Dict[str, tuple[Any]]
+    _autostart_tasks: dict[str, tuple[Any]]

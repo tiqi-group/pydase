@@ -1,11 +1,5 @@
-import sys
 from pathlib import Path
 from typing import Any, TypedDict, Union
-
-if sys.version_info < (3, 9):
-    from typing import Dict  # noqa
-else:
-    Dict = dict
 
 import socketio
 from fastapi import FastAPI
@@ -56,7 +50,7 @@ class WebAPI:
         frontend: Union[str, Path, None] = None,
         css: Union[str, Path, None] = None,
         enable_CORS: bool = True,
-        info: Dict[str, Any] = {},
+        info: dict[str, Any] = {},
         *args: Any,
         **kwargs: Any,
     ):
@@ -113,11 +107,11 @@ class WebAPI:
             return self.service.get_service_name()
 
         @app.get("/info")
-        def info() -> Dict[str, Any]:
+        def info() -> dict[str, Any]:
             return self.info
 
         @app.get("/service-properties")
-        def service_properties() -> Dict[str, Any]:
+        def service_properties() -> dict[str, Any]:
             return self.service.serialize()
 
         app.mount(

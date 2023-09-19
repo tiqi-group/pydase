@@ -1,12 +1,4 @@
-import sys
-
-if sys.version_info < (3, 9):
-    from typing import Callable, List  # noqa
-else:
-    from collections.abc import Callable
-
-    List = list
-
+from collections.abc import Callable
 from typing import Any, Union
 
 from pydase.utils.warnings import (
@@ -38,11 +30,11 @@ class DataServiceList(list):
 
     def __init__(
         self,
-        *args: List[Any],
-        callback: Union[List[Callable[[int, Any], None]], None] = None,
+        *args: list[Any],
+        callback: Union[list[Callable[[int, Any], None]], None] = None,
         **kwargs: Any,
     ) -> None:
-        self.callbacks: List[Callable[[int, Any], None]] = []
+        self.callbacks: list[Callable[[int, Any], None]] = []
         if isinstance(callback, list):
             self.callbacks = callback
 

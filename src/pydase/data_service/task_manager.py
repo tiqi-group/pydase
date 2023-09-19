@@ -2,13 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
-import sys
-
-if sys.version_info < (3, 9):
-    from typing import Callable  # noqa
-else:
-    from collections.abc import Callable
-
+from collections.abc import Callable
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict, Union
 
