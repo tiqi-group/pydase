@@ -1,12 +1,10 @@
 from typing import TypedDict, Union
 
 import pint
+from pint import Quantity
 
-units: pint.UnitRegistry = pint.UnitRegistry()
+units = pint.UnitRegistry()
 units.default_format = "~P"  # pretty and short format
-
-Quantity = pint.Quantity
-Unit = units.Unit
 
 
 class QuantityDict(TypedDict):
@@ -48,9 +46,9 @@ def convert_to_quantity(
     """
 
     if isinstance(value, (int, float)):
-        quantity = float(value) * Unit(unit)
+        quantity = float(value) * units(unit)
     elif isinstance(value, dict):
-        quantity = float(value["magnitude"]) * Unit(value["unit"])
+        quantity = float(value["magnitude"]) * units(value["unit"])
     else:
         quantity = value
     return quantity  # type: ignore
