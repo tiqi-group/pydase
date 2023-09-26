@@ -282,7 +282,7 @@ Below are the components available in the `pydase.components` module, accompanie
 
 #### Extending with New Components
 
-Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](./docs/dev-guide/Adding_Components.md) provides detailed steps on achieving this.
+Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](https://pydase.readthedocs.io/en/latest/dev-guide/Adding_Components/) provides detailed steps on achieving this.
 
 ## Understanding Service Persistence
 
@@ -422,6 +422,7 @@ For more information about what you can do with the units, please consult the do
 ## Changing the Log Level
 
 You can change the log level of loguru by either
+
 1. (RECOMMENDED) setting the `ENVIRONMENT` environment variable to "production" or "development"
 
     ```bash
@@ -442,12 +443,12 @@ You can change the log level of loguru by either
 
 ## Documentation
 
-The full documentation provides more detailed information about `pydase`, including advanced usage examples, API references, and tips for troubleshooting common issues. See the [full documentation](URL_TO_YOUR_DOCUMENTATION) for more information.
+The full documentation provides more detailed information about `pydase`, including advanced usage examples, API references, and tips for troubleshooting common issues. See the [full documentation](https://pydase.readthedocs.io/en/latest/) for more information.
 
 ## Contributing
 
-We welcome contributions! Please see [contributing.md](./docs/about/contributing.md) for details on how to contribute.
+We welcome contributions! Please see [contributing.md](https://pydase.readthedocs.io/en/latest/about/contributing/) for details on how to contribute.
 
 ## License
 
-`pydase` is licensed under the [MIT License](./LICENSE).
+`pydase` is licensed under the [MIT License](https://github.com/tiqi-group/pydase/blob/main/LICENSE).
