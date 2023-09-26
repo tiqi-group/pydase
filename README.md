@@ -44,13 +44,13 @@
 Install pydase using [`poetry`](https://python-poetry.org/):
 
 ```bash
-poetry add git+https://github.com/tiqi-group/pydase.git
+poetry add pydase
 ```
 
 or `pip`:
 
 ```bash
-pip install git+https://github.com/tiqi-group/pydase.git
+pip install pydase
 ```
 <!--installation-end-->
 
