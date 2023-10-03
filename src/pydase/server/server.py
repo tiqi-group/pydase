@@ -28,9 +28,8 @@ class AdditionalServerProtocol(Protocol):
 
     This protocol sets the standard for how additional servers should be implemented
     to ensure compatibility with the main Server class. The protocol requires that
-    any server implementing it should have an __init__ method for initialization, a
-    serve method for starting the server, and an install_signal_handlers method for
-    setting up signal handlers.
+    any server implementing it should have an __init__ method for initialization and a
+    serve method for starting the server.
 
     Parameters:
     -----------
@@ -59,12 +58,6 @@ class AdditionalServerProtocol(Protocol):
     async def serve(self) -> Any:
         """Starts the server. This method should be implemented as an asynchronous
         method, which means that it should be able to run concurrently with other tasks.
-        """
-        ...
-
-    def install_signal_handlers(self) -> None:
-        """Sets up signal handlers for the server. This method is used to define how the
-        server should respond to various system signals, such as SIGINT and SIGTERM.
         """
         ...
 
@@ -257,13 +250,6 @@ class Server:
                 info=self._info,
                 **server["kwargs"],
             )
-            try:
-                addin_server.install_signal_handlers = lambda: None  # type: ignore
-            except Exception:
-                logger.debug(
-                    "Additional server does not have a method called "
-                    "'install_signal_handlers'."
-                )
 
             server_name = (
                 addin_server.__module__ + "." + addin_server.__class__.__name__
