@@ -198,22 +198,10 @@ class DataService(rpyc.Service, AbstractDataService):
         value, readonly status, and documentation if any in the resulting dictionary.
         Attributes and methods starting with an underscore are ignored.
 
-        For attributes, methods, and properties unique to the class (not inherited from
-        the base class), the method uses the format "<prefix>.<key>" for keys in the
-        dictionary. If no prefix is provided, the key format is simply "<key>".
-
-        For nested DataService instances, the method serializes recursively and appends
-        the key of the nested instance to the prefix in the format "<prefix>.<key>".
-
+        For nested DataService instances, the method serializes recursively.
         For attributes of type list, each item in the list is serialized individually.
         If an item in the list is an instance of DataService, it is serialized
-        recursively with its key in the format "<prefix>.<key>.<item_id>", where
-        "item_id" is the id of the item itself.
-
-        Args:
-            prefix (str, optional): The prefix for each key in the serialized
-            dictionary. This is mainly used when this method is called recursively to
-            maintain the structure of nested instances.
+        recursively.
 
         Returns:
             dict: The serialized instance.
