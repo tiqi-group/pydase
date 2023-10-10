@@ -2,7 +2,7 @@ from pytest import LogCaptureFixture
 
 from pydase import DataService
 
-from . import caplog  # noqa
+from .. import caplog  # noqa
 
 
 def test_setattr_warnings(caplog: LogCaptureFixture) -> None:  # noqa
@@ -31,4 +31,20 @@ def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa
     assert (
         " Warning: You should not set private but rather protected attributes! Use "
         "_something instead of __something." in caplog.text
+    )
+
+
+def test_protected_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa
+    class SubClass:
+        name = "Hello"
+
+    class ServiceClass(DataService):
+        def __init__(self) -> None:
+            self._subclass = SubClass
+            super().__init__()
+
+    ServiceClass()
+
+    assert (
+        "Warning: Class SubClass does not inherit from DataService." not in caplog.text
     )

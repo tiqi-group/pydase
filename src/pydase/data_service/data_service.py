@@ -83,8 +83,9 @@ class DataService(rpyc.Service, AbstractDataService):
 
     def __check_instance_classes(self) -> None:
         for attr_name, attr_value in get_class_and_instance_attributes(self).items():
-            # every class defined by the user should inherit from DataService
-            if not attr_name.startswith("_DataService__"):
+            # every class defined by the user should inherit from DataService if it is
+            # assigned to a public attribute
+            if not attr_name.startswith("_"):
                 warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
 
     def __set_attribute_based_on_type(  # noqa:CFQ002
