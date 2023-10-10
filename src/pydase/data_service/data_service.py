@@ -309,16 +309,6 @@ class DataService(rpyc.Service, AbstractDataService):
                     "readonly": True,
                     "value": running_task_info,
                 }
-            elif isinstance(getattr(self.__class__, key, None), property):
-                prop: property = getattr(self.__class__, key)
-                result[key] = {
-                    "type": type(value).__name__,
-                    "value": value
-                    if not isinstance(value, u.Quantity)
-                    else {"magnitude": value.m, "unit": str(value.u)},
-                    "readonly": prop.fset is None,
-                    "doc": get_attribute_doc(prop),
-                }
             elif isinstance(value, Enum):
                 result[key] = {
                     "type": "Enum",
@@ -339,6 +329,11 @@ class DataService(rpyc.Service, AbstractDataService):
                     "readonly": False,
                     "doc": get_attribute_doc(value),
                 }
+
+            if isinstance(getattr(self.__class__, key, None), property):
+                prop: property = getattr(self.__class__, key)
+                result[key]["readonly"] = prop.fset is None
+                result[key]["doc"] = get_attribute_doc(prop)
 
         return result
 
