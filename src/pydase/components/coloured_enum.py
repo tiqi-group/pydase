@@ -1,11 +1,11 @@
-from enum import StrEnum
+from enum import Enum
 
 
-class ColouredEnum(StrEnum):
+class ColouredEnum(Enum):
     """
     Represents a UI element that can display colour-coded text based on its value.
 
-    This class extends the standard StrEnum but requires its values to be valid CSS
+    This class extends the standard Enum but requires its values to be valid CSS
     colour codes. Supported colour formats include:
         - Hexadecimal colours
         - Hexadecimal colours with transparency

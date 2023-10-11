@@ -294,7 +294,7 @@ if __name__ == "__main__":
 
 #### `ColouredEnum`
 
-This component provides a way to visually represent different states or categories in a data service using colour-coded options. It behaves similarly to a standard `StrEnum`, but the values encode colours in a format understood by CSS. The colours can be defined using various methods like Hexadecimal, RGB, HSL, and more. 
+This component provides a way to visually represent different states or categories in a data service using colour-coded options. It behaves similarly to a standard `Enum`, but the values encode colours in a format understood by CSS. The colours can be defined using various methods like Hexadecimal, RGB, HSL, and more. 
 
 If the property associated with the `ColouredEnum` has a setter function, the keys of the enum will be rendered as a dropdown menu, allowing users to interact and select different options. Without a setter function, the selected key will simply be displayed as a coloured box with text inside, serving as a visual indicator.
 
