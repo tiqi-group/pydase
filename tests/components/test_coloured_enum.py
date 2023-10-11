@@ -31,7 +31,7 @@ def test_ColouredEnum(capsys: CaptureFixture) -> None:
 
     expected_output = sorted(
         [
-            "ServiceClass.status = #FF0000",
+            "ServiceClass.status = MyStatus.FAILING",
         ]
     )
     actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
