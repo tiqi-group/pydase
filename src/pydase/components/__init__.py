@@ -27,10 +27,12 @@ print(my_service.voltage.value)  # Output: 5
 ```
 """
 
+from pydase.components.coloured_enum import ColouredEnum
 from pydase.components.image import Image
 from pydase.components.number_slider import NumberSlider
 
 __all__ = [
     "NumberSlider",
     "Image",
+    "ColouredEnum",
 ]
