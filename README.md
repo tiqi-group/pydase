@@ -129,7 +129,7 @@ if __name__ == "__main__":
     Server(service).run()
 ```
 
-This will start the server, making your Device service accessible via RPC and a web server at http://localhost:8001.
+This will start the server, making your Device service accessible via RPC and a web server at [http://localhost:8001](http://localhost:8001).
 
 ### Accessing the Web Interface
 
@@ -167,6 +167,7 @@ In `pydase`, components are fundamental building blocks that bridge the Python b
 ### Built-in Type and Enum Components
 
 `pydase` automatically maps standard Python data types to their corresponding frontend components:
+
 - `str`: Translated into a `StringComponent` on the frontend.
 - `int` and `float`: Manifested as the `NumberComponent`.
 - `bool`: Rendered as a `ButtonComponent`.
@@ -176,6 +177,7 @@ In `pydase`, components are fundamental building blocks that bridge the Python b
 ### Method Components
 
 Methods within the `DataService` class have frontend representations:
+
 - Regular Methods: These are rendered as a `MethodComponent` in the frontend, allowing users to execute the method via an "execute" button.
 - Asynchronous Methods: These are manifested as the `AsyncMethodComponent` with "start"/"stop" buttons to manage the execution of [tasks](#understanding-tasks-in-pydase).
 
