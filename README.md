@@ -231,57 +231,105 @@ The custom components in `pydase` have two main parts:
 
 Below are the components available in the `pydase.components` module, accompanied by their Python usage:
 
-- `Image`: This component allows users to display and update images within the application.
+#### `Image`
 
-    ```python
-    import matplotlib.pyplot as plt
-    import numpy as np
+This component provides a versatile interface for displaying images within the application. Users can update and manage images from various sources, including local paths, URLs, and even matplotlib figures.
 
-    import pydase
-    from pydase.components.image import Image
+The component offers methods to load images seamlessly, ensuring that visual content is easily integrated and displayed within the data service.
 
+```python
+import matplotlib.pyplot as plt
+import numpy as np
 
-    class MyDataService(pydase.DataService):
-        my_image = Image()
-
-
-    if __name__ == "__main__":
-        service = MyDataService()
-        # loading from local path
-        service.my_image.load_from_path("/your/image/path/")
-
-        # loading from a URL
-        service.my_image.load_from_url("https://cataas.com/cat")
-
-        # loading a matplotlib figure
-        fig = plt.figure()
-        x = np.linspace(0, 2 * np.pi)
-        plt.plot(x, np.sin(x))
-        plt.grid()
-        service.my_image.load_from_matplotlib_figure(fig)
-
-        pydase.Server(service).run()
-    ```
-
-    ![Image Component](docs/images/Image_component.png)
-
-- `NumberSlider`: An interactive slider component to adjust numerical values, including floats and integers, on the frontend while synchronizing the data with the backend in real-time.
-
-    ```python
-    import pydase
-    from pydase.components import NumberSlider
+import pydase
+from pydase.components.image import Image
 
 
-    class MyService(pydase.DataService):
-        slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1)
+class MyDataService(pydase.DataService):
+    my_image = Image()
 
 
-    if __name__ == "__main__":
-        service = MyService()
-        pydase.Server(service).run()
-    ```
+if __name__ == "__main__":
+    service = MyDataService()
+    # loading from local path
+    service.my_image.load_from_path("/your/image/path/")
 
-    ![Slider Component](docs/images/Slider_component.png)
+    # loading from a URL
+    service.my_image.load_from_url("https://cataas.com/cat")
+
+    # loading a matplotlib figure
+    fig = plt.figure()
+    x = np.linspace(0, 2 * np.pi)
+    plt.plot(x, np.sin(x))
+    plt.grid()
+    service.my_image.load_from_matplotlib_figure(fig)
+
+    pydase.Server(service).run()
+```
+
+![Image Component](docs/images/Image_component.png)
+
+#### `NumberSlider`
+
+ This component provides an interactive slider interface for adjusting numerical values on the frontend. It supports both floats and integers. The values adjusted on the frontend are synchronized with the backend in real-time, ensuring consistent data representation.
+
+The slider can be customized with initial values, minimum and maximum limits, and step sizes to fit various use cases.
+
+```python
+import pydase
+from pydase.components import NumberSlider
+
+
+class MyService(pydase.DataService):
+    slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1, type="float")
+
+
+if __name__ == "__main__":
+    service = MyService()
+    pydase.Server(service).run()
+```
+
+![Slider Component](docs/images/Slider_component.png)
+
+#### `ColouredEnum`
+
+This component provides a way to visually represent different states or categories in a data service using colour-coded options. It behaves similarly to a standard `Enum`, but the values encode colours in a format understood by CSS. The colours can be defined using various methods like Hexadecimal, RGB, HSL, and more. 
+
+If the property associated with the `ColouredEnum` has a setter function, the keys of the enum will be rendered as a dropdown menu, allowing users to interact and select different options. Without a setter function, the selected key will simply be displayed as a coloured box with text inside, serving as a visual indicator.
+
+```python
+import pydase
+import pydase.components as pyc
+
+
+class MyStatus(pyc.ColouredEnum):
+    PENDING = "#FFA500"  # Hexadecimal colour (Orange)
+    RUNNING = "#0000FF80"  # Hexadecimal colour with transparency (Blue)
+    PAUSED = "rgb(169, 169, 169)"  # RGB colour (Dark Gray)
+    RETRYING = "rgba(255, 255, 0, 0.3)"  # RGB colour with transparency (Yellow)
+    COMPLETED = "hsl(120, 100%, 50%)"  # HSL colour (Green)
+    FAILED = "hsla(0, 100%, 50%, 0.7)"  # HSL colour with transparency (Red)
+    CANCELLED = "SlateGray"  # Cross-browser colour name (Slate Gray)
+
+
+class StatusTest(pydase.DataService):
+    _status = MyStatus.RUNNING
+
+    @property
+    def status(self) -> MyStatus:
+        return self._status
+
+    @status.setter
+    def status(self, value: MyStatus) -> None:
+        # do something ...
+        self._status = value
+
+# Modifying or accessing the status value:
+my_service = StatusExample()
+my_service.status = MyStatus.FAILED
+```
+
+![ColouredEnum Component](docs/images/ColouredEnum_component.png)
 
 #### Extending with New Components
 

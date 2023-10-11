@@ -311,8 +311,12 @@ class DataService(rpyc.Service, AbstractDataService):
                     "value": running_task_info,
                 }
             elif isinstance(value, Enum):
+                if type(value).__base__.__name__ == "ColouredEnum":
+                    val_type = "ColouredEnum"
+                else:
+                    val_type = "Enum"
                 result[key] = {
-                    "type": "Enum",
+                    "type": val_type,
                     "value": value.name,
                     "enum": {
                         name: member.value

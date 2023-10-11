@@ -9,6 +9,7 @@ import { StringComponent } from './StringComponent';
 import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 import { ImageComponent } from './ImageComponent';
+import { ColouredEnumComponent } from './ColouredEnumComponent';
 
 type AttributeType =
   | 'str'
@@ -21,7 +22,8 @@ type AttributeType =
   | 'DataService'
   | 'Enum'
   | 'NumberSlider'
-  | 'Image';
+  | 'Image'
+  | 'ColouredEnum';
 
 type ValueType = boolean | string | number | object;
 export interface Attribute {
@@ -178,6 +180,19 @@ export const GenericComponent = React.memo(
           docString={attribute.doc}
           // Add any other specific props for the ImageComponent here
           format={attribute.value['format']['value'] as string}
+          addNotification={addNotification}
+        />
+      );
+    } else if (attribute.type === 'ColouredEnum') {
+      console.log(attribute);
+      return (
+        <ColouredEnumComponent
+          name={name}
+          parentPath={parentPath}
+          docString={attribute.doc}
+          value={String(attribute.value)}
+          readOnly={attribute.readonly}
+          enumDict={attribute.enum}
           addNotification={addNotification}
         />
       );
