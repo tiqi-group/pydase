@@ -159,6 +159,9 @@ In this example, replace `<ip_addr>` with the IP address of the machine where th
 <!--usage-end-->
 
 ## Understanding the Component System
+
+<!-- Component User Guide Start -->
+
 In `pydase`, components are fundamental building blocks that bridge the Python backend logic with frontend visual representation and interactions. This system can be understood based on the following categories:
 
 ### Built-in Type and Enum Components
@@ -283,6 +286,8 @@ Below are the components available in the `pydase.components` module, accompanie
 #### Extending with New Components
 
 Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](https://pydase.readthedocs.io/en/latest/dev-guide/Adding_Components/) provides detailed steps on achieving this.
+
+<!-- Component User Guide End -->
 
 ## Understanding Service Persistence
 

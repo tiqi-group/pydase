@@ -4,6 +4,8 @@ edit_uri: blob/docs/docs/
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - User Guide: 
+    - Components Guide: user-guide/Components.md
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
@@ -22,7 +24,6 @@ markdown_extensions:
   - smarty
   - toc:
       permalink: true
-      baselevel: 4
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.snippets
@@ -38,5 +39,3 @@ plugins:
 
 watch:
   - src/pydase
-
-  
