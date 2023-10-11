@@ -224,7 +224,6 @@ if __name__ == "__main__":
 **Note** that defining classes within `DataService` classes is not supported (see  [this issue](https://github.com/tiqi-group/pydase/issues/16)).
 
 ### Custom Components (`pydase.components`)
-<!--components-start-->
 The custom components in `pydase` have two main parts: 
 
 - A **Python Component Class** in the backend, implementing the logic needed to set, update, and manage the component's state and data.
@@ -335,7 +334,6 @@ my_service.status = MyStatus.FAILED
 #### Extending with New Components
 
 Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](https://pydase.readthedocs.io/en/latest/dev-guide/Adding_Components/) provides detailed steps on achieving this.
-<!--components-end-->
 
 <!-- Component User Guide End -->
 
