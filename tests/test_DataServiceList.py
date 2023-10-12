@@ -99,3 +99,29 @@ def test_nested_reused_instance_list_attribute(capsys: CaptureFixture) -> None:
     )
     actual_output = sorted(captured.out.strip().split("\n"))
     assert actual_output == expected_output
+
+
+def test_protected_list_attribute(capsys: CaptureFixture) -> None:
+    """Changing protected lists should not emit notifications for the lists themselves, but
+    still for all properties depending on them.
+    """
+
+    class ServiceClass(DataService):
+        _attr = [0, 1]
+
+        @property
+        def list_dependend_property(self) -> int:
+            return self._attr[0]
+
+    service_instance = ServiceClass()
+
+    service_instance._attr[0] = 1337
+    captured = capsys.readouterr()
+
+    expected_output = sorted(
+        [
+            "ServiceClass.list_dependend_property = 1337",
+        ]
+    )
+    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
+    assert actual_output == expected_output

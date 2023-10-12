@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydase"
-version = "0.2.0"
+version = "0.2.1"
 description = "A flexible and robust Python library for creating, managing, and interacting with data services, with built-in support for web and RPC servers, and customizable features for diverse use cases."
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
