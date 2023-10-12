@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from loguru import logger
 
@@ -55,9 +55,10 @@ class CallbackManager:
         self, obj: "AbstractDataService", parent_path: str
     ) -> None:
         """
-        This method ensures that notifications are emitted whenever a list attribute of
-        a DataService instance changes. These notifications pertain solely to the list
-        item changes, not to changes in attributes of objects within the list.
+        This method ensures that notifications are emitted whenever a public list
+        attribute of a DataService instance changes. These notifications pertain solely
+        to the list item changes, not to changes in attributes of objects within the
+        list.
 
         The method works by converting all list attributes (both at the class and
         instance levels) into DataServiceList objects. Each DataServiceList is then
@@ -101,6 +102,8 @@ class CallbackManager:
                         value=value,
                     )
                     if self.service == self.service.__root__
+                    # Skip private and protected lists
+                    and not cast(str, attr_name).startswith("_")
                     else None
                 )
 
@@ -109,9 +112,12 @@ class CallbackManager:
                     attr_value.add_callback(callback)
                     continue
                 if id(attr_value) in self._list_mapping:
+                    # If the list `attr_value` was already referenced somewhere else
                     notifying_list = self._list_mapping[id(attr_value)]
                     notifying_list.add_callback(callback)
                 else:
+                    # convert the builtin list into a DataServiceList and add the
+                    # callback
                     notifying_list = DataServiceList(attr_value, callback=[callback])
                     self._list_mapping[id(attr_value)] = notifying_list
 
