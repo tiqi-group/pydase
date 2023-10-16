@@ -109,3 +109,8 @@ def setup_logging(level: Optional[str | int] = None) -> None:
         "fmt"
     ] = "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
     LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
+    LOGGING_CONFIG["formatters"]["access"][
+        "fmt"
+    ] = '%(asctime)s.%(msecs)03d | %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+
+    LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
