@@ -56,7 +56,7 @@ class Image(DataService):
         self._load_from_base64(value_, format_)
 
     def _load_from_base64(self, value_: bytes, format_: str) -> None:
-        value = value_.decode("utf-8") if isinstance(value_, bytes) else value_
+        value = value_.decode("utf-8")
         self._value = value
         self._format = format_
 
