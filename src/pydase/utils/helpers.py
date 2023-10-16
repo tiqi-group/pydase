@@ -1,8 +1,9 @@
+import logging
 import re
 from itertools import chain
 from typing import Any, Optional, cast
 
-from loguru import logger
+logger = logging.getLogger(__name__)
 
 STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
 

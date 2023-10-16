@@ -1,6 +1,8 @@
-from loguru import logger
+import logging
 
 from pydase.utils.helpers import get_component_class_names
+
+logger = logging.getLogger(__name__)
 
 
 def warn_if_instance_class_does_not_inherit_from_DataService(__value: object) -> None:

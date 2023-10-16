@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -5,10 +6,11 @@ import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from loguru import logger
 
 from pydase import DataService
 from pydase.version import __version__
+
+logger = logging.getLogger(__name__)
 
 
 class UpdateDict(TypedDict):

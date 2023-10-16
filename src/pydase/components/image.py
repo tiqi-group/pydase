@@ -1,16 +1,18 @@
 import base64
 import io
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from urllib.request import urlopen
 
 import PIL.Image
-from loguru import logger
 
 from pydase.data_service.data_service import DataService
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
+
+logger = logging.getLogger(__name__)
 
 
 class Image(DataService):

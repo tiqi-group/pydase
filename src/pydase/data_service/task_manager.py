@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 from collections.abc import Callable
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
-from loguru import logger
-
 if TYPE_CHECKING:
     from .data_service import DataService
+
+logger = logging.getLogger(__name__)
 
 
 class TaskDict(TypedDict):
