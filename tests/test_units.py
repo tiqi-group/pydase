@@ -113,3 +113,14 @@ def test_update_DataService_attribute(capsys: CaptureFixture) -> None:
     )
     actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
     assert actual_output == expected_output
+
+
+def test_autoconvert_offset_to_baseunit() -> None:
+    import pint
+
+    assert u.units.autoconvert_offset_to_baseunit is True
+
+    try:
+        quantity = 10 * u.units.degC
+    except pint.errors.OffsetUnitCalculusError as exc:
+        assert False, f"Offset unit raises exception {exc}"
