@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import inspect
+import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
-
-from loguru import logger
 
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import get_class_and_instance_attributes
@@ -13,6 +12,8 @@ from .data_service_list import DataServiceList
 
 if TYPE_CHECKING:
     from .data_service import DataService
+
+logger = logging.getLogger(__name__)
 
 
 class CallbackManager:

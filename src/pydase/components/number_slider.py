@@ -1,8 +1,9 @@
+import logging
 from typing import Any, Literal
 
-from loguru import logger
-
 from pydase.data_service.data_service import DataService
+
+logger = logging.getLogger(__name__)
 
 
 class NumberSlider(DataService):

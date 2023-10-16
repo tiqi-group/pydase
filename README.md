@@ -479,7 +479,7 @@ For more information about what you can do with the units, please consult the do
 
 ## Changing the Log Level
 
-You can change the log level of loguru by either
+You can change the log level of the logger by either
 
 1. (RECOMMENDED) setting the `ENVIRONMENT` environment variable to "production" or "development"
 
@@ -493,10 +493,14 @@ You can change the log level of loguru by either
 
     ```python
     # <your_script.py>
-
+    import logging
     from pydase.utils.logging import setup_logging
 
-    setup_logging("INFO")
+    setup_logging("INFO")  # or setup_logging(logging.INFO)
+    logger = logging.getLogger(__main__)
+
+    # ... and your log
+    logger.info("My info message.")
     ```
 
 ## Documentation

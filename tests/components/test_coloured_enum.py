@@ -3,8 +3,6 @@ from pytest import CaptureFixture, LogCaptureFixture
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.data_service import DataService
 
-from .. import caplog  # noqa
-
 
 def test_ColouredEnum(capsys: CaptureFixture) -> None:
     class MyStatus(ColouredEnum):

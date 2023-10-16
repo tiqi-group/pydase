@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import signal
 import threading
@@ -8,7 +9,6 @@ from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from loguru import logger
 from rpyc import (
     ForkingServer,  # can be used for multiprocessing, e.g. a database interface server
 )
@@ -20,6 +20,8 @@ from pydase import DataService
 from pydase.version import __version__
 
 from .web_server import WebAPI
+
+logger = logging.getLogger(__name__)
 
 
 class AdditionalServerProtocol(Protocol):

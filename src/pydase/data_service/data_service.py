@@ -1,12 +1,12 @@
 import asyncio
 import inspect
 import json
+import logging
 import os
 from enum import Enum
 from typing import Any, Optional, cast, get_type_hints
 
 import rpyc
-from loguru import logger
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -26,6 +26,8 @@ from pydase.utils.helpers import (
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:

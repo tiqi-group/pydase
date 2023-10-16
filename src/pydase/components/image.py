@@ -1,16 +1,18 @@
 import base64
 import io
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from urllib.request import urlopen
 
 import PIL.Image
-from loguru import logger
 
 from pydase.data_service.data_service import DataService
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
+
+logger = logging.getLogger(__name__)
 
 
 class Image(DataService):
@@ -54,7 +56,7 @@ class Image(DataService):
         self._load_from_base64(value_, format_)
 
     def _load_from_base64(self, value_: bytes, format_: str) -> None:
-        value = value_.decode("utf-8") if isinstance(value_, bytes) else value_
+        value = value_.decode("utf-8")
         self._value = value
         self._format = format_
 
