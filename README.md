@@ -479,7 +479,7 @@ For more information about what you can do with the units, please consult the do
 
 ## Changing the Log Level
 
-You can change the log level of loguru by either
+You can change the log level of the logger by either
 
 1. (RECOMMENDED) setting the `ENVIRONMENT` environment variable to "production" or "development"
 
