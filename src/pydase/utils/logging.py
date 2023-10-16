@@ -1,82 +1,111 @@
 import logging
 import sys
-from types import FrameType
+from copy import copy
 from typing import Optional
 
-import loguru
-import rpyc
+import uvicorn.logging
 from uvicorn.config import LOGGING_CONFIG
 
 import pydase.config
 
-ALLOWED_LOG_LEVELS = ["DEBUG", "INFO", "ERROR"]
+
+class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
+    """
+    A custom log formatter class that:
+
+    * Outputs the LOG_LEVEL with an appropriate color.
+    * If a log call includes an `extras={"color_message": ...}` it will be used
+      for formatting the output, instead of the plain text message.
+    """
+
+    def formatMessage(self, record: logging.LogRecord) -> str:
+        recordcopy = copy(record)
+        levelname = recordcopy.levelname
+        seperator = " " * (8 - len(recordcopy.levelname))
+        if self.use_colors:
+            levelname = self.color_level_name(levelname, recordcopy.levelno)
+            if "color_message" in recordcopy.__dict__:
+                recordcopy.msg = recordcopy.__dict__["color_message"]
+                recordcopy.__dict__["message"] = recordcopy.getMessage()
+        recordcopy.__dict__["levelprefix"] = levelname + seperator
+        return logging.Formatter.formatMessage(self, recordcopy)
+
+    def should_use_colors(self) -> bool:
+        return sys.stderr.isatty()  # pragma: no cover
 
 
-# from: https://github.com/Delgan/loguru section
-# "Entirely compatible with standard logging"
-class InterceptHandler(logging.Handler):
-    def emit(self, record: logging.LogRecord) -> None:
-        # Ignore "asyncio.CancelledError" raised by uvicorn
-        if record.name == "uvicorn.error" and "CancelledError" in record.msg:
-            return
+def setup_logging(level: Optional[str | int] = None) -> None:
+    """
+    Configures the logging settings for the application.
 
-        # Get corresponding Loguru level if it exists.
-        level: int | str
-        try:
-            level = loguru.logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
+    This function sets up logging with specific formatting and colorization of log
+    messages. The log level is determined based on the application's operation mode,
+    with an option to override the level. By default, in a development environment, the
+    log level is set to DEBUG, whereas in other environments, it is set to INFO.
 
-        # Find caller from where originated the logged message.
-        frame: Optional[FrameType] = sys._getframe(6)
-        depth = 6
-        while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
+    Parameters:
+        level (Optional[str | int]):
+            A specific log level to set for the application. If None, the log level is
+            determined based on the application's operation mode. Accepts standard log
+            level names ('DEBUG', 'INFO', etc.) and corresponding numerical values.
 
-        try:
-            msg = record.getMessage()
-        except TypeError:
-            # A `TypeError` is raised when the `msg` string expects more arguments
-            # than are provided by `args`. This can happen when intercepting log
-            # messages with a certain format, like
-            # >    logger.debug("call: %s%r", method_name, *args)  # in tiqi_rpc
-            # where `*args` unpacks a sequence of values that should replace
-            # placeholders in the string.
-            msg = record.msg % (record.args[0], record.args[2:])  # type: ignore
+    Example:
 
-        loguru.logger.opt(depth=depth, exception=record.exc_info).log(level, msg)
+    ```python
+    >>> import logging
+    >>> setup_logging(logging.DEBUG)
+    >>> setup_logging("INFO")
+    ```
+    """
 
-
-def setup_logging(level: Optional[str] = None) -> None:
-    loguru.logger.debug("Configuring service logging.")
+    logger = logging.getLogger()
 
     if pydase.config.OperationMode().environment == "development":
-        log_level = "DEBUG"
+        log_level = logging.DEBUG
     else:
-        log_level = "INFO"
+        log_level = logging.INFO
 
-    if level is not None and level in ALLOWED_LOG_LEVELS:
-        log_level = level
+    # If a level is specified, check whether it's a string or an integer.
+    if level is not None:
+        if isinstance(level, str):
+            # Convert known log level strings directly to their corresponding logging
+            # module constants.
+            level_name = level.upper()  # Ensure level names are uppercase
+            if hasattr(logging, level_name):
+                log_level = getattr(logging, level_name)
+            else:
+                raise ValueError(
+                    f"Invalid log level: {level}. Must be one of 'DEBUG', 'INFO', "
+                    "'WARNING', 'ERROR', etc."
+                )
+        elif isinstance(level, int):
+            log_level = level  # Directly use integer levels
+        else:
+            raise ValueError("Log level must be a string or an integer.")
 
-    loguru.logger.remove()
-    loguru.logger.add(sys.stderr, level=log_level)
+    # Set the logger's level.
+    logger.setLevel(log_level)
 
-    # set up the rpyc logger *before* adding the InterceptHandler to the logging module
-    rpyc.setup_logger(quiet=True)  # type: ignore
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
 
-    logging.basicConfig(handlers=[InterceptHandler()], level=0)
+    # add formatter to ch
+    ch.setFormatter(
+        DefaultFormatter(
+            fmt="%(asctime)s.%(msecs)03d | %(levelprefix)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+    )
+
+    # add ch to logger
+    logger.addHandler(ch)
+
+    logger.debug("Configuring service logging.")
     logging.getLogger("asyncio").setLevel(logging.INFO)
     logging.getLogger("urllib3").setLevel(logging.INFO)
 
-    # overwriting the uvicorn logging config to use the loguru intercept handler
-    LOGGING_CONFIG["handlers"] = {
-        "default": {
-            "()": InterceptHandler,
-            "formatter": "default",
-        },
-        "access": {
-            "()": InterceptHandler,
-            "formatter": "access",
-        },
-    }
+    # configuring uvicorn logger
+    LOGGING_CONFIG["formatters"]["default"][
+        "fmt"
+    ] = "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
+    LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
