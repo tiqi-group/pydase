@@ -124,7 +124,7 @@ class TaskManager:
                     try:
                         await method(*args, **kwargs)
                     except asyncio.CancelledError:
-                        print(f"Task {name} was cancelled")
+                        logger.info(f"Task {name} was cancelled")
 
                 if not self.tasks.get(name):
                     # Get the signature of the coroutine method to start
