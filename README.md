@@ -493,10 +493,14 @@ You can change the log level of the logger by either
 
     ```python
     # <your_script.py>
-
+    import logging
     from pydase.utils.logging import setup_logging
 
-    setup_logging("INFO")
+    setup_logging("INFO")  # or setup_logging(logging.INFO)
+    logger = logging.getLogger(__main__)
+
+    # ... and your log
+    logger.info("My info message.")
     ```
 
 ## Documentation
