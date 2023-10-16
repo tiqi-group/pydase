@@ -3,8 +3,6 @@ from pytest import CaptureFixture, LogCaptureFixture
 from pydase.components.number_slider import NumberSlider
 from pydase.data_service.data_service import DataService
 
-from .. import caplog  # noqa
-
 
 def test_NumberSlider(capsys: CaptureFixture) -> None:
     class ServiceClass(DataService):

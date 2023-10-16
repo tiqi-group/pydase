@@ -2,8 +2,6 @@ from pytest import LogCaptureFixture
 
 from pydase import DataService
 
-from .. import caplog  # noqa
-
 
 def test_setattr_warnings(caplog: LogCaptureFixture) -> None:  # noqa
     # def test_setattr_warnings(capsys: CaptureFixture) -> None:
