@@ -87,7 +87,7 @@ class WebAPI:
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:  # noqa: CFQ004
+    def setup_fastapi_app(self) -> None:  # noqa
         app = FastAPI()
 
         if self.enable_CORS:
