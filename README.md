@@ -21,6 +21,7 @@
     - [`NumberSlider`](#numberslider)
     - [`ColouredEnum`](#colouredenum)
     - [Extending with New Components](#extending-with-new-components)
+- [Customizing Web Interface Style](#customizing-web-interface-style)
 - [Understanding Service Persistence](#understanding-service-persistence)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Understanding Units in pydase](#understanding-units-in-pydase)
@@ -32,18 +33,21 @@
 ## Features
 
 <!-- no toc -->
-* [Simple data service definition through class-based interface](#defining-a-dataService)
-* [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
-* [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
-* [Component system bridging Python backend with frontend visual representation](#understanding-the-component-system)
-* [Saving and restoring the service state for service persistence](#understanding-service-persistence)
-* [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
-* [Support for units](#understanding-units-in-pydase)
+- [Simple data service definition through class-based interface](#defining-a-dataService)
+- [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
+- [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
+- [Component system bridging Python backend with frontend visual representation](#understanding-the-component-system)
+- [Customizable styling for the web interface through user-defined CSS](#customizing-web-interface-style)
+- [Saving and restoring the service state for service persistence](#understanding-service-persistence)
+- [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
+- [Support for units](#understanding-units-in-pydase)
 <!-- * Event-based callback functionality for real-time updates
-* Support for additional servers for specific use-cases -->
+- Support for additional servers for specific use-cases -->
 
 ## Installation
+
 <!--installation-start-->
+
 Install pydase using [`poetry`](https://python-poetry.org/):
 
 ```bash
@@ -55,10 +59,13 @@ or `pip`:
 ```bash
 pip install pydase
 ```
+
 <!--installation-end-->
 
 ## Usage
+
 <!--usage-start-->
+
 Using `pydase` involves three main steps: defining a `DataService` subclass, running the server, and then connecting to the service either programmatically using `rpyc` or through the web interface.
 
 ### Defining a DataService
@@ -159,6 +166,7 @@ print(client.voltage)  # prints 5.0
 ```
 
 In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
+
 <!--usage-end-->
 
 ## Understanding the Component System
@@ -226,10 +234,11 @@ if __name__ == "__main__":
 
 ![Nested Classes App](docs/images/Nested_Class_App.png)
 
-**Note** that defining classes within `DataService` classes is not supported (see  [this issue](https://github.com/tiqi-group/pydase/issues/16)).
+**Note** that defining classes within `DataService` classes is not supported (see [this issue](https://github.com/tiqi-group/pydase/issues/16)).
 
 ### Custom Components (`pydase.components`)
-The custom components in `pydase` have two main parts: 
+
+The custom components in `pydase` have two main parts:
 
 - A **Python Component Class** in the backend, implementing the logic needed to set, update, and manage the component's state and data.
 - A **Frontend React Component** that renders and manages user interaction in the browser.
@@ -276,7 +285,7 @@ if __name__ == "__main__":
 
 #### `NumberSlider`
 
- This component provides an interactive slider interface for adjusting numerical values on the frontend. It supports both floats and integers. The values adjusted on the frontend are synchronized with the backend in real-time, ensuring consistent data representation.
+This component provides an interactive slider interface for adjusting numerical values on the frontend. It supports both floats and integers. The values adjusted on the frontend are synchronized with the backend in real-time, ensuring consistent data representation.
 
 The slider can be customized with initial values, minimum and maximum limits, and step sizes to fit various use cases.
 
@@ -298,7 +307,7 @@ if __name__ == "__main__":
 
 #### `ColouredEnum`
 
-This component provides a way to visually represent different states or categories in a data service using colour-coded options. It behaves similarly to a standard `Enum`, but the values encode colours in a format understood by CSS. The colours can be defined using various methods like Hexadecimal, RGB, HSL, and more. 
+This component provides a way to visually represent different states or categories in a data service using colour-coded options. It behaves similarly to a standard `Enum`, but the values encode colours in a format understood by CSS. The colours can be defined using various methods like Hexadecimal, RGB, HSL, and more.
 
 If the property associated with the `ColouredEnum` has a setter function, the keys of the enum will be rendered as a dropdown menu, allowing users to interact and select different options. Without a setter function, the selected key will simply be displayed as a coloured box with text inside, serving as a visual indicator.
 
@@ -342,11 +351,36 @@ Users can also extend the library by creating custom components. This involves d
 
 <!-- Component User Guide End -->
 
+## Customizing Web Interface Style
+
+`pydase` allows you to enhance the user experience by customizing the web interface's appearance. You can apply your own styles globally across the web interface by passing a custom CSS file to the server during initialization.
+
+Here's how you can use this feature:
+
+1. Prepare your custom CSS file with the desired styles.
+
+2. When initializing your server, use the `css` parameter of the `Server` class to specify the path to your custom CSS file.
+
+```python
+from pydase import Server, DataService
+
+class Device(DataService):
+    # ... your service definition ...
+
+if __name__ == "__main__":
+    service = MyService()
+    server = Server(service, css="path/to/your/custom.css").run()
+```
+
+This will apply the styles defined in `custom.css` to the web interface, allowing you to maintain branding consistency or improve visual accessibility.
+
+Please ensure that the CSS file path is accessible from the server's running location. Relative or absolute paths can be used depending on your setup.
+
 ## Understanding Service Persistence
 
-`pydase` allows you to easily persist the state of your service by saving it to a file. This is especially useful when you want to maintain the service's state across different runs. 
+`pydase` allows you to easily persist the state of your service by saving it to a file. This is especially useful when you want to maintain the service's state across different runs.
 
-To save the state of your service, pass a `filename` keyword argument to the `__init__` method of the `DataService` base class. If the file specified by `filename` does not exist, the service will create this file and store its state in it when the service is shut down. If the file already exists, the service will load the state from this file, setting the values of its attributes to the values stored in the file. 
+To save the state of your service, pass a `filename` keyword argument to the `__init__` method of the `DataService` base class. If the file specified by `filename` does not exist, the service will create this file and store its state in it when the service is shut down. If the file already exists, the service will load the state from this file, setting the values of its attributes to the values stored in the file.
 
 Here's an example:
 
@@ -483,25 +517,25 @@ You can change the log level of the logger by either
 
 1. (RECOMMENDED) setting the `ENVIRONMENT` environment variable to "production" or "development"
 
-    ```bash
-    ENVIRONMENT="production" python -m <module_using_pydase>
-    ```
-    
-    The production environment will only log messages above "INFO", the development environment (default) logs everything above "DEBUG".
+   ```bash
+   ENVIRONMENT="production" python -m <module_using_pydase>
+   ```
+
+   The production environment will only log messages above "INFO", the development environment (default) logs everything above "DEBUG".
 
 2. calling the `pydase.utils.logging.setup_logging` function with the desired log level
 
-    ```python
-    # <your_script.py>
-    import logging
-    from pydase.utils.logging import setup_logging
+   ```python
+   # <your_script.py>
+   import logging
+   from pydase.utils.logging import setup_logging
 
-    setup_logging("INFO")  # or setup_logging(logging.INFO)
-    logger = logging.getLogger()
+   setup_logging("INFO")  # or setup_logging(logging.INFO)
+   logger = logging.getLogger()
 
-    # ... and your log
-    logger.info("My info message.")
-    ```
+   # ... and your log
+   logger.info("My info message.")
+   ```
 
 ## Documentation
 

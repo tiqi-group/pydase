@@ -55,7 +55,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   };
 
   return (
-    <div className={'stringComponent'} id={parentPath.concat(name)}>
+    <div className={'stringComponent'} id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

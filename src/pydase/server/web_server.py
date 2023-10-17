@@ -5,6 +5,7 @@ from typing import Any, TypedDict
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase import DataService
@@ -86,7 +87,7 @@ class WebAPI:
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:  # noqa: CFQ004
+    def setup_fastapi_app(self) -> None:  # noqa
         app = FastAPI()
 
         if self.enable_CORS:
@@ -99,7 +100,6 @@ class WebAPI:
             )
         app.mount("/ws", self.__sio_app)
 
-        # @app.get("/version", include_in_schema=False)
         @app.get("/version")
         def version() -> str:
             return __version__
@@ -116,6 +116,13 @@ class WebAPI:
         def service_properties() -> dict[str, Any]:
             return self.service.serialize()
 
+        # exposing custom.css file provided by user
+        if self.css is not None:
+
+            @app.get("/custom.css")
+            async def styles():
+                return FileResponse(str(self.css))
+
         app.mount(
             "/",
             StaticFiles(
@@ -125,14 +132,6 @@ class WebAPI:
         )
 
         self.__fastapi_app = app
-
-    def add_endpoint(self, name: str) -> None:
-        # your endpoint creation code
-        pass
-
-    def get_custom_openapi(self) -> None:
-        # your custom openapi generation code
-        pass
 
     @property
     def sio(self) -> socketio.AsyncServer:
