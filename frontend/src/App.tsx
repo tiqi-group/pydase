@@ -129,6 +129,20 @@ const App = () => {
       .then((response) => response.json())
       .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
 
+    // Allow the user to add a custom css file
+    fetch(`http://${hostname}:${port}/custom.css`)
+      .then((response) => {
+        if (response.ok) {
+          // If the file exists, create a link element for the custom CSS
+          const link = document.createElement('link');
+          link.href = `http://${hostname}:${port}/custom.css`;
+          link.type = 'text/css';
+          link.rel = 'stylesheet';
+          document.head.appendChild(link);
+        }
+      })
+      .catch(console.error); // Handle the error appropriately
+
     socket.on('notify', onNotify);
     socket.on('exception', onException);
 
