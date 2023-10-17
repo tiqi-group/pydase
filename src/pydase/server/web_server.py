@@ -134,14 +134,6 @@ class WebAPI:
 
         self.__fastapi_app = app
 
-    def add_endpoint(self, name: str) -> None:
-        # your endpoint creation code
-        pass
-
-    def get_custom_openapi(self) -> None:
-        # your custom openapi generation code
-        pass
-
     @property
     def sio(self) -> socketio.AsyncServer:
         return self.__sio
