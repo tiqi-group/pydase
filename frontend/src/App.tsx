@@ -114,7 +114,7 @@ const App = () => {
   const stateRef = useRef(state); // Declare a reference to hold the current state
   const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [showNotification, setShowNotification] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [exceptions, setExceptions] = useState([]);
 
