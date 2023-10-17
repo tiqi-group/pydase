@@ -5,6 +5,7 @@ from typing import Any, TypedDict
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase import DataService
@@ -115,6 +116,13 @@ class WebAPI:
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
             return self.service.serialize()
+
+        # user css to add custom stylings to the frontend
+        if self.css is not None:
+
+            @app.get("/custom.css")
+            async def styles():
+                return FileResponse(str(self.css))
 
         app.mount(
             "/",
