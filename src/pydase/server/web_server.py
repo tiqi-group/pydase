@@ -100,7 +100,6 @@ class WebAPI:
             )
         app.mount("/ws", self.__sio_app)
 
-        # @app.get("/version", include_in_schema=False)
         @app.get("/version")
         def version() -> str:
             return __version__
@@ -117,7 +116,7 @@ class WebAPI:
         def service_properties() -> dict[str, Any]:
             return self.service.serialize()
 
-        # user css to add custom stylings to the frontend
+        # exposing custom.css file provided by user
         if self.css is not None:
 
             @app.get("/custom.css")
