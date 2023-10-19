@@ -358,20 +358,16 @@ class Server:
             # Signals can only be listened to from the main thread.
             return
 
-        try:
-            for sig in HANDLED_SIGNALS:
-                self._loop.add_signal_handler(sig, self.handle_exit, sig, None)
-        except NotImplementedError:
-            # Windows
-            for sig in HANDLED_SIGNALS:
-                signal.signal(sig, self.handle_exit)
+        for sig in HANDLED_SIGNALS:
+            signal.signal(sig, self.handle_exit)
 
     def handle_exit(self, sig: int = 0, frame: Optional[FrameType] = None) -> None:
-        logger.info("Handling exit")
         if self.should_exit and sig == signal.SIGINT:
-            self.force_exit = True
+            logger.warning(f"Received signal {sig}, forcing exit...")
+            os._exit(1)
         else:
             self.should_exit = True
+            logger.warning(f"Received signal {sig}, exiting...")
 
     def custom_exception_handler(
         self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]
