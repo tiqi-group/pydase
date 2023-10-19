@@ -1,6 +1,7 @@
 import inspect
 import logging
 from itertools import chain
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -196,3 +197,9 @@ def get_data_service_class_reference() -> Any:
 
 def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
     return isinstance(getattr(type(target_obj), attr_name, None), property)
+
+
+def create_config_folder(config_dir: Path) -> None:
+    """Create a configuration directory if it doesn't already exist."""
+
+    config_dir.mkdir(exist_ok=True)

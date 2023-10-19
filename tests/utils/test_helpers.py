@@ -1,5 +1,11 @@
+import tempfile
+from pathlib import Path
+
 import pytest
-from pydase.utils.helpers import is_property_attribute
+from pydase.utils.helpers import (
+    create_config_folder,
+    is_property_attribute,
+)
 
 
 @pytest.mark.parametrize(
@@ -26,3 +32,20 @@ def test_is_property_attribute(attr_name: str, expected: bool) -> None:
 
     dummy = DummyClass()
     assert is_property_attribute(dummy, attr_name) == expected
+
+
+def test_create_config_folder() -> None:
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        print("created temporary directory", tmpdirname)
+
+        config_dir = Path(tmpdirname) / "config"
+
+        assert not config_dir.exists()
+
+        create_config_folder(config_dir)
+
+        assert config_dir.exists()
+
+        # Call the function again to test idempotency (it should not fail if the
+        # directory already exists)
+        create_config_folder(config_dir)
