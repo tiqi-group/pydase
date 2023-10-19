@@ -35,6 +35,7 @@ flake8-pep604 = "^0.1.0"
 flake8-eradicate = "^1.4.0"
 matplotlib = "^3.7.2"
 pyright = "^1.1.323"
+pytest-mock = "^3.11.1"
 
 
 [tool.poetry.group.docs.dependencies]
