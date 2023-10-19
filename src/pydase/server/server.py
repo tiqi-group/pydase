@@ -367,7 +367,7 @@ class Server:
             os._exit(1)
         else:
             self.should_exit = True
-            logger.warning(f"Received signal {sig}, exiting...")
+            logger.warning(f"Received signal {sig}, exiting... (CTRL+C to force quit)")
 
     def custom_exception_handler(
         self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]
