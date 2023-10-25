@@ -5,7 +5,16 @@ from typing import Any, Optional, cast
 
 logger = logging.getLogger(__name__)
 
-STANDARD_TYPES = ("int", "float", "bool", "str", "Enum", "NoneType", "Quantity")
+STANDARD_TYPES = (
+    "int",
+    "float",
+    "bool",
+    "str",
+    "Enum",
+    "NoneType",
+    "Quantity",
+    "ColouredEnum",
+)
 
 
 def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
