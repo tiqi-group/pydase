@@ -359,6 +359,12 @@ class CallbackManager:
         attrs: dict[str, Any] = get_class_and_instance_attributes(obj)
 
         for nested_attr_name, nested_attr in attrs.items():
+            if isinstance(nested_attr, DataServiceList):
+                for i, item in enumerate(nested_attr):
+                    if isinstance(item, AbstractDataService):
+                        self._register_start_stop_task_callbacks(
+                            item, parent_path=f"{parent_path}.{nested_attr_name}[{i}]"
+                        )
             if isinstance(nested_attr, AbstractDataService):
                 self._register_start_stop_task_callbacks(
                     nested_attr, parent_path=f"{parent_path}.{nested_attr_name}"
