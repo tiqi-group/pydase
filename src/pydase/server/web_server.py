@@ -66,6 +66,34 @@ class RunMethodDict(TypedDict):
     kwargs: dict[str, Any]
 
 
+class UpdateWebSettingsDict(TypedDict):
+    """
+    A TypedDict subclass representing a dictionary used for updating attributes in a
+    DataService.
+
+    Attributes:
+    ----------
+    access_path : str
+        The access path for the component object. This does not have to be an attribute
+        but can also
+        For example, for an
+        attribute access path 'attr1.list_attr[0].attr2', 'attr1.list_attr[0]' would be
+        the parent_path.
+
+    config_option : str
+        The web setting to be changed, e.g. 'display_name' or 'precision' for
+        NumberComponents.
+
+    value : Any
+        The new value to be assigned to the attribute. The type of this value should
+        match the type of the attribute to be updated.
+    """
+
+    access_path: str
+    config_option: str
+    value: Any
+
+
 class WebAPI:
     __sio_app: socketio.ASGIApp
     __fastapi_app: FastAPI
@@ -120,6 +148,17 @@ class WebAPI:
             path_list.remove("DataService")  # always at the start, does not do anything
             method = get_object_attr_from_path_list(self.service, path_list)
             return process_callable_attribute(method, data["kwargs"])
+
+        @sio.event  # type: ignore
+        def web_settings(sid: str, data: UpdateWebSettingsDict) -> Any:
+            logger.debug(f"Received web settings update: {data}")
+            path_list, config_option, value = (
+                data["access_path"].split("."),
+                data["config_option"],
+                data["value"],
+            )
+            path_list.pop(0)  # remove first entry (specifies root object, not needed)
+            # write to web-settings.json file
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
