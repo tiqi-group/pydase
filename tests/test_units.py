@@ -124,3 +124,44 @@ def test_autoconvert_offset_to_baseunit() -> None:
         quantity = 10 * u.units.degC
     except pint.errors.OffsetUnitCalculusError as exc:
         assert False, f"Offset unit raises exception {exc}"
+
+
+def test_loading_from_json(capsys: CaptureFixture) -> None:
+    """This function tests if the quantity read from the json description is actually
+    passed as a quantity to the property setter."""
+    JSON_DICT = {
+        "some_unit": {
+            "type": "Quantity",
+            "value": {"magnitude": 10.0, "unit": "A"},
+            "readonly": False,
+            "doc": None,
+        }
+    }
+
+    class ServiceClass(DataService):
+        def __init__(self):
+            self._unit: u.Quantity = 1 * u.units.A
+            super().__init__()
+
+        @property
+        def some_unit(self) -> u.Quantity:
+            return self._unit
+
+        @some_unit.setter
+        def some_unit(self, value: u.Quantity) -> None:
+            assert isinstance(value, u.Quantity)
+            self._unit = value
+
+    service = ServiceClass()
+
+    service.load_DataService_from_JSON(JSON_DICT)
+
+    captured = capsys.readouterr()
+
+    expected_output = sorted(
+        [
+            "ServiceClass.some_unit = 10.0 A",
+        ]
+    )
+    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
+    assert actual_output == expected_output
