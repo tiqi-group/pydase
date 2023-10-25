@@ -185,6 +185,10 @@ class DataService(rpyc.Service, AbstractDataService):
                 parts = path.split(".")
                 attr_name = parts[-1]
 
+                # Convert dictionary into Quantity
+                if class_value_type == "Quantity":
+                    value = u.convert_to_quantity(value)
+
                 self.update_DataService_attribute(parts[:-1], attr_name, value)
             else:
                 logger.info(
