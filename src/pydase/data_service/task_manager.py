@@ -103,7 +103,7 @@ class TaskManager:
             setattr(self.service, f"start_{name}", self._make_start_task(name, method))
             setattr(self.service, f"stop_{name}", self._make_stop_task(name))
 
-    def start_autostart_tasks(self) -> None:
+    def _initiate_task_startup(self) -> None:
         if self.service._autostart_tasks is not None:
             for service_name, args in self.service._autostart_tasks.items():
                 start_method = getattr(self.service, f"start_{service_name}", None)
@@ -114,6 +114,8 @@ class TaskManager:
                         f"No start method found for service '{service_name}'"
                     )
 
+    def start_autostart_tasks(self) -> None:
+        self._initiate_task_startup()
         attrs = get_class_and_instance_attributes(self.service)
 
         for _, attr_value in attrs.items():
