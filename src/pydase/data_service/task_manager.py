@@ -7,6 +7,10 @@ from collections.abc import Callable
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
+from pydase.data_service.abstract_data_service import AbstractDataService
+from pydase.data_service.data_service_list import DataServiceList
+from pydase.utils.helpers import get_class_and_instance_attributes
+
 if TYPE_CHECKING:
     from .data_service import DataService
 
@@ -109,6 +113,16 @@ class TaskManager:
                     logger.warning(
                         f"No start method found for service '{service_name}'"
                     )
+
+        attrs = get_class_and_instance_attributes(self.service)
+
+        for _, attr_value in attrs.items():
+            if isinstance(attr_value, AbstractDataService):
+                attr_value._task_manager.start_autostart_tasks()
+            elif isinstance(attr_value, DataServiceList):
+                for i, item in enumerate(attr_value):
+                    if isinstance(item, AbstractDataService):
+                        item._task_manager.start_autostart_tasks()
 
     def _make_stop_task(self, name: str) -> Callable[..., Any]:
         """
