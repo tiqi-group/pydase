@@ -139,7 +139,9 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     renderCount.current++;
 
     // Set the cursor position after the component re-renders
-    const inputElement = document.getElementsByName(id)[0] as HTMLInputElement;
+    const inputElement = document.getElementsByName(
+      fullAccessPath
+    )[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
@@ -215,6 +217,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       // Select everything when pressing Ctrl + a
       target.setSelectionRange(0, target.value.length);
       return;
+    } else if (key === '-') {
+      if (selectionStart === 0 && !value.startsWith('-')) {
+        newValue = '-' + value;
+        selectionStart++;
+      } else if (value.startsWith('-') && selectionStart === 1) {
+        newValue = value.substring(1); // remove minus sign
+        selectionStart--;
+      } else {
+        return; // Ignore "-" pressed in other positions
+      }
     } else if (!isNaN(key) && key !== ' ') {
       // Check if a number key or a decimal point key is pressed
       ({ value: newValue, selectionStart } = handleNumericKey(
