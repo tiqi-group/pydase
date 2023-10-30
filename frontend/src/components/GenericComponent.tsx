@@ -40,7 +40,7 @@ type GenericComponentProps = {
   name: string;
   parentPath: string;
   isInstantUpdate: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 };
 
 export const GenericComponent = React.memo(

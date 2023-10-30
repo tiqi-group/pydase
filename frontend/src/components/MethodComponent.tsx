@@ -9,7 +9,7 @@ interface MethodProps {
   parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const MethodComponent = React.memo((props: MethodProps) => {

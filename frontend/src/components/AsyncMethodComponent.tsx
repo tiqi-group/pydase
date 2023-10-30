@@ -10,7 +10,7 @@ interface AsyncMethodProps {
   value: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {

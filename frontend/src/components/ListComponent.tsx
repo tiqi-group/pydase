@@ -8,7 +8,7 @@ interface ListComponentProps {
   value: Attribute[];
   docString: string;
   isInstantUpdate: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const ListComponent = React.memo((props: ListComponentProps) => {

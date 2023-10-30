@@ -13,7 +13,7 @@ interface StringComponentProps {
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const StringComponent = React.memo((props: StringComponentProps) => {

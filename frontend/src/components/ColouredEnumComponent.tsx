@@ -10,7 +10,7 @@ interface ColouredEnumComponentProps {
   docString?: string;
   readOnly: boolean;
   enumDict: Record<string, string>;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {

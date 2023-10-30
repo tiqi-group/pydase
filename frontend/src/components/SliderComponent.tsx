@@ -15,7 +15,7 @@ interface SliderComponentProps {
   docString: string;
   stepSize: number;
   isInstantUpdate: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {

@@ -119,7 +119,7 @@ interface ImageComponentProps {
   parentPath: string;
   readOnly: boolean;
   docString: string;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
   // Define your component specific props here
   value: string;
   format: string;

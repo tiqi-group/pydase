@@ -10,7 +10,7 @@ interface ImageComponentProps {
   readOnly: boolean;
   docString: string;
   format: string;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {

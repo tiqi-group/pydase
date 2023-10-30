@@ -8,7 +8,7 @@ type DataServiceProps = {
   props: DataServiceJSON;
   parentPath?: string;
   isInstantUpdate: boolean;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 };
 
 export type DataServiceJSON = Record<string, Attribute>;

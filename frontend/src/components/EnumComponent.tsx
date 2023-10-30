@@ -9,7 +9,7 @@ interface EnumComponentProps {
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {

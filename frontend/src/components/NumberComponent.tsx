@@ -22,7 +22,7 @@ interface NumberComponentProps {
     value: number,
     callback?: (ack: unknown) => void
   ) => void;
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and

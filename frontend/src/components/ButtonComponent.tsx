@@ -10,7 +10,7 @@ interface ButtonComponentProps {
   readOnly: boolean;
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
-  addNotification: (string) => void;
+  addNotification: (message: string) => void;
 }
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
