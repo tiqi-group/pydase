@@ -62,7 +62,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
               value={value}
               style={{ backgroundColor: enumDict[value] }}
               onChange={(event) => handleValueChange(event.target.value)}>
-              {Object.entries(enumDict).map(([key, val]) => (
+              {Object.entries(enumDict).map(([key]) => (
                 <option key={key} value={key}>
                   {key}
                 </option>

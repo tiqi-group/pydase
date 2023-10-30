@@ -31,8 +31,8 @@ interface NumberComponentProps {
 const handleArrowKey = (
   key: string,
   value: string,
-  selectionStart: number,
-  selectionEnd: number
+  selectionStart: number
+  // selectionEnd: number
 ) => {
   // Split the input value into the integer part and decimal part
   const parts = value.split('.');
@@ -234,8 +234,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       ({ value: newValue, selectionStart } = handleArrowKey(
         key,
         value,
-        selectionStart,
-        selectionEnd
+        selectionStart
+        // selectionEnd
       ));
     } else if (key === 'Backspace') {
       ({ value: newValue, selectionStart } = handleBackspaceKey(

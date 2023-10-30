@@ -147,6 +147,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         </Col>
         <Col xs="auto">
           <ToggleButton
+            id={`button-${id}`}
             onClick={() => setOpen(!open)}
             type="checkbox"
             checked={open}
