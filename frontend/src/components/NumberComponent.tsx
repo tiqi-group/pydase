@@ -3,6 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 // TODO: add button functionality
 
@@ -30,8 +31,8 @@ interface NumberComponentProps {
 const handleArrowKey = (
   key: string,
   value: string,
-  selectionStart: number,
-  selectionEnd: number
+  selectionStart: number
+  // selectionEnd: number
 ) => {
   // Split the input value into the integer part and decimal part
   const parts = value.split('.');
@@ -131,14 +132,14 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const [cursorPosition, setCursorPosition] = useState(null);
   // Create a state for the input string
   const [inputString, setInputString] = useState(props.value.toString());
+  const fullAccessPath = parentPath.concat('.' + name);
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;
 
     // Set the cursor position after the component re-renders
-    const inputElement = document.getElementsByName(
-      parentPath.concat('.' + name)
-    )[0] as HTMLInputElement;
+    const inputElement = document.getElementsByName(id)[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
@@ -233,8 +234,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       ({ value: newValue, selectionStart } = handleArrowKey(
         key,
         value,
-        selectionStart,
-        selectionEnd
+        selectionStart
+        // selectionEnd
       ));
     } else if (key === 'Backspace') {
       ({ value: newValue, selectionStart } = handleBackspaceKey(
@@ -275,7 +276,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   };
 
   return (
-    <div className="numberComponent" id={parentPath.concat('.' + name)}>
+    <div className="numberComponent" id={id}>
       {process.env.NODE_ENV === 'development' && showName && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -287,7 +288,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
             type="text"
             value={inputString}
             disabled={readOnly}
-            name={parentPath.concat('.' + name)}
+            name={fullAccessPath}
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}

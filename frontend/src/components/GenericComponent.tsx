@@ -153,8 +153,9 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'DataService') {
       return (
         <DataServiceComponent
+          name={name}
           props={attribute.value as DataServiceJSON}
-          parentPath={parentPath.concat('.', name)}
+          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
         />

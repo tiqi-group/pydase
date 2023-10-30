@@ -113,6 +113,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface ImageComponentProps {
   name: string;
@@ -130,6 +131,8 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);  // add this if you want to expand/collapse your component
+  const fullAccessPath = parentPath.concat('.' + name);
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;
@@ -143,7 +146,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   // Your component logic here
 
   return (
-    <div className={'imageComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'imageComponent'} id={id}>
       {/* Add the Card and Collapse components here if you want to be able to expand and
        collapse your component.  */}
       <Card>

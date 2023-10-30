@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface ColouredEnumComponentProps {
   name: string;
@@ -24,6 +25,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
     addNotification
   } = props;
   const renderCount = useRef(0);
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   useEffect(() => {
     renderCount.current++;
@@ -33,13 +35,12 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
     addNotification(`${parentPath}.${name} changed to ${value}.`);
   }, [props.value]);
 
-  const handleValueChange = (newValue) => {
-    console.log(newValue);
+  const handleValueChange = (newValue: string) => {
     emit_update(name, parentPath, newValue);
   };
 
   return (
-    <div className={'enumComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'enumComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -61,7 +62,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
               value={value}
               style={{ backgroundColor: enumDict[value] }}
               onChange={(event) => handleValueChange(event.target.value)}>
-              {Object.entries(enumDict).map(([key, val]) => (
+              {Object.entries(enumDict).map(([key]) => (
                 <option key={key} value={key}>
                   {key}
                 </option>

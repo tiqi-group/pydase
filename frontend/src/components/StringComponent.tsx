@@ -3,6 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 // TODO: add button functionality
 
@@ -22,6 +23,8 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
+  const fullAccessPath = parentPath.concat('.' + name);
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;
@@ -55,7 +58,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   };
 
   return (
-    <div className={'stringComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'stringComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

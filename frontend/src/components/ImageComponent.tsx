@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface ImageComponentProps {
   name: string;
@@ -18,6 +19,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   useEffect(() => {
     renderCount.current++;
@@ -28,7 +30,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   }, [props.value]);
 
   return (
-    <div className={'imageComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'imageComponent'} id={id}>
       <Card>
         <Card.Header
           onClick={() => setOpen(!open)}

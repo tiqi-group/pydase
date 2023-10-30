@@ -4,6 +4,7 @@ import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent } from './NumberComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface SliderComponentProps {
   name: string;
@@ -21,11 +22,6 @@ interface SliderComponentProps {
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRef(0);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    renderCount.current++;
-  });
-
   const {
     name,
     parentPath,
@@ -38,6 +34,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     isInstantUpdate,
     addNotification
   } = props;
+  const fullAccessPath = parentPath.concat('.' + name);
+  const id = getIdFromFullAccessPath(fullAccessPath);
+
+  useEffect(() => {
+    renderCount.current++;
+  });
 
   useEffect(() => {
     addNotification(`${parentPath}.${name} changed to ${value}.`);
@@ -102,7 +104,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   };
 
   return (
-    <div className="sliderComponent" id={parentPath.concat('.' + name)}>
+    <div className="sliderComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -145,6 +147,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         </Col>
         <Col xs="auto">
           <ToggleButton
+            id={`button-${id}`}
             onClick={() => setOpen(!open)}
             type="checkbox"
             checked={open}

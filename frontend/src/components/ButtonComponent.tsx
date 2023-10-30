@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
 import { emit_update } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface ButtonComponentProps {
   name: string;
@@ -17,6 +18,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const { name, parentPath, value, readOnly, docString, mapping, addNotification } =
     props;
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   const renderCount = useRef(0);
 
@@ -33,14 +35,14 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   };
 
   return (
-    <div className={'buttonComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'buttonComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
 
       <DocStringComponent docString={docString} />
       <ToggleButton
-        id={`toggle-check-${parentPath}.${name}`}
+        id={`toggle-check-${id}`}
         type="checkbox"
         variant={value ? 'success' : 'secondary'}
         checked={value}
