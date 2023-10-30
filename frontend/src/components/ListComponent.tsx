@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { DocStringComponent } from './DocStringComponent';
 import { Attribute, GenericComponent } from './GenericComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface ListComponentProps {
   name: string;
@@ -16,13 +17,14 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
     props;
 
   const renderCount = useRef(0);
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   useEffect(() => {
     renderCount.current++;
   }, [props]);
 
   return (
-    <div className={'listComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'listComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

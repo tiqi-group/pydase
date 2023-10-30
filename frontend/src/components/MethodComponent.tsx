@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { emit_update } from '../socket';
 import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface MethodProps {
   name: string;
@@ -19,6 +20,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   const [hideOutput, setHideOutput] = useState(false);
   // Add a new state variable to hold the list of function calls
   const [functionCalls, setFunctionCalls] = useState([]);
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   useEffect(() => {
     renderCount.current++;
@@ -69,9 +71,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   });
 
   return (
-    <div
-      className="align-items-center methodComponent"
-      id={parentPath.concat('.' + name)}>
+    <div className="align-items-center methodComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}

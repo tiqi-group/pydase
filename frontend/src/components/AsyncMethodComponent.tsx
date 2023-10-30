@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { emit_update } from '../socket';
 import { InputGroup, Form, Button } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
 interface AsyncMethodProps {
   name: string;
@@ -17,6 +18,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const { name, parentPath, docString, value: runningTask, addNotification } = props;
   const renderCount = useRef(0);
   const formRef = useRef(null);
+  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
 
   useEffect(() => {
     renderCount.current++;
@@ -87,9 +89,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   });
 
   return (
-    <div
-      className="align-items-center asyncMethodComponent"
-      id={parentPath.concat('.' + name)}>
+    <div className="align-items-center asyncMethodComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <p>Render count: {renderCount.current}</p>
       )}
@@ -99,11 +99,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       </h5>
       <Form onSubmit={execute} ref={formRef}>
         {args}
-        <Button
-          id={`button-${parentPath}.${name}`}
-          name={name}
-          value={parentPath}
-          type="submit">
+        <Button id={`button-${id}`} name={name} value={parentPath} type="submit">
           {runningTask ? 'Stop' : 'Start'}
         </Button>
       </Form>

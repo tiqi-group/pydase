@@ -258,6 +258,7 @@ const App = () => {
 
       <div className="App navbarOffset">
         <DataServiceComponent
+          name={''}
           props={state as DataServiceJSON}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
