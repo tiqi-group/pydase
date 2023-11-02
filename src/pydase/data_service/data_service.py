@@ -1,5 +1,3 @@
-import asyncio
-import inspect
 import json
 import logging
 import os
@@ -16,13 +14,13 @@ from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     generate_paths_from_DataService_dict,
     get_class_and_instance_attributes,
-    get_component_class_names,
     get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
     is_property_attribute,
     parse_list_attr_and_index,
     update_value_if_changed,
 )
+from pydase.utils.serialization import Serializer
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
@@ -213,140 +211,7 @@ class DataService(rpyc.Service, AbstractDataService):
         Returns:
             dict: The serialized instance.
         """
-        result: dict[str, dict[str, Any]] = {}
-
-        # Get the dictionary of the base class
-        base_set = set(type(super()).__dict__)
-        # Get the dictionary of the derived class
-        derived_set = set(type(self).__dict__)
-        # Get the difference between the two dictionaries
-        derived_only_set = derived_set - base_set
-
-        instance_dict = set(self.__dict__)
-        # Merge the class and instance dictionaries
-        merged_set = derived_only_set | instance_dict
-
-        def get_attribute_doc(attr: Any) -> Optional[str]:
-            """This function takes an input attribute attr and returns its documentation
-            string if it's different from the documentation of its type, otherwise,
-            it returns None.
-            """
-            attr_doc = inspect.getdoc(attr)
-            attr_class_doc = inspect.getdoc(type(attr))
-            if attr_class_doc != attr_doc:
-                return attr_doc
-            else:
-                return None
-
-        # Iterate over attributes, properties, class attributes, and methods
-        for key in sorted(merged_set):
-            if key.startswith("_"):
-                continue  # Skip attributes that start with underscore
-
-            # Skip keys that start with "start_" or "stop_" and end with an async method
-            # name
-            if (key.startswith("start_") or key.startswith("stop_")) and key.split(
-                "_", 1
-            )[1] in {
-                name
-                for name, _ in inspect.getmembers(
-                    self, predicate=inspect.iscoroutinefunction
-                )
-            }:
-                continue
-
-            # Get the value of the current attribute or method
-            value = getattr(self, key)
-
-            if isinstance(value, DataService):
-                result[key] = {
-                    "type": type(value).__name__
-                    if type(value).__name__ in get_component_class_names()
-                    else "DataService",
-                    "value": value.serialize(),
-                    "readonly": False,
-                    "doc": get_attribute_doc(value),
-                }
-            elif isinstance(value, list):
-                result[key] = {
-                    "type": "list",
-                    "value": [
-                        {
-                            "type": type(item).__name__
-                            if not isinstance(item, DataService)
-                            or type(item).__name__ in get_component_class_names()
-                            else "DataService",
-                            "value": item.serialize()
-                            if isinstance(item, DataService)
-                            else item,
-                            "readonly": False,
-                            "doc": get_attribute_doc(value),
-                        }
-                        for item in value
-                    ],
-                    "readonly": False,
-                }
-            elif inspect.isfunction(value) or inspect.ismethod(value):
-                sig = inspect.signature(value)
-
-                # Store parameters and their anotations in a dictionary
-                parameters: dict[str, Optional[str]] = {}
-                for k, v in sig.parameters.items():
-                    annotation = v.annotation
-                    if annotation is not inspect._empty:
-                        if isinstance(annotation, type):
-                            # Handle regular types
-                            parameters[k] = annotation.__name__
-                        else:
-                            parameters[k] = str(annotation)
-                    else:
-                        parameters[k] = None
-                running_task_info = None
-                if (
-                    key in self._task_manager.tasks
-                ):  # If there's a running task for this method
-                    task_info = self._task_manager.tasks[key]
-                    running_task_info = task_info["kwargs"]
-
-                result[key] = {
-                    "type": "method",
-                    "async": asyncio.iscoroutinefunction(value),
-                    "parameters": parameters,
-                    "doc": get_attribute_doc(value),
-                    "readonly": True,
-                    "value": running_task_info,
-                }
-            elif isinstance(value, Enum):
-                if type(value).__base__.__name__ == "ColouredEnum":
-                    val_type = "ColouredEnum"
-                else:
-                    val_type = "Enum"
-                result[key] = {
-                    "type": val_type,
-                    "value": value.name,
-                    "enum": {
-                        name: member.value
-                        for name, member in value.__class__.__members__.items()
-                    },
-                    "readonly": False,
-                    "doc": get_attribute_doc(value),
-                }
-            else:
-                result[key] = {
-                    "type": type(value).__name__,
-                    "value": value
-                    if not isinstance(value, u.Quantity)
-                    else {"magnitude": value.m, "unit": str(value.u)},
-                    "readonly": False,
-                    "doc": get_attribute_doc(value),
-                }
-
-            if isinstance(getattr(self.__class__, key, None), property):
-                prop: property = getattr(self.__class__, key)
-                result[key]["readonly"] = prop.fset is None
-                result[key]["doc"] = get_attribute_doc(prop)
-
-        return result
+        return Serializer.serialize_object(self)["value"]
 
     def update_DataService_attribute(
         self,
