@@ -49,7 +49,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
         self.__root__: "DataService" = self
         """Keep track of the root object. This helps to filter the emission of
-        notifications. This overwrite the TaksManager's __root__ attribute."""
+        notifications."""
 
         self._filename: Optional[str] = filename
 
