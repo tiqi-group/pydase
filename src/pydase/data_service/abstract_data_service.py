@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
-    from .callback_manager import CallbackManager
-    from .data_service import DataService
-    from .task_manager import TaskManager
+    from pydase.data_service.callback_manager import CallbackManager
+    from pydase.data_service.data_service import DataService
+    from pydase.data_service.state_manager import StateManager
+    from pydase.data_service.task_manager import TaskManager
 
 
 class AbstractDataService(ABC):
     __root__: DataService
     _task_manager: TaskManager
     _callback_manager: CallbackManager
+    _state_manager: StateManager
     _autostart_tasks: dict[str, tuple[Any]]
+    _filename: Optional[str]
