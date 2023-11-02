@@ -126,11 +126,6 @@ const App = () => {
   }, [state]);
 
   useEffect(() => {
-    // Fetch data from the API when the component mounts
-    fetch(`http://${hostname}:${port}/service-properties`)
-      .then((response) => response.json())
-      .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
-
     // Allow the user to add a custom css file
     fetch(`http://${hostname}:${port}/custom.css`)
       .then((response) => {
@@ -145,7 +140,13 @@ const App = () => {
       })
       .catch(console.error); // Handle the error appropriately
 
-    socket.on('connect', () => setConnectionStatus('connected'));
+    socket.on('connect', () => {
+      // Fetch data from the API when the client connects
+      fetch(`http://${hostname}:${port}/service-properties`)
+        .then((response) => response.json())
+        .then((data: DataServiceJSON) => dispatch({ type: 'SET_DATA', data }));
+      setConnectionStatus('connected');
+    });
     socket.on('disconnect', () => {
       setConnectionStatus('disconnected');
       setTimeout(() => {
@@ -222,7 +223,7 @@ const App = () => {
 
   // While the data is loading
   if (!state) {
-    return <p>Loading...</p>;
+    return <ConnectionToast connectionStatus={connectionStatus} />;
   }
   return (
     <>
