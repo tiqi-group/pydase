@@ -7,6 +7,7 @@ import {
 } from './components/DataServiceComponent';
 import './App.css';
 import { Notifications } from './components/NotificationsComponent';
+import { ConnectionToast } from './components/ConnectionToast';
 
 type ValueType = boolean | string | number | object;
 
@@ -117,6 +118,7 @@ const App = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [exceptions, setExceptions] = useState([]);
+  const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   // Keep the state reference up to date
   useEffect(() => {
@@ -142,6 +144,14 @@ const App = () => {
         }
       })
       .catch(console.error); // Handle the error appropriately
+
+    socket.on('connect', () => setConnectionStatus('connected'));
+    socket.on('disconnect', () => {
+      setConnectionStatus('disconnected');
+      setTimeout(() => {
+        setConnectionStatus('reconnecting');
+      }, 2000);
+    });
 
     socket.on('notify', onNotify);
     socket.on('exception', onException);
@@ -264,6 +274,7 @@ const App = () => {
           addNotification={addNotification}
         />
       </div>
+      <ConnectionToast connectionStatus={connectionStatus} />
     </>
   );
 };
