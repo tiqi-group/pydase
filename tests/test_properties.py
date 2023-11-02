@@ -217,49 +217,6 @@ def test_subclass_properties(capsys: CaptureFixture) -> None:
     class ServiceClass(DataService):
         class_attr = SubClass()
 
-    test_service = ServiceClass()
-    test_service.class_attr.voltage = 10.0
-
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.class_attr.voltage = 10.0",
-            "ServiceClass.class_attr.power = 10.0",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
-
-
-def test_subclass_properties(capsys: CaptureFixture) -> None:
-    class SubClass(DataService):
-        name = "Hello"
-        _voltage = 10.0
-        _current = 1.0
-
-        @property
-        def power(self) -> float:
-            return self._voltage * self.current
-
-        @property
-        def voltage(self) -> float:
-            return self._voltage
-
-        @voltage.setter
-        def voltage(self, value: float) -> None:
-            self._voltage = value
-
-        @property
-        def current(self) -> float:
-            return self._current
-
-        @current.setter
-        def current(self, value: float) -> None:
-            self._current = value
-
-    class ServiceClass(DataService):
-        class_attr = SubClass()
-
         @property
         def voltage(self) -> float:
             return self.class_attr.voltage
