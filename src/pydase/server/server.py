@@ -17,6 +17,7 @@ from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
 from pydase import DataService
+from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 from .web_server import WebAPI
@@ -323,8 +324,8 @@ class Server:
         logger.info("Shutting down")
 
         logger.info(f"Saving data to {self._service._filename}.")
-        if self._service._filename is not None:
-            self._service.write_to_file()
+        if self._service._state_manager is not None:
+            self._service._state_manager.save_state()
 
         await self.__cancel_servers()
         await self.__cancel_tasks()

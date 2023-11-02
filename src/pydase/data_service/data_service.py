@@ -9,6 +9,7 @@ import rpyc
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.callback_manager import CallbackManager
+from pydase.data_service.state_manager import StateManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
@@ -41,8 +42,10 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, filename: Optional[str] = None) -> None:
+        self._filename: Optional[str] = filename
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
+        self._state_manager = StateManager(self)
 
         if not hasattr(self, "_autostart_tasks"):
             self._autostart_tasks = {}
@@ -51,12 +54,11 @@ class DataService(rpyc.Service, AbstractDataService):
         """Keep track of the root object. This helps to filter the emission of
         notifications."""
 
-        self._filename: Optional[str] = filename
-
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
-        self._load_values_from_json()
+
+        self._state_manager.load_state()
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # converting attributes that are not properties
@@ -129,15 +131,6 @@ class DataService(rpyc.Service, AbstractDataService):
         # allow all other attributes
         setattr(self, name, value)
 
-    def _load_values_from_json(self) -> None:
-        if self._filename is not None:
-            # Check if the file specified by the filename exists
-            if os.path.exists(self._filename):
-                with open(self._filename, "r") as f:
-                    # Load JSON data from file and update class attributes with these
-                    # values
-                    self.load_DataService_from_JSON(cast(dict[str, Any], json.load(f)))
-
     def write_to_file(self) -> None:
         """
         Serialize the DataService instance and write it to a JSON file.
@@ -145,14 +138,8 @@ class DataService(rpyc.Service, AbstractDataService):
         Args:
             filename (str): The name of the file to write to.
         """
-        if self._filename is not None:
-            with open(self._filename, "w") as f:
-                json.dump(self.serialize(), f, indent=4)
-        else:
-            logger.error(
-                f"Class {self.__class__.__name__} was not initialised with a filename. "
-                'Skipping "write_to_file"...'
-            )
+        if self._state_manager is not None:
+            self._state_manager.save_state()
 
     def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
         # Traverse the serialized representation and set the attributes of the class
