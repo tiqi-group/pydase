@@ -17,7 +17,6 @@ from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
 from pydase import DataService
-from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 from .web_server import WebAPI
