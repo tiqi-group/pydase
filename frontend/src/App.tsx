@@ -109,7 +109,6 @@ const reducer = (state: State, action: Action): State => {
       throw new Error();
   }
 };
-
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const stateRef = useRef(state); // Declare a reference to hold the current state
@@ -150,7 +149,11 @@ const App = () => {
     socket.on('disconnect', () => {
       setConnectionStatus('disconnected');
       setTimeout(() => {
-        setConnectionStatus('reconnecting');
+        // Only set "reconnecting" is the state is still "disconnected"
+        // E.g. when the client has already reconnected
+        setConnectionStatus((currentState) =>
+          currentState === 'disconnected' ? 'reconnecting' : currentState
+        );
       }, 2000);
     });
 
