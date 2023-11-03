@@ -43,7 +43,7 @@ class DataService(rpyc.Service, AbstractDataService):
         self._filename: Optional[str] = filename
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
-        self._state_manager = StateManager(self)
+        self._state_manager: Optional[StateManager] = None
 
         if not hasattr(self, "_autostart_tasks"):
             self._autostart_tasks = {}
@@ -56,7 +56,9 @@ class DataService(rpyc.Service, AbstractDataService):
         self.__check_instance_classes()
         self._initialised = True
 
-        self._state_manager.load_state()
+        if self._filename is not None:
+            self._state_manager = StateManager(self)
+            self._state_manager.load_state()
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # converting attributes that are not properties

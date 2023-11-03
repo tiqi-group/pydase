@@ -14,6 +14,6 @@ class AbstractDataService(ABC):
     __root__: DataService
     _task_manager: TaskManager
     _callback_manager: CallbackManager
-    _state_manager: StateManager
+    _state_manager: Optional[StateManager]
     _autostart_tasks: dict[str, tuple[Any]]
     _filename: Optional[str]

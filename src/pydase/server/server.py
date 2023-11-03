@@ -17,6 +17,7 @@ from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
 from pydase import DataService
+from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 from .web_server import WebAPI
@@ -163,6 +164,9 @@ class Server:
         **kwargs: Any,
     ) -> None:
         self._service = service
+        if self._service._state_manager is None:
+            self._service._state_manager = StateManager(self._service)
+            self._service._state_manager.load_state()
         self._host = host
         self._rpc_port = rpc_port
         self._web_port = web_port

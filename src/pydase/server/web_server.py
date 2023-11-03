@@ -114,13 +114,17 @@ class WebAPI:
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
-            return self.service._state_manager.cache
+            if self.service._state_manager is not None:
+                return self.service._state_manager.cache
+            else:
+                logger.error("Exposed service does not have a state manager.")
+                return {}
 
         # exposing custom.css file provided by user
         if self.css is not None:
 
             @app.get("/custom.css")
-            async def styles():
+            async def styles() -> FileResponse:
                 return FileResponse(str(self.css))
 
         app.mount(
