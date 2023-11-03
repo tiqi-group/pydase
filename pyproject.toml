@@ -49,8 +49,8 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-include = ["src/pydase", "tests"]
-exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend"]
+include = ["src/pydase"]
+exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend", "tests"]
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
