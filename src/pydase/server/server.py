@@ -323,8 +323,8 @@ class Server:
         logger.info("Shutting down")
 
         logger.info(f"Saving data to {self._service._filename}.")
-        if self._service._state_manager is not None:
-            self._service._state_manager.save_state()
+        if self._service._filename is not None:
+            self._service.write_to_file()
 
         await self.__cancel_servers()
         await self.__cancel_tasks()

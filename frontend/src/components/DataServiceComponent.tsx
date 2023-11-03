@@ -28,7 +28,9 @@ export const DataServiceComponent = React.memo(
     if (name) {
       fullAccessPath = parentPath.concat('.' + name);
     }
+    console.log(fullAccessPath);
     const id = getIdFromFullAccessPath(fullAccessPath);
+    console.log(id);
 
     return (
       <div className="dataServiceComponent" id={id}>
