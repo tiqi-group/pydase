@@ -114,7 +114,7 @@ class WebAPI:
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
-            return self.service._state_manager.cache
+            return self.service.serialize()
 
         # exposing custom.css file provided by user
         if self.css is not None:
