@@ -86,8 +86,8 @@ class StateManager:
                 json.dump(self.cache, f, indent=4)
         else:
             logger.error(
-                f"Class {self.__class__.__name__} was not initialised with a filename. "
-                'Skipping "write_to_file"...'
+                "State manager was not initialised with a filename. Skipping "
+                "'save_state'..."
             )
 
     def load_state(self) -> None:
@@ -121,7 +121,7 @@ class StateManager:
                 )
                 if class_attr_is_read_only:
                     logger.debug(
-                        f'Attribute "{path}" is read-only. Ignoring value from JSON '
+                        f"Attribute {path!r} is read-only. Ignoring value from JSON "
                         "file..."
                     )
                     continue
@@ -136,8 +136,8 @@ class StateManager:
                 self.service.update_DataService_attribute(parts[:-1], attr_name, value)
             else:
                 logger.info(
-                    f'Attribute type of "{path}" changed from "{value_type}" to '
-                    f'"{class_value_type}". Ignoring value from JSON file...'
+                    f"Attribute type of {path!r} changed from {value_type!r} to "
+                    f"{class_value_type!r}. Ignoring value from JSON file..."
                 )
 
     def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
