@@ -77,11 +77,10 @@ class StateManager:
 
     def save_state(self) -> None:
         """
-        Serialize the DataService instance and write it to a JSON file.
-
-        Args:
-            filename (str): The name of the file to write to.
+        Saves the DataService's current state to a JSON file defined by `self.filename`.
+        Logs an error if `self.filename` is not set.
         """
+
         if self.filename is not None:
             with open(self.filename, "w") as f:
                 json.dump(self.cache, f, indent=4)
@@ -92,6 +91,11 @@ class StateManager:
             )
 
     def load_state(self) -> None:
+        """
+        Loads the DataService's state from a JSON file defined by `self.filename`.
+        Updates the service's attributes, respecting type and read-only constraints.
+        """
+
         # Traverse the serialized representation and set the attributes of the class
         json_dict = self._get_state_dict_from_JSON_file()
         if json_dict == {}:
