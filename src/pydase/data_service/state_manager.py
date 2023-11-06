@@ -68,7 +68,11 @@ class StateManager:
             self.filename = filename
 
         self.service = service
-        self.cache = DataServiceCache(self.service)
+        self._data_service_cache = DataServiceCache(self.service)
+
+    @property
+    def cache(self) -> dict[str, Any]:
+        return self._data_service_cache.cache
 
     def save_state(self) -> None:
         """
@@ -93,7 +97,7 @@ class StateManager:
             logger.debug("Could not load the service state.")
             return
 
-        serialized_class = self.cache.cache
+        serialized_class = self.cache
         for path in generate_paths_from_DataService_dict(json_dict):
             value = get_nested_value_from_DataService_by_path_and_key(
                 json_dict, path=path
