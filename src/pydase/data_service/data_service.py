@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, get_type_hints
 
-import rpyc
+import rpyc  # type: ignore
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService

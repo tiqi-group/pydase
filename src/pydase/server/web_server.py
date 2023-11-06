@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any, TypedDict
 
-import socketio
+import socketio  # type: ignore
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse

@@ -10,7 +10,7 @@ from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from rpyc import ForkingServer, ThreadedServer
+from rpyc import ForkingServer, ThreadedServer  # type: ignore
 from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
