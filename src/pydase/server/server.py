@@ -10,10 +10,7 @@ from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from rpyc import (
-    ForkingServer,  # can be used for multiprocessing, e.g. a database interface server
-)
-from rpyc import ThreadedServer
+from rpyc import ForkingServer, ThreadedServer
 from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
@@ -101,8 +98,7 @@ class Server:
     enable_web: bool
         Whether to enable the web server. Default is True.
     use_forking_server: bool
-        Whether to use ForkingServer for multiprocessing (e.g. for a database interface
-        server). Default is False.
+        Whether to use ForkingServer for multiprocessing. Default is False.
     web_settings: dict[str, Any]
         Additional settings for the web server. Default is {} (an empty dictionary).
     additional_servers : list[AdditionalServer]
