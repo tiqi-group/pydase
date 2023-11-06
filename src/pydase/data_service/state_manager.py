@@ -1,13 +1,14 @@
 import json
 import logging
 import os
-from typing import TYPE_CHECKING, Any, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import pydase.units as u
+from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
     generate_paths_from_DataService_dict,
     get_nested_value_from_DataService_by_path_and_key,
-    set_nested_value_in_dict,
 )
 
 if TYPE_CHECKING:
@@ -56,20 +57,18 @@ class StateManager:
         update.
     """
 
-    def __init__(self, service: "DataService"):
-        self.cache: dict[str, Any] = {}  # Initialize an empty cache
+    def __init__(self, service: "DataService", filename: Optional[str | Path] = None):
         self.filename = service._filename
+
+        if filename is not None:
+            if self.filename is not None:
+                logger.warning(
+                    f"Overwriting filename {self.filename!r} with {filename!r}."
+                )
+            self.filename = filename
+
         self.service = service
-        self.service._callback_manager.add_notification_callback(self.update_cache)
-
-    def update_cache(self, parent_path: str, name: str, value: Any) -> None:
-        # Remove the part before the first "." in the parent_path
-        parent_path = ".".join(parent_path.split(".")[1:])
-
-        # Construct the full path
-        full_path = f"{parent_path}.{name}" if parent_path else name
-
-        set_nested_value_in_dict(self.cache, full_path, value)
+        self.cache = DataServiceCache(self.service)
 
     def save_state(self) -> None:
         """
@@ -89,15 +88,12 @@ class StateManager:
 
     def load_state(self) -> None:
         # Traverse the serialized representation and set the attributes of the class
-        if self.cache == {}:
-            self.cache = self.service.serialize()
-
-        json_dict = self._load_state_from_file()
+        json_dict = self._get_state_dict_from_JSON_file()
         if json_dict == {}:
             logger.debug("Could not load the service state.")
             return
 
-        serialized_class = self.cache
+        serialized_class = self.cache.cache
         for path in generate_paths_from_DataService_dict(json_dict):
             value = get_nested_value_from_DataService_by_path_and_key(
                 json_dict, path=path
@@ -135,7 +131,7 @@ class StateManager:
                     f'"{class_value_type}". Ignoring value from JSON file...'
                 )
 
-    def _load_state_from_file(self) -> dict[str, Any]:
+    def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
         if self.filename is not None:
             # Check if the file specified by the filename exists
             if os.path.exists(self.filename):
