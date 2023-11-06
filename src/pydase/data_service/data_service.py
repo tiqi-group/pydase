@@ -1,4 +1,5 @@
 import logging
+import warnings
 from enum import Enum
 from typing import Any, Optional, get_type_hints
 
@@ -53,7 +54,14 @@ class DataService(rpyc.Service, AbstractDataService):
 
         filename = kwargs.pop("filename", None)
         if filename is not None:
+            warnings.warn(
+                "The 'filename' argument is deprecated and will be removed in a future version. "
+                "Please pass the 'filename' argument to `pydase.Server`.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             self._filename = filename
+
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
@@ -133,11 +141,29 @@ class DataService(rpyc.Service, AbstractDataService):
         """
         Serialize the DataService instance and write it to a JSON file.
 
+        This method is deprecated and will be removed in a future version.
+        Service persistence is handled by `pydase.Server` now, instead.
         """
+
+        warnings.warn(
+            "'write_to_file' is deprecated and will be removed in a future version. "
+            "Service persistence is handled by `pydase.Server` now, instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         if hasattr(self, "_state_manager"):
             getattr(self, "_state_manager").save_state()
 
     def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
+        warnings.warn(
+            "'load_DataService_from_JSON' is deprecated and will be removed in a "
+            "future version. "
+            "Service persistence is handled by `pydase.Server` now, instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
         for path in generate_paths_from_DataService_dict(json_dict):
