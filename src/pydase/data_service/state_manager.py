@@ -72,6 +72,7 @@ class StateManager:
 
     @property
     def cache(self) -> dict[str, Any]:
+        """Returns the cached DataService state."""
         return self._data_service_cache.cache
 
     def save_state(self) -> None:
