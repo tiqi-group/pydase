@@ -1,6 +1,7 @@
 import logging
 import warnings
 from enum import Enum
+from pathlib import Path
 from typing import Any, Optional, get_type_hints
 
 import rpyc
@@ -8,7 +9,6 @@ import rpyc
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.callback_manager import CallbackManager
-from pydase.data_service.state_manager import StateManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
@@ -41,7 +41,7 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, **kwargs: Any) -> None:
-        self._filename: Optional[str] = None
+        self._filename: Optional[str | Path] = None
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
 

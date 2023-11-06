@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 
 if TYPE_CHECKING:
@@ -14,4 +15,4 @@ class AbstractDataService(ABC):
     _task_manager: TaskManager
     _callback_manager: CallbackManager
     _autostart_tasks: dict[str, tuple[Any]]
-    _filename: Optional[str]
+    _filename: Optional[str | Path]
