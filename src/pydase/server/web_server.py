@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase import DataService
+from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ class WebAPI:
     def __init__(  # noqa: CFQ002
         self,
         service: DataService,
+        state_manager: StateManager,
         frontend: str | Path | None = None,
         css: str | Path | None = None,
         enable_CORS: bool = True,
@@ -58,6 +60,7 @@ class WebAPI:
         **kwargs: Any,
     ):
         self.service = service
+        self.state_manager = state_manager
         self.frontend = frontend
         self.css = css
         self.enable_CORS = enable_CORS
@@ -114,11 +117,7 @@ class WebAPI:
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
-            if self.service._state_manager is not None:
-                return self.service._state_manager.cache
-            else:
-                logger.error("Exposed service does not have a state manager.")
-                return {}
+            return self.state_manager.cache.cache
 
         # exposing custom.css file provided by user
         if self.css is not None:

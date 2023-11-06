@@ -43,7 +43,6 @@ class DataService(rpyc.Service, AbstractDataService):
         self._filename: Optional[str] = filename
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
-        self._state_manager: Optional[StateManager] = None
 
         if not hasattr(self, "_autostart_tasks"):
             self._autostart_tasks = {}
@@ -55,10 +54,6 @@ class DataService(rpyc.Service, AbstractDataService):
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
-
-        if self._filename is not None:
-            self._state_manager = StateManager(self)
-            self._state_manager.load_state()
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # converting attributes that are not properties
@@ -135,11 +130,9 @@ class DataService(rpyc.Service, AbstractDataService):
         """
         Serialize the DataService instance and write it to a JSON file.
 
-        Args:
-            filename (str): The name of the file to write to.
         """
-        if self._state_manager is not None:
-            self._state_manager.save_state()
+        if hasattr(self, "_state_manager"):
+            getattr(self, "_state_manager").save_state()
 
     def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
         # Traverse the serialized representation and set the attributes of the class

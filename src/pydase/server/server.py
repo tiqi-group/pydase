@@ -5,6 +5,7 @@ import signal
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
+from pathlib import Path
 from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
@@ -158,15 +159,13 @@ class Server:
         web_port: int = 8001,
         enable_rpc: bool = True,
         enable_web: bool = True,
+        filename: Optional[str | Path] = None,
         use_forking_server: bool = False,
         web_settings: dict[str, Any] = {},
         additional_servers: list[AdditionalServer] = [],
         **kwargs: Any,
     ) -> None:
         self._service = service
-        if self._service._state_manager is None:
-            self._service._state_manager = StateManager(self._service)
-            self._service._state_manager.load_state()
         self._host = host
         self._rpc_port = rpc_port
         self._web_port = web_port
@@ -191,6 +190,10 @@ class Server:
             "additional_servers": [],
             **kwargs,
         }
+        self._state_manager = StateManager(self._service, filename)
+        if self._service._filename is not None:
+            self._service._state_manager = self._state_manager
+        self._state_manager.load_state()
 
     def run(self) -> None:
         """
@@ -275,6 +278,7 @@ class Server:
             self._wapi: WebAPI = WebAPI(
                 service=self._service,
                 info=self._info,
+                state_manager=self._state_manager,
                 **self._kwargs,
             )
             web_server = uvicorn.Server(
@@ -326,9 +330,9 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
-        logger.info(f"Saving data to {self._service._filename}.")
-        if self._service._state_manager is not None:
-            self._service._state_manager.save_state()
+        logger.info(f"Saving data to {self._state_manager.filename}.")
+        if self._state_manager is not None:
+            self._state_manager.save_state()
 
         await self.__cancel_servers()
         await self.__cancel_tasks()
