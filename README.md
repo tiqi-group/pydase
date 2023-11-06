@@ -380,7 +380,7 @@ Please ensure that the CSS file path is accessible from the server's running loc
 
 `pydase` allows you to easily persist the state of your service by saving it to a file. This is especially useful when you want to maintain the service's state across different runs.
 
-To save the state of your service, pass a `filename` keyword argument to the `__init__` method of the `DataService` base class. If the file specified by `filename` does not exist, the service will create this file and store its state in it when the service is shut down. If the file already exists, the service will load the state from this file, setting the values of its attributes to the values stored in the file.
+To save the state of your service, pass a `filename` keyword argument to the constructor of the `pydase.Server` class. If the file specified by `filename` does not exist, the state manager will create this file and store its state in it when the service is shut down. If the file already exists, the state manager will load the state from this file, setting the values of its attributes to the values stored in the file.
 
 Here's an example:
 
@@ -388,21 +388,15 @@ Here's an example:
 from pydase import DataService, Server
 
 class Device(DataService):
-    def __init__(self, filename: str) -> None:
-        # ... your init code ...
-
-        # Pass the filename argument to the parent class
-        super().__init__(filename=filename)
-
     # ... defining the Device class ...
 
 
 if __name__ == "__main__":
-    service = Device("device_state.json")
-    Server(service).run()
+    service = Device()
+    Server(service, filename="device_state.json").run()
 ```
 
-In this example, the state of the `Device` service will be saved to `device_state.json` when the service is shut down. If `device_state.json` exists when the service is started, the service will restore its state from this file.
+In this example, the state of the `Device` service will be saved to `device_state.json` when the service is shut down. If `device_state.json` exists when the server is started, the state manager will restore the state of the service from this file.
 
 Note: If the service class structure has changed since the last time its state was saved, only the attributes that have remained the same will be restored from the settings file.
 
