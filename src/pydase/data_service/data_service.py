@@ -20,7 +20,7 @@ from pydase.utils.helpers import (
     parse_list_attr_and_index,
     update_value_if_changed,
 )
-from pydase.utils.serialization import Serializer
+from pydase.utils.serializer import Serializer
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )

@@ -6,7 +6,7 @@ import pytest
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.utils.serialization import dump
+from pydase.utils.serializer import dump
 
 
 @pytest.mark.parametrize(

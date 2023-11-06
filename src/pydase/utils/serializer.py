@@ -2,11 +2,15 @@ import inspect
 import logging
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.utils.helpers import get_component_class_names
+from pydase.utils.helpers import (
+    STANDARD_TYPES,
+    get_component_class_names,
+    parse_list_attr_and_index,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +215,79 @@ class Serializer:
             "readonly": readonly,
             "doc": doc,
         }
+
+    @staticmethod
+    def update_serialization_dict(
+        serialization_dict: dict[str, Any], path: str, value: Any
+    ) -> None:
+        """
+        Set the value associated with a specific key in a dictionary given a path.
+
+        This function traverses the dictionary according to the path provided and
+        sets the value at that path. The path is a string with dots connecting
+        the levels and brackets indicating list indices.
+
+        Args:
+            data_dict (dict): The cache dictionary to set the value in.
+            path (str): The path to where the value should be set in the dictionary.
+            value (Any): The value to be set at the specified path in the dictionary.
+
+        Examples:
+            Let's consider the following dictionary:
+
+            cache = {
+                "attr1": {"type": "int", "value": 10},
+                "attr2": {
+                    "type": "MyClass",
+                    "value": {"attr3": {"type": "float", "value": 20.5}}
+                }
+            }
+
+            The function can be used to set the value of 'attr1' as follows:
+            set_nested_value_in_cache(cache, "attr1", 15)
+
+            It can also be used to set the value of 'attr3', which is nested within
+            'attr2', as follows:
+            set_nested_value_in_cache(cache, "attr2.attr3", 25.0)
+        """
+
+        parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
+        current_dict: dict[str, Any] = serialization_dict
+        index: Optional[int] = None
+
+        for path_part in parts:
+            # Check if the key contains an index part like 'attr_name[<index>]'
+            path_part, index = parse_list_attr_and_index(path_part)
+
+            current_dict = cast(dict[str, Any], current_dict.get(path_part, None))
+
+            if not isinstance(current_dict, dict):
+                # key does not exist in dictionary, e.g. when class does not have this
+                # attribute
+                return
+
+            if index is not None:
+                try:
+                    current_dict = cast(dict[str, Any], current_dict["value"][index])
+                except Exception as e:
+                    # TODO: appending to a list will probably be done here
+                    logger.error(f"Could not change {path}... {e}")
+                    return
+
+            # When the attribute is a class instance, the attributes are nested in the
+            # "value" key
+            if (
+                current_dict["type"] not in STANDARD_TYPES
+                and current_dict["type"] != "method"
+            ):
+                current_dict = cast(dict[str, Any], current_dict.get("value", None))  # type: ignore
+
+            index = None
+
+        # setting the new value
+        serialized_value = dump(value)
+        current_dict[attr_name]["value"] = serialized_value["value"]
+        current_dict[attr_name]["type"] = serialized_value["type"]
 
 
 def dump(obj: Any) -> dict[str, Any]:
