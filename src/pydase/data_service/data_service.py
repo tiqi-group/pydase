@@ -39,8 +39,8 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 
 class DataService(rpyc.Service, AbstractDataService):
-    def __init__(self, filename: Optional[str] = None) -> None:
-        self._filename: Optional[str] = filename
+    def __init__(self, **kwargs: Any) -> None:
+        self._filename: Optional[str] = None
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
 
@@ -51,6 +51,9 @@ class DataService(rpyc.Service, AbstractDataService):
         """Keep track of the root object. This helps to filter the emission of
         notifications."""
 
+        filename = kwargs.pop("filename", None)
+        if filename is not None:
+            self._filename = filename
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
