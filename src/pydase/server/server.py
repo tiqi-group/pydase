@@ -46,13 +46,22 @@ class AdditionalServerProtocol(Protocol):
         The hostname or IP address at which the server will be hosted. This could be a
         local address (like '127.0.0.1' for localhost) or a public IP address.
 
+    state_manager: StateManager
+        The state manager managing the state cache and persistence of the exposed
+        service.
+
     **kwargs: Any
         Any additional parameters required for initializing the server. These parameters
         are specific to the server's implementation.
     """
 
     def __init__(
-        self, service: DataService, port: int, host: str, **kwargs: Any
+        self,
+        service: DataService,
+        port: int,
+        host: str,
+        state_manager: StateManager,
+        **kwargs: Any,
     ) -> None:
         ...
 
