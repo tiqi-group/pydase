@@ -106,6 +106,8 @@ class Server:
         Whether to enable the RPC server. Default is True.
     enable_web: bool
         Whether to enable the web server. Default is True.
+    filename: str | Path | None
+        Filename of the file managing the service state persistence. Defaults to None.
     use_forking_server: bool
         Whether to use ForkingServer for multiprocessing. Default is False.
     web_settings: dict[str, Any]
