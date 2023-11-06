@@ -13,13 +13,10 @@ class DataServiceCache:
     def __init__(self, service: "DataService") -> None:
         self._cache: dict[str, Any] = {}
         self.service = service
-        self._cache_initialized = False
+        self._initialize_cache()
 
     @property
     def cache(self) -> dict[str, Any]:
-        """Property to lazily initialize the cache."""
-        if not self._cache_initialized:
-            self._initialize_cache()
         return self._cache
 
     def _initialize_cache(self) -> None:
@@ -27,7 +24,6 @@ class DataServiceCache:
         logger.debug("Initializing cache.")
         self._cache = self.service.serialize()
         self.service._callback_manager.add_notification_callback(self.update_cache)
-        self._cache_initialized = True
 
     def update_cache(self, parent_path: str, name: str, value: Any) -> None:
         # Remove the part before the first "." in the parent_path
