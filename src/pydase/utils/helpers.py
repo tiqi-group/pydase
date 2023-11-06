@@ -272,7 +272,6 @@ def get_nested_value_from_DataService_by_path_and_key(
         return current_data.get(key, None)
 
 
-
 def convert_arguments_to_hinted_types(
     args: dict[str, Any], type_hints: dict[str, Any]
 ) -> dict[str, Any] | str:
@@ -357,38 +356,34 @@ def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
     """
     Parses an attribute string and extracts a potential list attribute name and its
     index.
+    Logs an error if the index is not a valid digit.
 
-    This function examines the provided attribute string. If the string contains square
-    brackets, it assumes that it's a list attribute and the string within brackets is
-    the index of an element. It then returns the attribute name and the index as an
-    integer. If no brackets are present, the function assumes it's a regular attribute
-    and returns the attribute name and None as the index.
-
-    Parameters:
-    -----------
-    attr_string: str
-        The attribute string to parse. Can be a regular attribute name (e.g.
-        'attr_name') or a list attribute with an index (e.g. 'list_attr[2]').
+    Args:
+        attr_string (str):
+            The attribute string to parse. Can be a regular attribute name (e.g.,
+            'attr_name') or a list attribute with an index (e.g., 'list_attr[2]').
 
     Returns:
-    --------
-    tuple: (str, Optional[int])
-        A tuple containing the attribute name as a string and the index as an integer if
-        present, otherwise None.
+        tuple[str, Optional[int]]:
+            A tuple containing the attribute name as a string and the index as an
+            integer if present, otherwise None.
 
-    Example:
-    --------
-    >>> parse_list_attr_and_index('list_attr[2]')
-    ('list_attr', 2)
-    >>> parse_list_attr_and_index('attr_name')
-    ('attr_name', None)
+    Examples:
+        >>> parse_attribute_and_index('list_attr[2]')
+        ('list_attr', 2)
+        >>> parse_attribute_and_index('attr_name')
+        ('attr_name', None)
     """
 
-    attr_name = attr_string
     index = None
-    if "[" in attr_string and "]" in attr_string:
-        attr_name, idx = attr_string[:-1].split("[")
-        index = int(idx)
+    attr_name = attr_string
+    if "[" in attr_string and attr_string.endswith("]"):
+        attr_name, index_part = attr_string.split("[", 1)
+        index_part = index_part.rstrip("]")
+        if index_part.isdigit():
+            index = int(index_part)
+        else:
+            logger.error(f"Invalid index format in key: {attr_name}")
     return attr_name, index
 
 
