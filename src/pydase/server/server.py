@@ -118,9 +118,15 @@ class Server:
 
         >>>     class MyCustomServer:
         ...         def __init__(
-        ...             self, service: DataService, port: int, host: str, **kwargs: Any
+        ...             self,
+        ...             service: DataService,
+        ...             port: int,
+        ...             host: str,
+        ...             state_manager: StateManager,
+        ...             **kwargs: Any
         ...         ):
         ...             self.service = service
+        ...             self.state_manager = state_manager
         ...             self.port = port
         ...             self.host = host
         ...             # handle any additional arguments...
@@ -252,6 +258,7 @@ class Server:
                 self._service,
                 port=server["port"],
                 host=self._host,
+                state_manager=self._state_manager,
                 info=self._info,
                 **server["kwargs"],
             )
