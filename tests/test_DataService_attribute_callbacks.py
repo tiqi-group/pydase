@@ -1,9 +1,9 @@
-from pytest import CaptureFixture
+from pytest import LogCaptureFixture
 
 from pydase import DataService
 
 
-def test_class_attributes(capsys: CaptureFixture) -> None:
+def test_class_attributes(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         name = "Hello"
 
@@ -11,14 +11,12 @@ def test_class_attributes(capsys: CaptureFixture) -> None:
         attr_1 = SubClass()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr_1.name = "Hi"
 
-    captured = capsys.readouterr()
-    assert captured.out.strip() == "ServiceClass.attr_1.name = Hi"
+    assert "ServiceClass.attr_1.name changed to Hi" in caplog.text
 
 
-def test_instance_attributes(capsys: CaptureFixture) -> None:
+def test_instance_attributes(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         name = "Hello"
 
@@ -28,25 +26,22 @@ def test_instance_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr_1.name = "Hi"
 
-    captured = capsys.readouterr()
-    assert captured.out.strip() == "ServiceClass.attr_1.name = Hi"
+    assert "ServiceClass.attr_1.name changed to Hi" in caplog.text
 
 
-def test_class_attribute(capsys: CaptureFixture) -> None:
+def test_class_attribute(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         attr = 0
 
     service_instance = ServiceClass()
 
     service_instance.attr = 1
-    captured = capsys.readouterr()
-    assert captured.out == "ServiceClass.attr = 1\n"
+    assert "ServiceClass.attr changed to 1" in caplog.text
 
 
-def test_instance_attribute(capsys: CaptureFixture) -> None:
+def test_instance_attribute(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         def __init__(self) -> None:
             self.attr = "Hello World"
@@ -55,11 +50,10 @@ def test_instance_attribute(capsys: CaptureFixture) -> None:
     service_instance = ServiceClass()
 
     service_instance.attr = "Hello"
-    captured = capsys.readouterr()
-    assert captured.out == "ServiceClass.attr = Hello\n"
+    assert "ServiceClass.attr changed to Hello" in caplog.text
 
 
-def test_reused_instance_attributes(capsys: CaptureFixture) -> None:
+def test_reused_instance_attributes(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         name = "Hello"
 
@@ -72,22 +66,14 @@ def test_reused_instance_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr_1.name = "Hi"
 
-    captured = capsys.readouterr()
     assert service_instance.attr_1 == service_instance.attr_2
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_1.name = Hi",
-            "ServiceClass.attr_2.name = Hi",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_1.name changed to Hi" in caplog.text
+    assert "ServiceClass.attr_2.name changed to Hi" in caplog.text
 
 
-def test_reused_attributes_mixed(capsys: CaptureFixture) -> None:
+def test_reused_attributes_mixed(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         pass
 
@@ -101,22 +87,14 @@ def test_reused_attributes_mixed(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr_1.name = "Hi"
 
-    captured = capsys.readouterr()
     assert service_instance.attr_1 == service_instance.attr_2
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_1.name = Hi",
-            "ServiceClass.attr_2.name = Hi",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_1.name changed to Hi" in caplog.text
+    assert "ServiceClass.attr_2.name changed to Hi" in caplog.text
 
 
-def test_nested_class_attributes(capsys: CaptureFixture) -> None:
+def test_nested_class_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubSubClass(DataService):
         name = "Hello"
 
@@ -133,26 +111,18 @@ def test_nested_class_attributes(capsys: CaptureFixture) -> None:
         attr = SubClass()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr.attr.attr.name = "Hi"
     service_instance.attr.attr.name = "Hou"
     service_instance.attr.name = "foo"
     service_instance.name = "bar"
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Hi",
-            "ServiceClass.attr.attr.name = Hou",
-            "ServiceClass.attr.name = foo",
-            "ServiceClass.name = bar",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr.attr.name changed to Hi" in caplog.text
+    assert "ServiceClass.attr.attr.name changed to Hou" in caplog.text
+    assert "ServiceClass.attr.name changed to foo" in caplog.text
+    assert "ServiceClass.name changed to bar" in caplog.text
 
 
-def test_nested_instance_attributes(capsys: CaptureFixture) -> None:
+def test_nested_instance_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubSubClass(DataService):
         name = "Hello"
 
@@ -175,26 +145,18 @@ def test_nested_instance_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr.attr.attr.name = "Hi"
     service_instance.attr.attr.name = "Hou"
     service_instance.attr.name = "foo"
     service_instance.name = "bar"
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Hi",
-            "ServiceClass.attr.attr.name = Hou",
-            "ServiceClass.attr.name = foo",
-            "ServiceClass.name = bar",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr.attr.name changed to Hi" in caplog.text
+    assert "ServiceClass.attr.attr.name changed to Hou" in caplog.text
+    assert "ServiceClass.attr.name changed to foo" in caplog.text
+    assert "ServiceClass.name changed to bar" in caplog.text
 
 
-def test_advanced_nested_class_attributes(capsys: CaptureFixture) -> None:
+def test_advanced_nested_class_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubSubClass(DataService):
         name = "Hello"
 
@@ -209,32 +171,17 @@ def test_advanced_nested_class_attributes(capsys: CaptureFixture) -> None:
         subattr = SubSubClass()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
     service_instance.attr.attr.attr.name = "Hi"
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Hi",
-            "ServiceClass.subattr.attr.name = Hi",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr.attr.name changed to Hi" in caplog.text
+    assert "ServiceClass.subattr.attr.name changed to Hi" in caplog.text
     service_instance.subattr.attr.name = "Ho"
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Ho",
-            "ServiceClass.subattr.attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr.attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.subattr.attr.name changed to Ho" in caplog.text
 
 
-def test_advanced_nested_instance_attributes(capsys: CaptureFixture) -> None:
+def test_advanced_nested_instance_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubSubClass(DataService):
         name = "Hello"
 
@@ -257,32 +204,19 @@ def test_advanced_nested_instance_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
+
     service_instance.attr.attr.attr.name = "Hi"
+    assert "ServiceClass.attr.attr.attr.name changed to Hi" in caplog.text
+    assert "ServiceClass.subattr.attr.name changed to Hi" in caplog.text
+    caplog.clear()
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Hi",
-            "ServiceClass.subattr.attr.name = Hi",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
     service_instance.subattr.attr.name = "Ho"
-
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.attr.attr.name = Ho",
-            "ServiceClass.subattr.attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr.attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.subattr.attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
 
-def test_advanced_nested_attributes_mixed(capsys: CaptureFixture) -> None:
+def test_advanced_nested_attributes_mixed(caplog: LogCaptureFixture) -> None:
     class SubSubClass(DataService):
         name = "Hello"
 
@@ -310,44 +244,28 @@ def test_advanced_nested_attributes_mixed(capsys: CaptureFixture) -> None:
     # instances of SubSubClass are unequal
     assert service_instance.attr.attr_1 != service_instance.class_attr.class_attr
 
-    _ = capsys.readouterr()
-
     service_instance.class_attr.class_attr.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.class_attr.class_attr.name = Ho",
-            "ServiceClass.attr.class_attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.class_attr.class_attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr.class_attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.class_attr.attr_1.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(["ServiceClass.class_attr.attr_1.name = Ho"])
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.class_attr.attr_1.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr.attr_1.name changed to Ho" not in caplog.text
+    caplog.clear()
 
     service_instance.attr.class_attr.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.class_attr.name = Ho",
-            "ServiceClass.class_attr.class_attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.class_attr.class_attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr.class_attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.attr.attr_1.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(["ServiceClass.attr.attr_1.name = Ho"])
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.attr_1.name changed to Ho" in caplog.text
+    assert "ServiceClass.class_attr.attr_1.name changed to Ho" not in caplog.text
+    caplog.clear()
 
 
-def test_class_list_attributes(capsys: CaptureFixture) -> None:
+def test_class_list_attributes(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         name = "Hello"
 
@@ -359,59 +277,36 @@ def test_class_list_attributes(capsys: CaptureFixture) -> None:
         attr = subclass_instance
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
 
     assert service_instance.attr_list[0] != service_instance.attr_list[1]
 
     service_instance.attr_list[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_list[0].name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list[1].name changed to Ho" not in caplog.text
+    caplog.clear()
 
     service_instance.attr_list[1].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_list[1].name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list[0].name changed to Ho" not in caplog.text
+    assert "ServiceClass.attr_list[1].name changed to Ho" in caplog.text
+    caplog.clear()
 
     assert service_instance.attr_list_2[0] == service_instance.attr
     assert service_instance.attr_list_2[0] == service_instance.attr_list_2[1]
 
     service_instance.attr_list_2[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_list_2[0].name = Ho",
-            "ServiceClass.attr_list_2[1].name = Ho",
-            "ServiceClass.attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list_2[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[1].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.attr_list_2[1].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr_list_2[0].name = Ho",
-            "ServiceClass.attr_list_2[1].name = Ho",
-            "ServiceClass.attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list_2[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[1].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
 
-def test_nested_class_list_attributes(capsys: CaptureFixture) -> None:
+def test_nested_class_list_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubClass(DataService):
         name = "Hello"
 
@@ -425,34 +320,21 @@ def test_nested_class_list_attributes(capsys: CaptureFixture) -> None:
         subattr = subsubclass_instance
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
 
     assert service_instance.attr[0].attr_list[0] == service_instance.subattr
 
     service_instance.attr[0].attr_list[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr[0].attr_list[0].name = Ho",
-            "ServiceClass.subattr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr[0].attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.subattr.name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.subattr.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr[0].attr_list[0].name = Ho",
-            "ServiceClass.subattr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr[0].attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.subattr.name changed to Ho" in caplog.text
+    caplog.clear()
 
 
-def test_instance_list_attributes(capsys: CaptureFixture) -> None:
+def test_instance_list_attributes(caplog: LogCaptureFixture) -> None:
     class SubClass(DataService):
         name = "Hello"
 
@@ -466,63 +348,42 @@ def test_instance_list_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
 
     assert service_instance.attr_list[0] != service_instance.attr_list[1]
 
     service_instance.attr_list[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(["ServiceClass.attr_list[0].name = Ho"])
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list[1].name changed to Ho" not in caplog.text
+    caplog.clear()
 
     service_instance.attr_list[1].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(["ServiceClass.attr_list[1].name = Ho"])
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr_list[0].name changed to Ho" not in caplog.text
+    assert "ServiceClass.attr_list[1].name changed to Ho" in caplog.text
+    caplog.clear()
 
     assert service_instance.attr_list_2[0] == service_instance.attr
     assert service_instance.attr_list_2[0] == service_instance.attr_list_2[1]
 
     service_instance.attr_list_2[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.name = Ho",
-            "ServiceClass.attr_list_2[0].name = Ho",
-            "ServiceClass.attr_list_2[1].name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[1].name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.attr_list_2[1].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.name = Ho",
-            "ServiceClass.attr_list_2[0].name = Ho",
-            "ServiceClass.attr_list_2[1].name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[1].name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.attr.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr.name = Ho",
-            "ServiceClass.attr_list_2[0].name = Ho",
-            "ServiceClass.attr_list_2[1].name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr.name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.attr_list_2[1].name changed to Ho" in caplog.text
+    caplog.clear()
 
 
-def test_nested_instance_list_attributes(capsys: CaptureFixture) -> None:
+def test_nested_instance_list_attributes(caplog: LogCaptureFixture) -> None:
     class SubSubClass(DataService):
         name = "Hello"
 
@@ -541,28 +402,15 @@ def test_nested_instance_list_attributes(capsys: CaptureFixture) -> None:
             super().__init__()
 
     service_instance = ServiceClass()
-    _ = capsys.readouterr()
 
     assert service_instance.attr[0].attr_list[0] == service_instance.class_attr
 
     service_instance.attr[0].attr_list[0].name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr[0].attr_list[0].name = Ho",
-            "ServiceClass.class_attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr[0].attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.class_attr.name changed to Ho" in caplog.text
+    caplog.clear()
 
     service_instance.class_attr.name = "Ho"
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "ServiceClass.attr[0].attr_list[0].name = Ho",
-            "ServiceClass.class_attr.name = Ho",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))
-    assert actual_output == expected_output
+    assert "ServiceClass.attr[0].attr_list[0].name changed to Ho" in caplog.text
+    assert "ServiceClass.class_attr.name changed to Ho" in caplog.text
+    caplog.clear()

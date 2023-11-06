@@ -1,13 +1,13 @@
 import logging
 
-from pytest import CaptureFixture
+from pytest import LogCaptureFixture
 
 import pydase
 
 logger = logging.getLogger()
 
 
-def test_DataService_task_callback(capsys: CaptureFixture) -> None:
+def test_DataService_task_callback(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         async def my_task(self) -> None:
             logger.info("Triggered task.")
@@ -19,18 +19,11 @@ def test_DataService_task_callback(capsys: CaptureFixture) -> None:
     service.start_my_task()  # type: ignore
     service.start_my_other_task()  # type: ignore
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "MyService.my_task = {}",
-            "MyService.my_other_task = {}",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert expected_output == actual_output
+    assert "MyService.my_task changed to {}" in caplog.text
+    assert "MyService.my_other_task changed to {}" in caplog.text
 
 
-def test_DataServiceList_task_callback(capsys: CaptureFixture) -> None:
+def test_DataServiceList_task_callback(caplog: LogCaptureFixture) -> None:
     class MySubService(pydase.DataService):
         async def my_task(self) -> None:
             logger.info("Triggered task.")
@@ -45,12 +38,5 @@ def test_DataServiceList_task_callback(capsys: CaptureFixture) -> None:
     service.sub_services_list[0].start_my_task()  # type: ignore
     service.sub_services_list[1].start_my_other_task()  # type: ignore
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "MyService.sub_services_list[0].my_task = {}",
-            "MyService.sub_services_list[1].my_other_task = {}",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert expected_output == actual_output
+    assert "MyService.sub_services_list[0].my_task changed to {}" in caplog.text
+    assert "MyService.sub_services_list[1].my_other_task changed to {}" in caplog.text

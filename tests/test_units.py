@@ -1,12 +1,12 @@
 from typing import Any
 
-from pytest import CaptureFixture
+from pytest import LogCaptureFixture
 
 import pydase.units as u
 from pydase.data_service.data_service import DataService
 
 
-def test_DataService_setattr(capsys: CaptureFixture) -> None:
+def test_DataService_setattr(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         voltage = 1.0 * u.units.V
         _current: u.Quantity = 1.0 * u.units.mA
@@ -28,31 +28,17 @@ def test_DataService_setattr(capsys: CaptureFixture) -> None:
 
     assert service.voltage == 10.0 * u.units.V  # type: ignore
     assert service.current == 1.5 * u.units.mA
-    captured = capsys.readouterr()
 
-    expected_output = sorted(
-        [
-            "ServiceClass.voltage = 10.0 V",
-            "ServiceClass.current = 1.5 mA",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.voltage changed to 10.0 V" in caplog.text
+    assert "ServiceClass.current changed to 1.5 mA" in caplog.text
 
     service.voltage = 12.0 * u.units.V  # type: ignore
     service.current = 1.51 * u.units.A
     assert service.voltage == 12.0 * u.units.V  # type: ignore
     assert service.current == 1.51 * u.units.A
-    captured = capsys.readouterr()
 
-    expected_output = sorted(
-        [
-            "ServiceClass.voltage = 12.0 V",
-            "ServiceClass.current = 1.51 A",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.voltage changed to 12.0 V" in caplog.text
+    assert "ServiceClass.current changed to 1.51 A" in caplog.text
 
 
 def test_convert_to_quantity() -> None:
@@ -62,7 +48,7 @@ def test_convert_to_quantity() -> None:
     assert u.convert_to_quantity(1.0 * u.units.mV) == 1.0 * u.units.mV
 
 
-def test_update_DataService_attribute(capsys: CaptureFixture) -> None:
+def test_update_DataService_attribute(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         voltage = 1.0 * u.units.V
         _current: u.Quantity = 1.0 * u.units.mA
@@ -80,39 +66,18 @@ def test_update_DataService_attribute(capsys: CaptureFixture) -> None:
     service.update_DataService_attribute(
         path_list=[], attr_name="voltage", value=1.0 * u.units.mV
     )
-    captured = capsys.readouterr()
 
-    expected_output = sorted(
-        [
-            "ServiceClass.voltage = 1.0 mV",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.voltage changed to 1.0 mV" in caplog.text
 
     service.update_DataService_attribute(path_list=[], attr_name="voltage", value=2)
-    captured = capsys.readouterr()
 
-    expected_output = sorted(
-        [
-            "ServiceClass.voltage = 2.0 mV",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.voltage changed to 2.0 mV" in caplog.text
 
     service.update_DataService_attribute(
         path_list=[], attr_name="voltage", value={"magnitude": 123, "unit": "kV"}
     )
-    captured = capsys.readouterr()
 
-    expected_output = sorted(
-        [
-            "ServiceClass.voltage = 123.0 kV",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.voltage changed to 123.0 kV" in caplog.text
 
 
 def test_autoconvert_offset_to_baseunit() -> None:
@@ -126,7 +91,7 @@ def test_autoconvert_offset_to_baseunit() -> None:
         assert False, f"Offset unit raises exception {exc}"
 
 
-def test_loading_from_json(capsys: CaptureFixture) -> None:
+def test_loading_from_json(caplog: LogCaptureFixture) -> None:
     """This function tests if the quantity read from the json description is actually
     passed as a quantity to the property setter."""
     JSON_DICT = {
@@ -156,12 +121,4 @@ def test_loading_from_json(capsys: CaptureFixture) -> None:
 
     service.load_DataService_from_JSON(JSON_DICT)
 
-    captured = capsys.readouterr()
-
-    expected_output = sorted(
-        [
-            "ServiceClass.some_unit = 10.0 A",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.some_unit changed to 10.0 A" in caplog.text
