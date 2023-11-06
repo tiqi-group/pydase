@@ -204,7 +204,7 @@ class Server:
             **kwargs,
         }
         self._state_manager = StateManager(self._service, filename)
-        if self._service._filename is not None:
+        if getattr(self._service, "_filename", None) is not None:
             self._service._state_manager = self._state_manager
         self._state_manager.load_state()
 

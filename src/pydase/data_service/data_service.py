@@ -41,7 +41,6 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, **kwargs: Any) -> None:
-        self._filename: Optional[str | Path] = None
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
 
@@ -60,7 +59,7 @@ class DataService(rpyc.Service, AbstractDataService):
                 DeprecationWarning,
                 stacklevel=2,
             )
-            self._filename = filename
+            self._filename: str | Path = filename
 
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()

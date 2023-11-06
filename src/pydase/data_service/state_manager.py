@@ -58,7 +58,7 @@ class StateManager:
     """
 
     def __init__(self, service: "DataService", filename: Optional[str | Path] = None):
-        self.filename = service._filename
+        self.filename = getattr(service, "_filename", None)
 
         if filename is not None:
             if self.filename is not None:

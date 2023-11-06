@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pydase.data_service.callback_manager import CallbackManager
@@ -15,4 +14,3 @@ class AbstractDataService(ABC):
     _task_manager: TaskManager
     _callback_manager: CallbackManager
     _autostart_tasks: dict[str, tuple[Any]]
-    _filename: Optional[str | Path]
