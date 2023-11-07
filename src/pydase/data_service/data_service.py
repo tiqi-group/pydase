@@ -12,7 +12,6 @@ from pydase.data_service.callback_manager import CallbackManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
-    generate_paths_from_DataService_dict,
     get_class_and_instance_attributes,
     get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
@@ -20,7 +19,7 @@ from pydase.utils.helpers import (
     parse_list_attr_and_index,
     update_value_if_changed,
 )
-from pydase.utils.serializer import Serializer
+from pydase.utils.serializer import Serializer, generate_paths_from_DataService_dict
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )

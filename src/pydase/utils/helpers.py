@@ -11,6 +11,7 @@ STANDARD_TYPES = (
     "float",
     "bool",
     "str",
+    "method",
     "Enum",
     "NoneType",
     "Quantity",
@@ -74,77 +75,6 @@ def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
             logger.debug(f"Attribute {part} does not exist in the object.")
             return None
     return target_obj
-
-
-def generate_paths_from_DataService_dict(
-    data: dict, parent_path: str = ""
-) -> list[str]:
-    """
-    Recursively generate paths from a dictionary representing a DataService object.
-
-    This function traverses through a nested dictionary, which is typically obtained
-    from serializing a DataService object. The function generates a list where each
-    element is a string representing the path to each terminal value in the original
-    dictionary.
-
-    The paths are represented as strings, with dots ('.') denoting nesting levels and
-    square brackets ('[]') denoting list indices.
-
-    Args:
-        data (dict): The input dictionary to generate paths from. This is typically
-        obtained from serializing a DataService object.
-        parent_path (str, optional): The current path up to the current level of
-        recursion. Defaults to ''.
-
-    Returns:
-        list[str]: A list with paths as elements.
-
-    Note:
-        The function ignores keys whose "type" is "method", as these represent methods
-        of the DataService object and not its state.
-
-    Example:
-    -------
-
-    >>> {
-    ...     "attr1": {"type": "int", "value": 10},
-    ...     "attr2": {
-    ...         "type": "list",
-    ...         "value": [{"type": "int", "value": 1}, {"type": "int", "value": 2}],
-    ...     },
-    ...     "add": {
-    ...         "type": "method",
-    ...         "async": False,
-    ...         "parameters": {"a": "float", "b": "int"},
-    ...         "doc": "Returns the sum of the numbers a and b.",
-    ...     },
-    ... }
-    >>> print(generate_paths_from_DataService_dict(nested_dict))
-    [attr1, attr2[0], attr2[1]]
-    """
-
-    paths = []
-    for key, value in data.items():
-        if value["type"] == "method":
-            # ignoring methods
-            continue
-        new_path = f"{parent_path}.{key}" if parent_path else key
-        if isinstance(value["value"], dict) and value["type"] != "Quantity":
-            paths.extend(generate_paths_from_DataService_dict(value["value"], new_path))  # type: ignore
-        elif isinstance(value["value"], list):
-            for index, item in enumerate(value["value"]):
-                indexed_key_path = f"{new_path}[{index}]"
-                if isinstance(item["value"], dict):
-                    paths.extend(  # type: ignore
-                        generate_paths_from_DataService_dict(
-                            item["value"], indexed_key_path
-                        )
-                    )
-                else:
-                    paths.append(indexed_key_path)  # type: ignore
-        else:
-            paths.append(new_path)  # type: ignore
-    return paths
 
 
 def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any] | None:
