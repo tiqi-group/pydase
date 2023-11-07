@@ -6,7 +6,7 @@ import pytest
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.utils.serializer import dump
+from pydase.utils.serializer import dump, update_serialization_dict
 
 
 @pytest.mark.parametrize(
@@ -286,3 +286,64 @@ def test_dict_serialization() -> None:
             "int_key": {"doc": None, "readonly": False, "type": "int", "value": 1},
         },
     }
+
+
+@pytest.fixture
+def setup_dict():
+    class MySubclass(pydase.DataService):
+        attr3 = 1.0
+        list_attr = [1.0, 1]
+
+    class ServiceClass(pydase.DataService):
+        attr1 = 1.0
+        attr2 = MySubclass()
+        attr_list = [0, 1, MySubclass()]
+
+    return ServiceClass().serialize()
+
+
+def test_update_attribute(setup_dict):
+    update_serialization_dict(setup_dict, "attr1", 15)
+    assert setup_dict["attr1"]["value"] == 15
+
+
+def test_update_nested_attribute(setup_dict):
+    update_serialization_dict(setup_dict, "attr2.attr3", 25.0)
+    assert setup_dict["attr2"]["value"]["attr3"]["value"] == 25.0
+
+
+def test_update_list_entry(setup_dict):
+    update_serialization_dict(setup_dict, "attr_list[1]", 20)
+    assert setup_dict["attr_list"]["value"][1]["value"] == 20
+
+
+def test_update_list_append(setup_dict, caplog: pytest.LogCaptureFixture):
+    update_serialization_dict(setup_dict, "attr_list[3]", 20)
+    assert setup_dict["attr_list"]["value"][3]["value"] == 20
+
+
+def test_update_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
+    update_serialization_dict(setup_dict, "attr_list[10]", 30)
+    assert (
+        "Error occured trying to change 'attr_list[10]': list index "
+        "out of range" in caplog.text
+    )
+
+
+def test_update_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
+    update_serialization_dict(setup_dict, "invalid_path", 30)
+    assert (
+        "Error occured trying to access the key 'invalid_path': it is either "
+        "not present in the current dictionary or its value does not contain "
+        "a 'value' key." in caplog.text
+    )
+
+
+def test_update_list_inside_class(setup_dict):
+    update_serialization_dict(setup_dict, "attr2.list_attr[1]", 40)
+    assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40
+
+
+def test_update_class_attribute_inside_list(setup_dict):
+    update_serialization_dict(setup_dict, "attr_list[2].attr3", 50)
+    assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50
