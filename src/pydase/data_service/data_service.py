@@ -13,13 +13,16 @@ from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     get_class_and_instance_attributes,
-    get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
     is_property_attribute,
     parse_list_attr_and_index,
     update_value_if_changed,
 )
-from pydase.utils.serializer import Serializer, generate_serialized_data_paths
+from pydase.utils.serializer import (
+    Serializer,
+    generate_serialized_data_paths,
+    get_nested_dict_by_path,
+)
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
@@ -165,21 +168,14 @@ class DataService(rpyc.Service, AbstractDataService):
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
         for path in generate_serialized_data_paths(json_dict):
-            value = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path
-            )
-            value_type = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path, key="type"
-            )
-            class_value_type = get_nested_value_from_DataService_by_path_and_key(
-                serialized_class, path=path, key="type"
-            )
+            nested_json_dict = get_nested_dict_by_path(json_dict, path)
+            value = nested_json_dict["value"]
+            value_type = nested_json_dict["type"]
+
+            nested_class_dict = get_nested_dict_by_path(serialized_class, path)
+            class_value_type = nested_class_dict.get("type", None)
             if class_value_type == value_type:
-                class_attr_is_read_only = (
-                    get_nested_value_from_DataService_by_path_and_key(
-                        serialized_class, path=path, key="readonly"
-                    )
-                )
+                class_attr_is_read_only = nested_class_dict["readonly"]
                 if class_attr_is_read_only:
                     logger.debug(
                         f'Attribute "{path}" is read-only. Ignoring value from JSON '

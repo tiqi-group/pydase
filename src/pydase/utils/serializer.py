@@ -241,23 +241,16 @@ def set_nested_value_by_path(
 
     parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
     current_dict: dict[str, Any] = serialization_dict
-    index: Optional[int] = None
 
     try:
         for path_part in parent_path_parts:
-            # Check if the key contains an index part like 'attr_name[<index>]'
-            path_part, index = parse_list_attr_and_index(path_part)
-
-            current_dict = get_nested_dict_by_attr_and_index(
-                current_dict, path_part, index, allow_append=False
+            current_dict = get_next_level_dict_by_key(
+                current_dict, path_part, allow_append=False
             )
             current_dict = current_dict["value"]
 
-            index = None
-
-        attr_name, index = parse_list_attr_and_index(attr_name)
-        current_dict = get_nested_dict_by_attr_and_index(
-            current_dict, attr_name, index, allow_append=True
+        current_dict = get_next_level_dict_by_key(
+            current_dict, attr_name, allow_append=True
         )
     except (SerializationPathError, SerializationValueError, KeyError) as e:
         logger.error(e)
@@ -272,10 +265,33 @@ def set_nested_value_by_path(
         current_dict.update(serialized_value)
 
 
-def get_nested_dict_by_attr_and_index(
+def get_nested_dict_by_path(
+    serialization_dict: dict[str, Any],
+    path: str,
+) -> dict[str, Any]:
+    parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
+    current_dict: dict[str, Any] = serialization_dict
+
+    try:
+        for path_part in parent_path_parts:
+            current_dict = get_next_level_dict_by_key(
+                current_dict, path_part, allow_append=False
+            )
+            current_dict = current_dict["value"]
+        current_dict = get_next_level_dict_by_key(
+            current_dict, attr_name, allow_append=False
+        )
+
+    except (SerializationPathError, SerializationValueError, KeyError) as e:
+        logger.error(e)
+        return {}
+
+    return current_dict
+
+
+def get_next_level_dict_by_key(
     serialization_dict: dict[str, Any],
     attr_name: str,
-    index: Optional[int],
     allow_append: bool = False,
 ) -> dict[str, Any]:
     """
@@ -284,8 +300,8 @@ def get_nested_dict_by_attr_and_index(
 
     Args:
         serialization_dict: The base dictionary representing serialized data.
-        attr_name: The key name representing the attribute in the dictionary.
-        index: The optional index for list items within the dictionary value.
+        attr_name: The key name representing the attribute in the dictionary,
+            e.g. 'list_attr[0]' or 'attr'
         allow_append: Flag to allow appending a new entry if `index` is out of range by
             one.
 
@@ -297,6 +313,8 @@ def get_nested_dict_by_attr_and_index(
                                 invalid or leads to an IndexError or KeyError.
         SerializationValueError: If the expected nested structure is not a dictionary.
     """
+    # Check if the key contains an index part like 'attr_name[<index>]'
+    attr_name, index = parse_list_attr_and_index(attr_name)
 
     try:
         if index is not None:

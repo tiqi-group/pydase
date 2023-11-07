@@ -1,22 +1,9 @@
 import inspect
 import logging
-import re
 from itertools import chain
-from typing import Any, Optional, cast
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
-
-STANDARD_TYPES = (
-    "int",
-    "float",
-    "bool",
-    "str",
-    "method",
-    "Enum",
-    "NoneType",
-    "Quantity",
-    "ColouredEnum",
-)
 
 
 def get_attribute_doc(attr: Any) -> Optional[str]:
@@ -75,142 +62,6 @@ def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
             logger.debug(f"Attribute {part} does not exist in the object.")
             return None
     return target_obj
-
-
-def extract_dict_or_list_entry(data: dict[str, Any], key: str) -> dict[str, Any] | None:
-    """
-    Extract a nested dictionary or list entry based on the provided key.
-
-    Given a dictionary and a key, this function retrieves the corresponding nested
-    dictionary or list entry. If the key includes an index in the format "[<index>]",
-    the function assumes that the corresponding entry in the dictionary is a list, and
-    it will attempt to retrieve the indexed item from that list.
-
-    Args:
-        data (dict): The input dictionary containing nested dictionaries or lists.
-        key (str): The key specifying the desired entry within the dictionary. The key
-            can be a regular dictionary key or can include an index in the format
-            "[<index>]" to retrieve an item from a nested list.
-
-    Returns:
-        dict | None: The nested dictionary or list item found for the given key. If the
-            key is invalid, or if the specified index is out of bounds for a list, it
-            returns None.
-
-    Example:
-        >>> data = {
-        ...     "attr1": [
-        ...         {"type": "int", "value": 10}, {"type": "string", "value": "hello"}
-        ...     ],
-        ...     "attr2": {
-        ...         "type": "MyClass",
-        ...         "value": {"sub_attr": {"type": "float", "value": 20.5}}
-        ...     }
-        ... }
-
-        >>> extract_dict_or_list_entry(data, "attr1[1]")
-        {"type": "string", "value": "hello"}
-
-        >>> extract_dict_or_list_entry(data, "attr2")
-        {"type": "MyClass", "value": {"sub_attr": {"type": "float", "value": 20.5}}}
-    """
-
-    attr_name = key
-    index: Optional[int] = None
-
-    # Check if the key contains an index part like '[<index>]'
-    if "[" in key and key.endswith("]"):
-        attr_name, index_part = key.split("[", 1)
-        index_part = index_part.rstrip("]")  # remove the closing bracket
-
-        # Convert the index part to an integer
-        if index_part.isdigit():
-            index = int(index_part)
-        else:
-            logger.error(f"Invalid index format in key: {key}")
-
-    current_data: dict[str, Any] | list[dict[str, Any]] | None = data.get(
-        attr_name, None
-    )
-    if not isinstance(current_data, dict):
-        # key does not exist in dictionary, e.g. when class does not have this
-        # attribute
-        return None
-
-    if isinstance(current_data["value"], list):
-        current_data = current_data["value"]
-
-        if index is not None and 0 <= index < len(current_data):
-            current_data = current_data[index]
-        else:
-            return None
-
-    # When the attribute is a class instance, the attributes are nested in the
-    # "value" key
-    if current_data["type"] not in STANDARD_TYPES:
-        current_data = cast(dict[str, Any], current_data.get("value", None))  # type: ignore
-        assert isinstance(current_data, dict)
-
-    return current_data
-
-
-def get_nested_value_from_DataService_by_path_and_key(
-    data: dict[str, Any], path: str, key: str = "value"
-) -> Any:
-    """
-    Get the value associated with a specific key from a dictionary given a path.
-
-    This function traverses the dictionary according to the path provided and
-    returns the value associated with the specified key at that path. The path is
-    a string with dots connecting the levels and brackets indicating list indices.
-
-    The function can handle complex dictionaries where data is nested within different
-    types of objects. It checks the type of each object it encounters and correctly
-    descends into the object if it is not a standard type (i.e., int, float, bool, str,
-    Enum).
-
-    Args:
-        data (dict): The input dictionary to get the value from.
-        path (str): The path to the value in the dictionary.
-        key (str, optional): The key associated with the value to be returned.
-                             Default is "value".
-
-    Returns:
-        Any: The value associated with the specified key at the given path in the
-        dictionary.
-
-    Examples:
-        Let's consider the following dictionary:
-
-        >>> data = {
-        >>>     "attr1": {"type": "int", "value": 10},
-        >>>     "attr2": {
-                    "type": "MyClass",
-                    "value": {"attr3": {"type": "float", "value": 20.5}}
-                }
-        >>> }
-
-        The function can be used to get the value of 'attr1' as follows:
-        >>> get_nested_value_by_path_and_key(data, "attr1")
-        10
-
-        It can also be used to get the value of 'attr3', which is nested within 'attr2',
-        as follows:
-        >>> get_nested_value_by_path_and_key(data, "attr2.attr3", "type")
-        float
-    """
-
-    # Split the path into parts
-    parts: list[str] = re.split(r"\.", path)  # Split by '.'
-    current_data: dict[str, Any] | None = data
-
-    for part in parts:
-        if current_data is None:
-            return
-        current_data = extract_dict_or_list_entry(current_data, part)
-
-    if isinstance(current_data, dict):
-        return current_data.get(key, None)
 
 
 def convert_arguments_to_hinted_types(

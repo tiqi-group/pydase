@@ -6,7 +6,12 @@ import pytest
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.utils.serializer import dump, set_nested_value_by_path
+from pydase.utils.serializer import (
+    SerializationPathError,
+    dump,
+    get_next_level_dict_by_key,
+    set_nested_value_by_path,
+)
 
 
 @pytest.mark.parametrize(
@@ -347,3 +352,25 @@ def test_update_list_inside_class(setup_dict):
 def test_update_class_attribute_inside_list(setup_dict):
     set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50
+
+
+def test_get_attribute_nested_dict(setup_dict):
+    nested_dict = get_next_level_dict_by_key(setup_dict, "attr1")
+    assert nested_dict == setup_dict["attr1"]
+
+
+def test_get_list_entry_nested_dict(setup_dict):
+    nested_dict = get_next_level_dict_by_key(setup_dict, "attr_list[0]")
+    assert nested_dict == setup_dict["attr_list"]["value"][0]
+
+
+def test_get_invalid_path_nested_dict(setup_dict):
+    with pytest.raises(SerializationPathError):
+        get_next_level_dict_by_key(setup_dict, "invalid_path")
+
+
+def test_get_invalid_list_index(setup_dict):
+    with pytest.raises(SerializationPathError):
+        get_next_level_dict_by_key(setup_dict, "attr_list[10]")
+
+

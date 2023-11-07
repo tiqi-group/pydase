@@ -6,8 +6,10 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 
 import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
-from pydase.utils.helpers import get_nested_value_from_DataService_by_path_and_key
-from pydase.utils.serializer import generate_serialized_data_paths
+from pydase.utils.serializer import (
+    generate_serialized_data_paths,
+    get_nested_dict_by_path,
+)
 
 if TYPE_CHECKING:
     from pydase import DataService
@@ -102,21 +104,14 @@ class StateManager:
 
         serialized_class = self.cache
         for path in generate_serialized_data_paths(json_dict):
-            value = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path
-            )
-            value_type = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path, key="type"
-            )
-            class_value_type = get_nested_value_from_DataService_by_path_and_key(
-                serialized_class, path=path, key="type"
-            )
+            nested_json_dict = get_nested_dict_by_path(json_dict, path)
+            value = nested_json_dict["value"]
+            value_type = nested_json_dict["type"]
+
+            nested_class_dict = get_nested_dict_by_path(serialized_class, path)
+            class_value_type = nested_class_dict.get("type", None)
             if class_value_type == value_type:
-                class_attr_is_read_only = (
-                    get_nested_value_from_DataService_by_path_and_key(
-                        serialized_class, path=path, key="readonly"
-                    )
-                )
+                class_attr_is_read_only = nested_class_dict["readonly"]
                 if class_attr_is_read_only:
                     logger.debug(
                         f"Attribute {path!r} is read-only. Ignoring value from JSON "
