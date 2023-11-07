@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from urllib.request import urlopen
 
-import PIL.Image
+import PIL.Image  # type: ignore
 
 from pydase.data_service.data_service import DataService
 

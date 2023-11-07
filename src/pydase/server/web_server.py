@@ -2,13 +2,14 @@ import logging
 from pathlib import Path
 from typing import Any, TypedDict
 
-import socketio
+import socketio  # type: ignore
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase import DataService
+from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -50,6 +51,7 @@ class WebAPI:
     def __init__(  # noqa: CFQ002
         self,
         service: DataService,
+        state_manager: StateManager,
         frontend: str | Path | None = None,
         css: str | Path | None = None,
         enable_CORS: bool = True,
@@ -58,6 +60,7 @@ class WebAPI:
         **kwargs: Any,
     ):
         self.service = service
+        self.state_manager = state_manager
         self.frontend = frontend
         self.css = css
         self.enable_CORS = enable_CORS
@@ -114,13 +117,13 @@ class WebAPI:
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
-            return self.service.serialize()
+            return self.state_manager.cache
 
         # exposing custom.css file provided by user
         if self.css is not None:
 
             @app.get("/custom.css")
-            async def styles():
+            async def styles() -> FileResponse:
                 return FileResponse(str(self.css))
 
         app.mount(

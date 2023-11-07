@@ -5,18 +5,17 @@ import signal
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
+from pathlib import Path
 from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from rpyc import (
-    ForkingServer,  # can be used for multiprocessing, e.g. a database interface server
-)
-from rpyc import ThreadedServer
+from rpyc import ForkingServer, ThreadedServer  # type: ignore
 from uvicorn.server import HANDLED_SIGNALS
 
 import pydase.units as u
 from pydase import DataService
+from pydase.data_service.state_manager import StateManager
 from pydase.version import __version__
 
 from .web_server import WebAPI
@@ -47,13 +46,22 @@ class AdditionalServerProtocol(Protocol):
         The hostname or IP address at which the server will be hosted. This could be a
         local address (like '127.0.0.1' for localhost) or a public IP address.
 
+    state_manager: StateManager
+        The state manager managing the state cache and persistence of the exposed
+        service.
+
     **kwargs: Any
         Any additional parameters required for initializing the server. These parameters
         are specific to the server's implementation.
     """
 
     def __init__(
-        self, service: DataService, port: int, host: str, **kwargs: Any
+        self,
+        service: DataService,
+        port: int,
+        host: str,
+        state_manager: StateManager,
+        **kwargs: Any,
     ) -> None:
         ...
 
@@ -98,9 +106,10 @@ class Server:
         Whether to enable the RPC server. Default is True.
     enable_web: bool
         Whether to enable the web server. Default is True.
+    filename: str | Path | None
+        Filename of the file managing the service state persistence. Defaults to None.
     use_forking_server: bool
-        Whether to use ForkingServer for multiprocessing (e.g. for a database interface
-        server). Default is False.
+        Whether to use ForkingServer for multiprocessing. Default is False.
     web_settings: dict[str, Any]
         Additional settings for the web server. Default is {} (an empty dictionary).
     additional_servers : list[AdditionalServer]
@@ -120,9 +129,15 @@ class Server:
 
         >>>     class MyCustomServer:
         ...         def __init__(
-        ...             self, service: DataService, port: int, host: str, **kwargs: Any
+        ...             self,
+        ...             service: DataService,
+        ...             port: int,
+        ...             host: str,
+        ...             state_manager: StateManager,
+        ...             **kwargs: Any
         ...         ):
         ...             self.service = service
+        ...             self.state_manager = state_manager
         ...             self.port = port
         ...             self.host = host
         ...             # handle any additional arguments...
@@ -157,6 +172,7 @@ class Server:
         web_port: int = 8001,
         enable_rpc: bool = True,
         enable_web: bool = True,
+        filename: Optional[str | Path] = None,
         use_forking_server: bool = False,
         web_settings: dict[str, Any] = {},
         additional_servers: list[AdditionalServer] = [],
@@ -187,6 +203,10 @@ class Server:
             "additional_servers": [],
             **kwargs,
         }
+        self._state_manager = StateManager(self._service, filename)
+        if getattr(self._service, "_filename", None) is not None:
+            self._service._state_manager = self._state_manager
+        self._state_manager.load_state()
 
     def run(self) -> None:
         """
@@ -249,6 +269,7 @@ class Server:
                 self._service,
                 port=server["port"],
                 host=self._host,
+                state_manager=self._state_manager,
                 info=self._info,
                 **server["kwargs"],
             )
@@ -271,6 +292,7 @@ class Server:
             self._wapi: WebAPI = WebAPI(
                 service=self._service,
                 info=self._info,
+                state_manager=self._state_manager,
                 **self._kwargs,
             )
             web_server = uvicorn.Server(
@@ -322,9 +344,9 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
-        logger.info(f"Saving data to {self._service._filename}.")
-        if self._service._filename is not None:
-            self._service.write_to_file()
+        logger.info(f"Saving data to {self._state_manager.filename}.")
+        if self._state_manager is not None:
+            self._state_manager.save_state()
 
         await self.__cancel_servers()
         await self.__cancel_tasks()

@@ -4,9 +4,9 @@ from abc import ABC
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from .callback_manager import CallbackManager
-    from .data_service import DataService
-    from .task_manager import TaskManager
+    from pydase.data_service.callback_manager import CallbackManager
+    from pydase.data_service.data_service import DataService
+    from pydase.data_service.task_manager import TaskManager
 
 
 class AbstractDataService(ABC):

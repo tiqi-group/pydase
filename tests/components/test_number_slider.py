@@ -4,7 +4,7 @@ from pydase.components.number_slider import NumberSlider
 from pydase.data_service.data_service import DataService
 
 
-def test_NumberSlider(capsys: CaptureFixture) -> None:
+def test_NumberSlider(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         number_slider = NumberSlider(1, 0, 10, 1)
         int_number_slider = NumberSlider(1, 0, 10, 1, "int")
@@ -28,28 +28,13 @@ def test_NumberSlider(capsys: CaptureFixture) -> None:
     service.number_slider.value = 10.0
     service.int_number_slider.value = 10.1
 
-    captured = capsys.readouterr()
-
-    expected_output = sorted(
-        [
-            "ServiceClass.number_slider.value = 10.0",
-            "ServiceClass.int_number_slider.value = 10",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.number_slider.value changed to 10.0" in caplog.text
+    assert "ServiceClass.int_number_slider.value changed to 10" in caplog.text
+    caplog.clear()
 
     service.number_slider.min = 1.1
 
-    captured = capsys.readouterr()
-
-    expected_output = sorted(
-        [
-            "ServiceClass.number_slider.min = 1.1",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.number_slider.min changed to 1.1" in caplog.text
 
 
 def test_init_error(caplog: LogCaptureFixture) -> None:  # noqa

@@ -1,13 +1,13 @@
 import logging
 
-from pytest import CaptureFixture
+from pytest import LogCaptureFixture
 
 import pydase
 
 logger = logging.getLogger()
 
 
-def test_autostart_task_callback(capsys: CaptureFixture) -> None:
+def test_autostart_task_callback(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         def __init__(self) -> None:
             self._autostart_tasks = {  # type: ignore
@@ -25,18 +25,13 @@ def test_autostart_task_callback(capsys: CaptureFixture) -> None:
     service = MyService()
     service._task_manager.start_autostart_tasks()
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "MyService.my_task = {}",
-            "MyService.my_other_task = {}",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert expected_output == actual_output
+    assert "MyService.my_task changed to {}" in caplog.text
+    assert "MyService.my_other_task changed to {}" in caplog.text
 
 
-def test_DataService_subclass_autostart_task_callback(capsys: CaptureFixture) -> None:
+def test_DataService_subclass_autostart_task_callback(
+    caplog: LogCaptureFixture,
+) -> None:
     class MySubService(pydase.DataService):
         def __init__(self) -> None:
             self._autostart_tasks = {  # type: ignore
@@ -57,19 +52,12 @@ def test_DataService_subclass_autostart_task_callback(capsys: CaptureFixture) ->
     service = MyService()
     service._task_manager.start_autostart_tasks()
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "MyService.sub_service.my_task = {}",
-            "MyService.sub_service.my_other_task = {}",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert expected_output == actual_output
+    assert "MyService.sub_service.my_task changed to {}" in caplog.text
+    assert "MyService.sub_service.my_other_task changed to {}" in caplog.text
 
 
 def test_DataServiceList_subclass_autostart_task_callback(
-    capsys: CaptureFixture,
+    caplog: LogCaptureFixture,
 ) -> None:
     class MySubService(pydase.DataService):
         def __init__(self) -> None:
@@ -91,14 +79,7 @@ def test_DataServiceList_subclass_autostart_task_callback(
     service = MyService()
     service._task_manager.start_autostart_tasks()
 
-    captured = capsys.readouterr()
-    expected_output = sorted(
-        [
-            "MyService.sub_services_list[0].my_task = {}",
-            "MyService.sub_services_list[0].my_other_task = {}",
-            "MyService.sub_services_list[1].my_task = {}",
-            "MyService.sub_services_list[1].my_other_task = {}",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert expected_output == actual_output
+    assert "MyService.sub_services_list[0].my_task changed to {}" in caplog.text
+    assert "MyService.sub_services_list[0].my_other_task changed to {}" in caplog.text
+    assert "MyService.sub_services_list[1].my_task changed to {}" in caplog.text
+    assert "MyService.sub_services_list[1].my_other_task changed to {}" in caplog.text

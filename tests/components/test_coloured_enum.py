@@ -1,10 +1,10 @@
-from pytest import CaptureFixture, LogCaptureFixture
+from pytest import LogCaptureFixture
 
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.data_service import DataService
 
 
-def test_ColouredEnum(capsys: CaptureFixture) -> None:
+def test_ColouredEnum(caplog: LogCaptureFixture) -> None:
     class MyStatus(ColouredEnum):
         RUNNING = "#00FF00"
         FAILING = "#FF0000"
@@ -25,15 +25,7 @@ def test_ColouredEnum(capsys: CaptureFixture) -> None:
 
     service.status = MyStatus.FAILING
 
-    captured = capsys.readouterr()
-
-    expected_output = sorted(
-        [
-            "ServiceClass.status = MyStatus.FAILING",
-        ]
-    )
-    actual_output = sorted(captured.out.strip().split("\n"))  # type: ignore
-    assert actual_output == expected_output
+    assert "ServiceClass.status changed to MyStatus.FAILING" in caplog.text
 
 
 def test_warning(caplog: LogCaptureFixture) -> None:  # noqa

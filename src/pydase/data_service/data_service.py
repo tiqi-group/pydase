@@ -1,10 +1,10 @@
-import json
 import logging
-import os
+import warnings
 from enum import Enum
-from typing import Any, Optional, cast, get_type_hints
+from pathlib import Path
+from typing import Any, Optional, get_type_hints
 
-import rpyc
+import rpyc  # type: ignore
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -12,15 +12,17 @@ from pydase.data_service.callback_manager import CallbackManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
-    generate_paths_from_DataService_dict,
     get_class_and_instance_attributes,
-    get_nested_value_from_DataService_by_path_and_key,
     get_object_attr_from_path,
     is_property_attribute,
     parse_list_attr_and_index,
     update_value_if_changed,
 )
-from pydase.utils.serialization import Serializer
+from pydase.utils.serializer import (
+    Serializer,
+    generate_serialized_data_paths,
+    get_nested_dict_by_path,
+)
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
@@ -40,7 +42,7 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 
 class DataService(rpyc.Service, AbstractDataService):
-    def __init__(self, filename: Optional[str] = None) -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self._callback_manager: CallbackManager = CallbackManager(self)
         self._task_manager = TaskManager(self)
 
@@ -51,12 +53,19 @@ class DataService(rpyc.Service, AbstractDataService):
         """Keep track of the root object. This helps to filter the emission of
         notifications."""
 
-        self._filename: Optional[str] = filename
+        filename = kwargs.pop("filename", None)
+        if filename is not None:
+            warnings.warn(
+                "The 'filename' argument is deprecated and will be removed in a future version. "
+                "Please pass the 'filename' argument to `pydase.Server`.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._filename: str | Path = filename
 
         self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
-        self._load_values_from_json()
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # converting attributes that are not properties
@@ -129,50 +138,44 @@ class DataService(rpyc.Service, AbstractDataService):
         # allow all other attributes
         setattr(self, name, value)
 
-    def _load_values_from_json(self) -> None:
-        if self._filename is not None:
-            # Check if the file specified by the filename exists
-            if os.path.exists(self._filename):
-                with open(self._filename, "r") as f:
-                    # Load JSON data from file and update class attributes with these
-                    # values
-                    self.load_DataService_from_JSON(cast(dict[str, Any], json.load(f)))
-
     def write_to_file(self) -> None:
         """
         Serialize the DataService instance and write it to a JSON file.
 
-        Args:
-            filename (str): The name of the file to write to.
+        This method is deprecated and will be removed in a future version.
+        Service persistence is handled by `pydase.Server` now, instead.
         """
-        if self._filename is not None:
-            with open(self._filename, "w") as f:
-                json.dump(self.serialize(), f, indent=4)
-        else:
-            logger.error(
-                f"Class {self.__class__.__name__} was not initialised with a filename. "
-                'Skipping "write_to_file"...'
-            )
+
+        warnings.warn(
+            "'write_to_file' is deprecated and will be removed in a future version. "
+            "Service persistence is handled by `pydase.Server` now, instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        if hasattr(self, "_state_manager"):
+            getattr(self, "_state_manager").save_state()
 
     def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
+        warnings.warn(
+            "'load_DataService_from_JSON' is deprecated and will be removed in a "
+            "future version. "
+            "Service persistence is handled by `pydase.Server` now, instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
-        for path in generate_paths_from_DataService_dict(json_dict):
-            value = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path
-            )
-            value_type = get_nested_value_from_DataService_by_path_and_key(
-                json_dict, path=path, key="type"
-            )
-            class_value_type = get_nested_value_from_DataService_by_path_and_key(
-                serialized_class, path=path, key="type"
-            )
+        for path in generate_serialized_data_paths(json_dict):
+            nested_json_dict = get_nested_dict_by_path(json_dict, path)
+            value = nested_json_dict["value"]
+            value_type = nested_json_dict["type"]
+
+            nested_class_dict = get_nested_dict_by_path(serialized_class, path)
+            class_value_type = nested_class_dict.get("type", None)
             if class_value_type == value_type:
-                class_attr_is_read_only = (
-                    get_nested_value_from_DataService_by_path_and_key(
-                        serialized_class, path=path, key="readonly"
-                    )
-                )
+                class_attr_is_read_only = nested_class_dict["readonly"]
                 if class_attr_is_read_only:
                     logger.debug(
                         f'Attribute "{path}" is read-only. Ignoring value from JSON '
