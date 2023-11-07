@@ -9,6 +9,7 @@ from pydase.components.coloured_enum import ColouredEnum
 from pydase.utils.serializer import (
     SerializationPathError,
     dump,
+    get_nested_dict_by_path,
     get_next_level_dict_by_key,
     set_nested_value_by_path,
 )
@@ -322,7 +323,7 @@ def test_update_list_entry(setup_dict):
     assert setup_dict["attr_list"]["value"][1]["value"] == 20
 
 
-def test_update_list_append(setup_dict, caplog: pytest.LogCaptureFixture):
+def test_update_list_append(setup_dict):
     set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
     assert setup_dict["attr_list"]["value"][3]["value"] == 20
 
@@ -354,23 +355,63 @@ def test_update_class_attribute_inside_list(setup_dict):
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50
 
 
-def test_get_attribute_nested_dict(setup_dict):
+def test_get_next_level_attribute_nested_dict(setup_dict):
     nested_dict = get_next_level_dict_by_key(setup_dict, "attr1")
     assert nested_dict == setup_dict["attr1"]
 
 
-def test_get_list_entry_nested_dict(setup_dict):
+def test_get_next_level_list_entry_nested_dict(setup_dict):
     nested_dict = get_next_level_dict_by_key(setup_dict, "attr_list[0]")
     assert nested_dict == setup_dict["attr_list"]["value"][0]
 
 
-def test_get_invalid_path_nested_dict(setup_dict):
+def test_get_next_level_invalid_path_nested_dict(setup_dict):
     with pytest.raises(SerializationPathError):
         get_next_level_dict_by_key(setup_dict, "invalid_path")
 
 
-def test_get_invalid_list_index(setup_dict):
+def test_get_next_level_invalid_list_index(setup_dict):
     with pytest.raises(SerializationPathError):
         get_next_level_dict_by_key(setup_dict, "attr_list[10]")
 
 
+def test_get_attribute(setup_dict):
+    nested_dict = get_nested_dict_by_path(setup_dict, "attr1")
+    assert nested_dict["value"] == 1.0
+
+
+def test_get_nested_attribute(setup_dict):
+    nested_dict = get_nested_dict_by_path(setup_dict, "attr2.attr3")
+    assert nested_dict["value"] == 1.0
+
+
+def test_get_list_entry(setup_dict):
+    nested_dict = get_nested_dict_by_path(setup_dict, "attr_list[1]")
+    assert nested_dict["value"] == 1
+
+
+def test_get_list_inside_class(setup_dict):
+    nested_dict = get_nested_dict_by_path(setup_dict, "attr2.list_attr[1]")
+    assert nested_dict["value"] == 1.0
+
+
+def test_get_class_attribute_inside_list(setup_dict):
+    nested_dict = get_nested_dict_by_path(setup_dict, "attr_list[2].attr3")
+    assert nested_dict["value"] == 1.0
+
+
+def test_get_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
+    get_nested_dict_by_path(setup_dict, "attr_list[10]")
+    assert (
+        "Error occured trying to change 'attr_list[10]': list index "
+        "out of range" in caplog.text
+    )
+
+
+def test_get_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
+    get_nested_dict_by_path(setup_dict, "invalid_path")
+    assert (
+        "Error occured trying to access the key 'invalid_path': it is either "
+        "not present in the current dictionary or its value does not contain "
+        "a 'value' key." in caplog.text
+    )
