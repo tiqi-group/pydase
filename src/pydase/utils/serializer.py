@@ -7,7 +7,6 @@ from typing import Any, Optional
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import (
-    STANDARD_TYPES,
     get_attribute_doc,
     get_component_class_names,
     parse_list_attr_and_index,
@@ -15,6 +14,13 @@ from pydase.utils.helpers import (
 
 logger = logging.getLogger(__name__)
 
+
+class SerializationPathError(Exception):
+    pass
+
+
+class SerializationValueError(Exception):
+    pass
 
 
 class Serializer:
@@ -206,78 +212,108 @@ class Serializer:
             "doc": doc,
         }
 
-    @staticmethod
-    def update_serialization_dict(
-        serialization_dict: dict[str, Any], path: str, value: Any
-    ) -> None:
-        """
-        Set the value associated with a specific key in a dictionary given a path.
 
-        This function traverses the dictionary according to the path provided and
-        sets the value at that path. The path is a string with dots connecting
-        the levels and brackets indicating list indices.
+def update_serialization_dict(
+    serialization_dict: dict[str, Any], path: str, value: Any
+) -> None:
+    """
+    Set the value associated with a specific key in a dictionary given a path.
 
-        Args:
-            data_dict (dict): The cache dictionary to set the value in.
-            path (str): The path to where the value should be set in the dictionary.
-            value (Any): The value to be set at the specified path in the dictionary.
+    This function traverses the dictionary according to the path provided and
+    sets the value at that path. The path is a string with dots connecting
+    the levels and brackets indicating list indices.
 
-        Examples:
-            Let's consider the following dictionary:
+    Args:
+        data_dict (dict): The cache dictionary to set the value in.
+        path (str): The path to where the value should be set in the dictionary.
+        value (Any): The value to be set at the specified path in the dictionary.
 
-            cache = {
-                "attr1": {"type": "int", "value": 10},
-                "attr2": {
-                    "type": "MyClass",
-                    "value": {"attr3": {"type": "float", "value": 20.5}}
-                }
+    Examples:
+        Let's consider the following dictionary:
+
+        cache = {
+            "attr1": {"type": "int", "value": 10},
+            "attr2": {
+                "type": "MyClass",
+                "value": {"attr3": {"type": "float", "value": 20.5}}
             }
+        }
 
-            The function can be used to set the value of 'attr1' as follows:
-            set_nested_value_in_cache(cache, "attr1", 15)
+        The function can be used to set the value of 'attr1' as follows:
+        set_nested_value_in_cache(cache, "attr1", 15)
 
-            It can also be used to set the value of 'attr3', which is nested within
-            'attr2', as follows:
-            set_nested_value_in_cache(cache, "attr2.attr3", 25.0)
-        """
+        It can also be used to set the value of 'attr3', which is nested within
+        'attr2', as follows:
+        set_nested_value_in_cache(cache, "attr2.attr3", 25.0)
+    """
 
-        parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
-        current_dict: dict[str, Any] = serialization_dict
-        index: Optional[int] = None
+    parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
+    current_dict: dict[str, Any] = serialization_dict
+    index: Optional[int] = None
 
-        for path_part in parts:
+    try:
+        for path_part in parent_path_parts:
             # Check if the key contains an index part like 'attr_name[<index>]'
             path_part, index = parse_list_attr_and_index(path_part)
 
-            current_dict = cast(dict[str, Any], current_dict.get(path_part, None))
-
-            if not isinstance(current_dict, dict):
-                # key does not exist in dictionary, e.g. when class does not have this
-                # attribute
-                return
-
-            if index is not None:
-                try:
-                    current_dict = cast(dict[str, Any], current_dict["value"][index])
-                except Exception as e:
-                    # TODO: appending to a list will probably be done here
-                    logger.error(f"Could not change {path}... {e}")
-                    return
-
-            # When the attribute is a class instance, the attributes are nested in the
-            # "value" key
-            if (
-                current_dict["type"] not in STANDARD_TYPES
-                and current_dict["type"] != "method"
-            ):
-                current_dict = cast(dict[str, Any], current_dict.get("value", None))  # type: ignore
+            current_dict = get_dict_from_attr_name_and_index(
+                current_dict, path_part, index, allow_append=False
+            )
+            current_dict = current_dict["value"]
 
             index = None
 
-        # setting the new value
-        serialized_value = dump(value)
-        current_dict[attr_name]["value"] = serialized_value["value"]
-        current_dict[attr_name]["type"] = serialized_value["type"]
+        attr_name, index = parse_list_attr_and_index(attr_name)
+        current_dict = get_dict_from_attr_name_and_index(
+            current_dict, attr_name, index, allow_append=True
+        )
+    except (SerializationPathError, SerializationValueError, KeyError) as e:
+        logger.error(e)
+        return
+
+    # setting the new value
+    serialized_value = dump(value)
+    if "readonly" in current_dict:
+        current_dict["value"] = serialized_value["value"]
+        current_dict["type"] = serialized_value["type"]
+    else:
+        current_dict.update(serialized_value)
+
+
+def get_dict_from_attr_name_and_index(
+    serialization_dict: dict[str, Any],
+    attr_name: str,
+    index: Optional[int],
+    allow_append: bool = False,
+) -> dict[str, Any]:
+    try:
+        if index is not None:
+            serialization_dict = serialization_dict[attr_name]["value"][index]
+        else:
+            serialization_dict = serialization_dict[attr_name]
+    except IndexError as e:
+        if allow_append and index == len(serialization_dict[attr_name]["value"]):
+            # Appending to list
+            serialization_dict[attr_name]["value"].append({})
+            serialization_dict = serialization_dict[attr_name]["value"][index]
+        else:
+            raise SerializationPathError(
+                f"Error occured trying to change '{attr_name}[{index}]': {e}"
+            )
+    except KeyError:
+        raise SerializationPathError(
+            f"Error occured trying to access the key '{attr_name}': it is either "
+            "not present in the current dictionary or its value does not contain "
+            "a 'value' key."
+        )
+
+    if not isinstance(serialization_dict, dict):
+        raise SerializationValueError(
+            f"Expected a dictionary at '{attr_name}', but found type "
+            f"'{type(serialization_dict).__name__}' instead."
+        )
+
+    return serialization_dict
 
 
 def dump(obj: Any) -> dict[str, Any]:
