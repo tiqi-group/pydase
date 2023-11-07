@@ -1,3 +1,4 @@
+import inspect
 import logging
 import re
 from itertools import chain
@@ -15,6 +16,16 @@ STANDARD_TYPES = (
     "Quantity",
     "ColouredEnum",
 )
+
+
+def get_attribute_doc(attr: Any) -> Optional[str]:
+    """This function takes an input attribute attr and returns its documentation
+    string if it's different from the documentation of its type, otherwise,
+    it returns None.
+    """
+    attr_doc = inspect.getdoc(attr)
+    attr_class_doc = inspect.getdoc(type(attr))
+    return attr_doc if attr_class_doc != attr_doc else None
 
 
 def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
