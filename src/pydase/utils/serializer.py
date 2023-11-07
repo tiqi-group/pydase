@@ -213,38 +213,26 @@ class Serializer:
         }
 
 
-def update_serialization_dict(
+def set_nested_value_by_path(
     serialization_dict: dict[str, Any], path: str, value: Any
 ) -> None:
     """
-    Set the value associated with a specific key in a dictionary given a path.
-
-    This function traverses the dictionary according to the path provided and
-    sets the value at that path. The path is a string with dots connecting
-    the levels and brackets indicating list indices.
+    Set a value in a nested dictionary structure, which conforms to the serialization
+    format used by `pydase.utils.serializer.Serializer`, using a dot-notation path.
 
     Args:
-        data_dict (dict): The cache dictionary to set the value in.
-        path (str): The path to where the value should be set in the dictionary.
-        value (Any): The value to be set at the specified path in the dictionary.
+        serialization_dict:
+            The base dictionary representing data serialized with
+            `pydase.utils.serializer.Serializer`.
+        path:
+            The dot-notation path (e.g., 'attr1.attr2[0].attr3') indicating where to
+            set the value.
+        value:
+            The new value to set at the specified path.
 
-    Examples:
-        Let's consider the following dictionary:
-
-        cache = {
-            "attr1": {"type": "int", "value": 10},
-            "attr2": {
-                "type": "MyClass",
-                "value": {"attr3": {"type": "float", "value": 20.5}}
-            }
-        }
-
-        The function can be used to set the value of 'attr1' as follows:
-        set_nested_value_in_cache(cache, "attr1", 15)
-
-        It can also be used to set the value of 'attr3', which is nested within
-        'attr2', as follows:
-        set_nested_value_in_cache(cache, "attr2.attr3", 25.0)
+    Note:
+        - If the index equals the length of the list, the function will append the
+          serialized representation of the 'value' to the list.
     """
 
     parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
@@ -256,7 +244,7 @@ def update_serialization_dict(
             # Check if the key contains an index part like 'attr_name[<index>]'
             path_part, index = parse_list_attr_and_index(path_part)
 
-            current_dict = get_dict_from_attr_name_and_index(
+            current_dict = get_nested_dict_by_attr_and_index(
                 current_dict, path_part, index, allow_append=False
             )
             current_dict = current_dict["value"]
@@ -264,7 +252,7 @@ def update_serialization_dict(
             index = None
 
         attr_name, index = parse_list_attr_and_index(attr_name)
-        current_dict = get_dict_from_attr_name_and_index(
+        current_dict = get_nested_dict_by_attr_and_index(
             current_dict, attr_name, index, allow_append=True
         )
     except (SerializationPathError, SerializationValueError, KeyError) as e:
@@ -280,12 +268,35 @@ def update_serialization_dict(
         current_dict.update(serialized_value)
 
 
-def get_dict_from_attr_name_and_index(
+def get_nested_dict_by_attr_and_index(
     serialization_dict: dict[str, Any],
     attr_name: str,
     index: Optional[int],
     allow_append: bool = False,
 ) -> dict[str, Any]:
+    """
+    Retrieve a nested dictionary entry or list item from a data structure serialized
+    with `pydase.utils.serializer.Serializer`.
+
+    Args:
+        serialization_dict:
+            The base dictionary representing serialized data.
+        attr_name:
+            The key name representing the attribute in the dictionary.
+        index:
+            The optional index for list items within the dictionary value.
+        allow_append:
+            Flag to allow appending a new entry if `index` is out of range by one.
+
+    Returns:
+        The dictionary or list item corresponding to the attribute and index.
+
+    Raises:
+        SerializationPathError: If the path composed of `attr_name` and `index` is
+                                invalid or leads to an IndexError or KeyError.
+        SerializationValueError: If the expected nested structure is not a dictionary.
+    """
+
     try:
         if index is not None:
             serialization_dict = serialization_dict[attr_name]["value"][index]

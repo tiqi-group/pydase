@@ -6,7 +6,7 @@ import pytest
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.utils.serializer import dump, update_serialization_dict
+from pydase.utils.serializer import dump, set_nested_value_by_path
 
 
 @pytest.mark.parametrize(
@@ -303,27 +303,27 @@ def setup_dict():
 
 
 def test_update_attribute(setup_dict):
-    update_serialization_dict(setup_dict, "attr1", 15)
+    set_nested_value_by_path(setup_dict, "attr1", 15)
     assert setup_dict["attr1"]["value"] == 15
 
 
 def test_update_nested_attribute(setup_dict):
-    update_serialization_dict(setup_dict, "attr2.attr3", 25.0)
+    set_nested_value_by_path(setup_dict, "attr2.attr3", 25.0)
     assert setup_dict["attr2"]["value"]["attr3"]["value"] == 25.0
 
 
 def test_update_list_entry(setup_dict):
-    update_serialization_dict(setup_dict, "attr_list[1]", 20)
+    set_nested_value_by_path(setup_dict, "attr_list[1]", 20)
     assert setup_dict["attr_list"]["value"][1]["value"] == 20
 
 
 def test_update_list_append(setup_dict, caplog: pytest.LogCaptureFixture):
-    update_serialization_dict(setup_dict, "attr_list[3]", 20)
+    set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
     assert setup_dict["attr_list"]["value"][3]["value"] == 20
 
 
 def test_update_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
-    update_serialization_dict(setup_dict, "attr_list[10]", 30)
+    set_nested_value_by_path(setup_dict, "attr_list[10]", 30)
     assert (
         "Error occured trying to change 'attr_list[10]': list index "
         "out of range" in caplog.text
@@ -331,7 +331,7 @@ def test_update_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture)
 
 
 def test_update_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
-    update_serialization_dict(setup_dict, "invalid_path", 30)
+    set_nested_value_by_path(setup_dict, "invalid_path", 30)
     assert (
         "Error occured trying to access the key 'invalid_path': it is either "
         "not present in the current dictionary or its value does not contain "
@@ -340,10 +340,10 @@ def test_update_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
 
 
 def test_update_list_inside_class(setup_dict):
-    update_serialization_dict(setup_dict, "attr2.list_attr[1]", 40)
+    set_nested_value_by_path(setup_dict, "attr2.list_attr[1]", 40)
     assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40
 
 
 def test_update_class_attribute_inside_list(setup_dict):
-    update_serialization_dict(setup_dict, "attr_list[2].attr3", 50)
+    set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50

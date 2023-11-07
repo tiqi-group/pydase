@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any
 
-from pydase.utils.serializer import update_serialization_dict
+from pydase.utils.serializer import set_nested_value_by_path
 
 if TYPE_CHECKING:
     from pydase import DataService
@@ -32,5 +32,5 @@ class DataServiceCache:
         # Construct the full path
         full_path = f"{parent_path}.{name}" if parent_path else name
 
-        update_serialization_dict(self._cache, full_path, value)
+        set_nested_value_by_path(self._cache, full_path, value)
         logger.debug(f"Cache updated at path: {full_path}, with value: {value}")
