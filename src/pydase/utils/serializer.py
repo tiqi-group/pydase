@@ -213,6 +213,10 @@ class Serializer:
         }
 
 
+def dump(obj: Any) -> dict[str, Any]:
+    return Serializer.serialize_object(obj)
+
+
 def set_nested_value_by_path(
     serialization_dict: dict[str, Any], path: str, value: Any
 ) -> None:
@@ -327,5 +331,3 @@ def get_nested_dict_by_attr_and_index(
     return serialization_dict
 
 
-def dump(obj: Any) -> dict[str, Any]:
-    return Serializer.serialize_object(obj)
