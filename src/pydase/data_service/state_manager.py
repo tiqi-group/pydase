@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import get_nested_value_from_DataService_by_path_and_key
-from pydase.utils.serializer import generate_paths_from_DataService_dict
+from pydase.utils.serializer import generate_serialized_data_paths
 
 if TYPE_CHECKING:
     from pydase import DataService
@@ -101,7 +101,7 @@ class StateManager:
             return
 
         serialized_class = self.cache
-        for path in generate_paths_from_DataService_dict(json_dict):
+        for path in generate_serialized_data_paths(json_dict):
             value = get_nested_value_from_DataService_by_path_and_key(
                 json_dict, path=path
             )

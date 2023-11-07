@@ -19,7 +19,7 @@ from pydase.utils.helpers import (
     parse_list_attr_and_index,
     update_value_if_changed,
 )
-from pydase.utils.serializer import Serializer, generate_paths_from_DataService_dict
+from pydase.utils.serializer import Serializer, generate_serialized_data_paths
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
@@ -164,7 +164,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
         # Traverse the serialized representation and set the attributes of the class
         serialized_class = self.serialize()
-        for path in generate_paths_from_DataService_dict(json_dict):
+        for path in generate_serialized_data_paths(json_dict):
             value = get_nested_value_from_DataService_by_path_and_key(
                 json_dict, path=path
             )
