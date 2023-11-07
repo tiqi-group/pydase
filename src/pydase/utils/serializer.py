@@ -283,14 +283,11 @@ def get_nested_dict_by_attr_and_index(
     with `pydase.utils.serializer.Serializer`.
 
     Args:
-        serialization_dict:
-            The base dictionary representing serialized data.
-        attr_name:
-            The key name representing the attribute in the dictionary.
-        index:
-            The optional index for list items within the dictionary value.
-        allow_append:
-            Flag to allow appending a new entry if `index` is out of range by one.
+        serialization_dict: The base dictionary representing serialized data.
+        attr_name: The key name representing the attribute in the dictionary.
+        index: The optional index for list items within the dictionary value.
+        allow_append: Flag to allow appending a new entry if `index` is out of range by
+            one.
 
     Returns:
         The dictionary or list item corresponding to the attribute and index.
