@@ -113,32 +113,17 @@ class StateManager:
         serialized_class = self.cache
         for path in generate_serialized_data_paths(json_dict):
             nested_json_dict = get_nested_dict_by_path(json_dict, path)
-            value = nested_json_dict["value"]
-            value_type = nested_json_dict["type"]
-
             nested_class_dict = get_nested_dict_by_path(serialized_class, path)
-            class_value_type = nested_class_dict.get("type", None)
-            if class_value_type == value_type:
-                class_attr_is_read_only = nested_class_dict["readonly"]
-                if class_attr_is_read_only:
-                    logger.debug(
-                        f"Attribute {path!r} is read-only. Ignoring value from JSON "
-                        "file..."
-                    )
-                    continue
-                # Split the path into parts
-                parts = path.split(".")
-                attr_name = parts[-1]
 
-                # Convert dictionary into Quantity
-                if class_value_type == "Quantity":
-                    value = u.convert_to_quantity(value)
+            value, value_type = nested_json_dict["value"], nested_json_dict["type"]
+            class_attr_value_type = nested_class_dict.get("type", None)
 
-                self.service.update_DataService_attribute(parts[:-1], attr_name, value)
+            if class_attr_value_type == value_type:
+                self.set_service_attribute_value_by_path(path, value)
             else:
                 logger.info(
                     f"Attribute type of {path!r} changed from {value_type!r} to "
-                    f"{class_value_type!r}. Ignoring value from JSON file..."
+                    f"{class_attr_value_type!r}. Ignoring value from JSON file..."
                 )
 
     def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
