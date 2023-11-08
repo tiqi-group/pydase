@@ -81,10 +81,11 @@ class WebAPI:
         @sio.event  # type: ignore
         def frontend_update(sid: str, data: UpdateDict) -> Any:
             logger.debug(f"Received frontend update: {data}")
-            path_list, attr_name = data["parent_path"].split("."), data["name"]
+            path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
-            return self.service.update_DataService_attribute(
-                path_list=path_list, attr_name=attr_name, value=data["value"]
+            path = ".".join(path_list)
+            return self.state_manager.set_service_attribute_value_by_path(
+                path=path, value=data["value"]
             )
 
         self.__sio = sio
