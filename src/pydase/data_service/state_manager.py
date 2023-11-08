@@ -1,12 +1,20 @@
 import json
 import logging
 import os
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 import pydase.units as u
+from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.data_service_cache import DataServiceCache
+from pydase.utils.helpers import (
+    get_object_attr_from_path,
+    is_property_attribute,
+    parse_list_attr_and_index,
+)
 from pydase.utils.serializer import (
+    dump,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
 )
@@ -142,3 +150,73 @@ class StateManager:
                     # values
                     return cast(dict[str, Any], json.load(f))
         return {}
+
+    def set_service_attribute_value_by_path(
+        self,
+        path: str,
+        value: Any,
+    ) -> None:
+        current_value_dict = get_nested_dict_by_path(self.cache, path)
+
+        if current_value_dict["readonly"]:
+            logger.debug(
+                f"Attribute {path!r} is read-only. Ignoring value from JSON " "file..."
+            )
+            return
+
+        converted_value = self.__convert_value_if_needed(value, current_value_dict)
+
+        # only set value when it has changed
+        if self.__attr_value_has_changed(converted_value, current_value_dict["value"]):
+            self.__update_attribute_by_path(path, converted_value)
+        else:
+            logger.debug(f"Value of attribute {path!r} has not changed...")
+
+    def __attr_value_has_changed(self, value_object: Any, current_value: Any) -> bool:
+        """Check if the serialized value of `value_object` differs from `current_value`.
+
+        The method serializes `value_object` to compare it, which is mainly
+        necessary for handling Quantity objects.
+        """
+
+        return dump(value_object)["value"] != current_value
+
+    def __convert_value_if_needed(
+        self, value: Any, current_value_dict: dict[str, Any]
+    ) -> Any:
+        if current_value_dict["type"] == "Quantity":
+            return u.convert_to_quantity(value, current_value_dict["value"]["unit"])
+        return value
+
+    def __update_attribute_by_path(self, path: str, value: Any) -> None:
+        parent_path_list, attr_name = path.split(".")[:-1], path.split(".")[-1]
+
+        # If attr_name corresponds to a list entry, extract the attr_name and the
+        # index
+        attr_name, index = parse_list_attr_and_index(attr_name)
+
+        # Traverse the object according to the path parts
+        target_obj = get_object_attr_from_path(self.service, parent_path_list)
+
+        # If the attribute is a property, change it using the setter without getting
+        # the property value (would otherwise be bad for expensive getter methods)
+        if is_property_attribute(target_obj, attr_name):
+            setattr(target_obj, attr_name, value)
+            return
+
+        attr = get_object_attr_from_path(target_obj, [attr_name])
+        if attr is None:
+            # If the attribute does not exist, abort setting the value. An error
+            # message has already been logged.
+            # This will never happen as this function is only called when the
+            # attribute exists in the cache.
+            return
+
+        if isinstance(attr, Enum):
+            setattr(target_obj, attr_name, attr.__class__[value])
+        elif isinstance(attr, list) and index is not None:
+            attr[index] = value
+        elif callable(attr):
+            process_callable_attribute(attr, value["args"])
+        else:
+            setattr(target_obj, attr_name, value)
