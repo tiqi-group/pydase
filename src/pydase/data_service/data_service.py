@@ -222,6 +222,15 @@ class DataService(rpyc.Service, AbstractDataService):
         attr_name: str,
         value: Any,
     ) -> None:
+        warnings.warn(
+            "'update_DataService_attribute' is deprecated and will be removed in a "
+            "future version. "
+            "Service state management is handled by `pydase.data_service.state_manager`"
+            "now, instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         # If attr_name corresponds to a list entry, extract the attr_name and the index
         attr_name, index = parse_list_attr_and_index(attr_name)
         # Traverse the object according to the path parts
