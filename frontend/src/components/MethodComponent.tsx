@@ -76,7 +76,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   return (
     <div className="align-items-center methodComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
+        <div>Render count: {renderCount.current}</div>
       )}
       <h5 onClick={() => setHideOutput(!hideOutput)} style={{ cursor: 'pointer' }}>
         Function: {name}
@@ -84,11 +84,9 @@ export const MethodComponent = React.memo((props: MethodProps) => {
       </h5>
       <Form onSubmit={execute}>
         {args}
-        <div>
-          <Button variant="primary" type="submit">
-            Execute
-          </Button>
-        </div>
+        <Button variant="primary" type="submit">
+          Execute
+        </Button>
       </Form>
 
       <Collapse in={!hideOutput}>

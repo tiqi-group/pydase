@@ -25,10 +25,7 @@ export const Notifications = React.memo((props: NotificationProps) => {
   } = props;
 
   return (
-    <ToastContainer
-      className="navbarOffset toastContainer"
-      position="top-end"
-      style={{ position: 'fixed' }}>
+    <ToastContainer className="navbarOffset toastContainer" position="top-end">
       {showNotification &&
         notifications.map((notification) => (
           <Toast

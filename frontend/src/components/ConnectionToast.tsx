@@ -68,7 +68,7 @@ export const ConnectionToast = React.memo(
     const { message, bg, delay } = getToastContent();
 
     return (
-      <ToastContainer position="bottom-center">
+      <ToastContainer position="bottom-center" className="toastContainer">
         <Toast
           show={show}
           onClose={handleClose}

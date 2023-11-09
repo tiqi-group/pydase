@@ -26,7 +26,7 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
   return (
     <div className={'listComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
+        <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
       {value.map((item, index) => {

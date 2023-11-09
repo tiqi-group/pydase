@@ -37,7 +37,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   return (
     <div className={'buttonComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
+        <div>Render count: {renderCount.current}</div>
       )}
 
       <DocStringComponent docString={docString} />
@@ -49,7 +49,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         value={parentPath}
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
-        <p>{buttonName}</p>
+        {buttonName}
       </ToggleButton>
     </div>
   );

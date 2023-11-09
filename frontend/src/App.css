@@ -12,14 +12,28 @@ input.instantUpdate {
 }
 .navbarOffset {
   padding-top: 60px !important;
-  right: 20;
 }
-/* .toastContainer {
-  position: fixed;
-} */
+.toastContainer {
+  position: fixed !important;
+  padding: 5px;
+}
 .notificationToast {
   background-color: rgba(114, 214, 253, 0.5) !important;
 }
 .exceptionToast {
   background-color: rgba(216, 41, 18, 0.678) !important;
 }
+.buttonComponent {
+  float: left !important;
+  margin-right: 10px !important;
+}
+.stringComponent {
+  float: left !important;
+  margin-right: 10px !important;
+}
+.numberComponent {
+    float: left !important;
+    margin-right: 10px !important;
+    width: 270px !important;
+}
+

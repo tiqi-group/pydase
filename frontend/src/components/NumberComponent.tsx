@@ -289,8 +289,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   return (
     <div className="numberComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && showName && (
-        <p>Render count: {renderCount.current}</p>
+      {process.env.NODE_ENV === 'development' && (
+        <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
       <div className="d-flex">

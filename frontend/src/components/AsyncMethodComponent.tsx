@@ -91,7 +91,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   return (
     <div className="align-items-center asyncMethodComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
+        <div>Render count: {renderCount.current}</div>
       )}
       <h5>
         Function: {name}

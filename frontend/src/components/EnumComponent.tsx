@@ -39,7 +39,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   return (
     <div className={'enumComponent'} id={parentPath.concat('.' + name)}>
       {process.env.NODE_ENV === 'development' && (
-        <p>Render count: {renderCount.current}</p>
+        <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
       <Row>
