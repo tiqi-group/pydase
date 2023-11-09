@@ -1,12 +1,10 @@
 import json
 import logging
 import os
-from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 import pydase.units as u
-from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
     get_object_attr_from_path_list,
@@ -110,10 +108,9 @@ class StateManager:
             logger.debug("Could not load the service state.")
             return
 
-        serialized_class = self.cache
         for path in generate_serialized_data_paths(json_dict):
             nested_json_dict = get_nested_dict_by_path(json_dict, path)
-            nested_class_dict = get_nested_dict_by_path(serialized_class, path)
+            nested_class_dict = get_nested_dict_by_path(self.cache, path)
 
             value, value_type = nested_json_dict["value"], nested_json_dict["type"]
             class_attr_value_type = nested_class_dict.get("type", None)
@@ -157,10 +154,9 @@ class StateManager:
 
         current_value_dict = get_nested_dict_by_path(self.cache, path)
 
+        # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
-            logger.debug(
-                f"Attribute {path!r} is read-only. Ignoring value from JSON " "file..."
-            )
+            logger.debug(f"Attribute {path!r} is read-only. Ignoring new value...")
             return
 
         converted_value = self.__convert_value_if_needed(value, current_value_dict)
@@ -194,28 +190,27 @@ class StateManager:
         # index
         attr_name, index = parse_list_attr_and_index(attr_name)
 
+        # Update path to reflect the attribute without list indices
+        path = ".".join([*parent_path_list, attr_name])
+
+        attr_cache_type = get_nested_dict_by_path(self.cache, path)["type"]
+
         # Traverse the object according to the path parts
         target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
 
+        if self.__attr_value_should_change(target_obj, attr_name):
+            if attr_cache_type in ("ColouredEnum", "Enum"):
+                enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
+                setattr(target_obj, attr_name, enum_attr.__class__[value])
+            elif attr_cache_type == "list":
+                list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
+                list_obj[index] = value
+            else:
+                setattr(target_obj, attr_name, value)
+
+    def __attr_value_should_change(self, parent_object: Any, attr_name: str) -> bool:
         # If the attribute is a property, change it using the setter without getting
         # the property value (would otherwise be bad for expensive getter methods)
-        if is_property_attribute(target_obj, attr_name):
-            setattr(target_obj, attr_name, value)
-            return
-
-        attr = get_object_attr_from_path(target_obj, [attr_name])
-        if attr is None:
-            # If the attribute does not exist, abort setting the value. An error
-            # message has already been logged.
-            # This will never happen as this function is only called when the
-            # attribute exists in the cache.
-            return
-
-        if isinstance(attr, Enum):
-            setattr(target_obj, attr_name, attr.__class__[value])
-        elif isinstance(attr, list) and index is not None:
-            attr[index] = value
-        elif callable(attr):
-            process_callable_attribute(attr, value["args"])
-        else:
-            setattr(target_obj, attr_name, value)
+        if is_property_attribute(parent_object, attr_name):
+            return True
+        return True
