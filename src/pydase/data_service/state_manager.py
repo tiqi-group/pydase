@@ -46,6 +46,10 @@ def load_state(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def has_load_state_decorator(prop: property):
+    """Determines if the property's setter method is decorated with the `@load_state`
+    decorator.
+    """
+
     if prop and isinstance(prop, property):
         # Check if the setter function has the attribute set by the @load_state
         # decorator
