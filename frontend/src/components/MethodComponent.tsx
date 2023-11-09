@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { emit_update } from '../socket';
+import { runMethod } from '../socket';
 import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -46,18 +46,21 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const args = {};
+    const kwargs = {};
     Object.keys(props.parameters).forEach(
-      (name) => (args[name] = event.target[name].value)
+      (name) => (kwargs[name] = event.target[name].value)
     );
-    emit_update(name, parentPath, { args: args }, (ack) => {
+    runMethod(name, parentPath, kwargs, (ack) => {
       // Update the functionCalls state with the new call if we get an acknowledge msg
       if (ack !== undefined) {
-        setFunctionCalls((prevCalls) => [...prevCalls, { name, args, result: ack }]);
+        setFunctionCalls((prevCalls) => [
+          ...prevCalls,
+          { name, args: kwargs, result: ack }
+        ]);
       }
     });
 
-    triggerNotification(args);
+    triggerNotification(kwargs);
   };
 
   const args = Object.entries(props.parameters).map(([name, type], index) => {

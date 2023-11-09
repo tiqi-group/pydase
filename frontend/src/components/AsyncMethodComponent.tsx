@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { emit_update } from '../socket';
+import { runMethod } from '../socket';
 import { InputGroup, Form, Button } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -56,18 +56,18 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
     let method_name: string;
-    const args = {};
+    const kwargs: Record<string, unknown> = {};
 
     if (runningTask !== undefined && runningTask !== null) {
       method_name = `stop_${name}`;
     } else {
       Object.keys(props.parameters).forEach(
-        (name) => (args[name] = event.target[name].value)
+        (name) => (kwargs[name] = event.target[name].value)
       );
       method_name = `start_${name}`;
     }
 
-    emit_update(method_name, parentPath, { args: args });
+    runMethod(method_name, parentPath, kwargs);
   };
 
   const args = Object.entries(props.parameters).map(([name, type], index) => {

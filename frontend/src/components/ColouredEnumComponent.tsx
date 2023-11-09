@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { emit_update } from '../socket';
+import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
@@ -36,7 +36,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
   }, [props.value]);
 
   const handleValueChange = (newValue: string) => {
-    emit_update(name, parentPath, newValue);
+    setAttribute(name, parentPath, newValue);
   };
 
   return (

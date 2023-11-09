@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { emit_update } from '../socket';
+import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -41,19 +41,19 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleChange = (event) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
-      emit_update(name, parentPath, event.target.value);
+      setAttribute(name, parentPath, event.target.value);
     }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      emit_update(name, parentPath, inputString);
+      setAttribute(name, parentPath, inputString);
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      emit_update(name, parentPath, inputString);
+      setAttribute(name, parentPath, inputString);
     }
   };
 
