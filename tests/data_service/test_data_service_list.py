@@ -2,6 +2,7 @@ from typing import Any
 
 from pytest import LogCaptureFixture
 
+import pydase.units as u
 from pydase import DataService
 
 
@@ -84,8 +85,8 @@ def test_nested_reused_instance_list_attribute(caplog: LogCaptureFixture) -> Non
 
 
 def test_protected_list_attribute(caplog: LogCaptureFixture) -> None:
-    """Changing protected lists should not emit notifications for the lists themselves, but
-    still for all properties depending on them.
+    """Changing protected lists should not emit notifications for the lists themselves,
+    but still for all properties depending on them.
     """
 
     class ServiceClass(DataService):
@@ -99,3 +100,30 @@ def test_protected_list_attribute(caplog: LogCaptureFixture) -> None:
 
     service_instance._attr[0] = 1337
     assert "ServiceClass.list_dependend_property changed to 1337" in caplog.text
+
+
+def test_converting_int_to_float_entries(caplog: LogCaptureFixture) -> None:
+    class ServiceClass(DataService):
+        float_list = [0.0]
+
+    service_instance = ServiceClass()
+    service_instance.float_list[0] = 1
+
+    assert isinstance(service_instance.float_list[0], float)
+    assert "ServiceClass.float_list[0] changed to 1.0" in caplog.text
+
+
+def test_converting_number_to_quantity_entries(caplog: LogCaptureFixture) -> None:
+    class ServiceClass(DataService):
+        quantity_list: list[u.Quantity] = [1 * u.units.A]
+
+    service_instance = ServiceClass()
+    service_instance.quantity_list[0] = 4  # type: ignore
+
+    assert isinstance(service_instance.quantity_list[0], u.Quantity)
+    assert "ServiceClass.quantity_list[0] changed to 4.0 A" in caplog.text
+    caplog.clear()
+
+    service_instance.quantity_list[0] = 3.1 * u.units.mA
+    assert isinstance(service_instance.quantity_list[0], u.Quantity)
+    assert "ServiceClass.quantity_list[0] changed to 3.1 mA" in caplog.text
