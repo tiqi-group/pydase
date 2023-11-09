@@ -9,7 +9,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase import DataService
+from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.state_manager import StateManager
+from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -42,6 +44,25 @@ class UpdateDict(TypedDict):
     name: str
     parent_path: str
     value: Any
+
+
+class RunMethodDict(TypedDict):
+    """
+    A TypedDict subclass representing a dictionary used for running methods from the
+    exposed DataService.
+
+    Attributes:
+        name (str): The name of the method to be run.
+        parent_path (str): The access path for the parent object of the method to be
+            run. This is used to construct the full access path for the method. For
+            example, for an method with access path 'attr1.list_attr[0].method_name',
+            'attr1.list_attr[0]' would be the parent_path.
+        kwargs (dict[str, Any]): The arguments passed to the method.
+    """
+
+    name: str
+    parent_path: str
+    kwargs: dict[str, Any]
 
 
 class WebAPI:
@@ -87,6 +108,14 @@ class WebAPI:
             return self.state_manager.set_service_attribute_value_by_path(
                 path=path, value=data["value"]
             )
+
+        @sio.event  # type: ignore
+        def run_method(sid: str, data: RunMethodDict) -> Any:
+            logger.debug(f"Running method: {data}")
+            path_list = [*data["parent_path"].split("."), data["name"]]
+            path_list.remove("DataService")  # always at the start, does not do anything
+            method = get_object_attr_from_path_list(self.service, path_list)
+            return process_callable_attribute(method, data["kwargs"])
 
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
