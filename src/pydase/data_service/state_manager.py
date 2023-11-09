@@ -141,6 +141,20 @@ class StateManager:
         path: str,
         value: Any,
     ) -> None:
+        """
+        Sets the value of an attribute in the service managed by the `StateManager`
+        given its path as a dot-separated string.
+
+        This method updates the attribute specified by 'path' with 'value' only if the
+        attribute is not read-only and the new value differs from the current one.
+        It also handles type-specific conversions for the new value before setting it.
+
+        Args:
+            path: A dot-separated string indicating the hierarchical path to the
+                attribute.
+            value: The new value to set for the attribute.
+        """
+
         current_value_dict = get_nested_dict_by_path(self.cache, path)
 
         if current_value_dict["readonly"]:
