@@ -79,7 +79,7 @@ class WebAPI:
             sio = socketio.AsyncServer(async_mode="asgi")
 
         @sio.event  # type: ignore
-        def frontend_update(sid: str, data: UpdateDict) -> Any:
+        def set_attribute(sid: str, data: UpdateDict) -> Any:
             logger.debug(f"Received frontend update: {data}")
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
