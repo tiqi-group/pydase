@@ -148,7 +148,10 @@ class StateManager:
             value, value_type = nested_json_dict["value"], nested_json_dict["type"]
             class_attr_value_type = nested_class_dict.get("type", None)
 
-            if class_attr_value_type == value_type:
+            if (
+                class_attr_value_type == value_type
+                and self.__is_loadable_state_attribute(path)
+            ):
                 self.set_service_attribute_value_by_path(path, value)
             else:
                 logger.info(
@@ -231,21 +234,36 @@ class StateManager:
         # Traverse the object according to the path parts
         target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
 
-        if self.__attr_value_should_change(target_obj, attr_name):
-            if attr_cache_type in ("ColouredEnum", "Enum"):
-                enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
-                setattr(target_obj, attr_name, enum_attr.__class__[value])
-            elif attr_cache_type == "list":
-                list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
-                list_obj[index] = value
-            else:
-                setattr(target_obj, attr_name, value)
+        if attr_cache_type in ("ColouredEnum", "Enum"):
+            enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
+            setattr(target_obj, attr_name, enum_attr.__class__[value])
+        elif attr_cache_type == "list":
+            list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
+            list_obj[index] = value
+        else:
+            setattr(target_obj, attr_name, value)
 
-    def __attr_value_should_change(self, parent_object: Any, attr_name: str) -> bool:
-        # If the attribute is a property, change it using the setter without getting
-        # the property value (would otherwise be bad for expensive getter methods)
+    def __is_loadable_state_attribute(self, property_path: str) -> bool:
+        """Checks if an attribute defined by a dot-separated path should be loaded from
+        storage.
+
+        For properties, it verifies the presence of the '@load_state' decorator. Regular
+        attributes default to being loadable.
+        """
+
+        parent_object = get_object_attr_from_path_list(
+            self.service, property_path.split(".")[:-1]
+        )
+        attr_name = property_path.split(".")[-1]
+
         prop = getattr(type(parent_object), attr_name, None)
 
         if isinstance(prop, property):
-            return has_load_state_decorator(prop)
+            has_decorator = has_load_state_decorator(prop)
+            if not has_decorator:
+                logger.debug(
+                    f"Property {attr_name!r} has no '@load_state' decorator. "
+                    "Ignoring value from JSON file..."
+                )
+            return has_decorator
         return True
