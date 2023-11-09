@@ -6,7 +6,13 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 
 import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
+from pydase.utils.helpers import (
+    get_object_attr_from_path_list,
+    is_property_attribute,
+    parse_list_attr_and_index,
+)
 from pydase.utils.serializer import (
+    dump,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
 )
@@ -102,35 +108,19 @@ class StateManager:
             logger.debug("Could not load the service state.")
             return
 
-        serialized_class = self.cache
         for path in generate_serialized_data_paths(json_dict):
             nested_json_dict = get_nested_dict_by_path(json_dict, path)
-            value = nested_json_dict["value"]
-            value_type = nested_json_dict["type"]
+            nested_class_dict = get_nested_dict_by_path(self.cache, path)
 
-            nested_class_dict = get_nested_dict_by_path(serialized_class, path)
-            class_value_type = nested_class_dict.get("type", None)
-            if class_value_type == value_type:
-                class_attr_is_read_only = nested_class_dict["readonly"]
-                if class_attr_is_read_only:
-                    logger.debug(
-                        f"Attribute {path!r} is read-only. Ignoring value from JSON "
-                        "file..."
-                    )
-                    continue
-                # Split the path into parts
-                parts = path.split(".")
-                attr_name = parts[-1]
+            value, value_type = nested_json_dict["value"], nested_json_dict["type"]
+            class_attr_value_type = nested_class_dict.get("type", None)
 
-                # Convert dictionary into Quantity
-                if class_value_type == "Quantity":
-                    value = u.convert_to_quantity(value)
-
-                self.service.update_DataService_attribute(parts[:-1], attr_name, value)
+            if class_attr_value_type == value_type:
+                self.set_service_attribute_value_by_path(path, value)
             else:
                 logger.info(
                     f"Attribute type of {path!r} changed from {value_type!r} to "
-                    f"{class_value_type!r}. Ignoring value from JSON file..."
+                    f"{class_attr_value_type!r}. Ignoring value from JSON file..."
                 )
 
     def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
@@ -142,3 +132,85 @@ class StateManager:
                     # values
                     return cast(dict[str, Any], json.load(f))
         return {}
+
+    def set_service_attribute_value_by_path(
+        self,
+        path: str,
+        value: Any,
+    ) -> None:
+        """
+        Sets the value of an attribute in the service managed by the `StateManager`
+        given its path as a dot-separated string.
+
+        This method updates the attribute specified by 'path' with 'value' only if the
+        attribute is not read-only and the new value differs from the current one.
+        It also handles type-specific conversions for the new value before setting it.
+
+        Args:
+            path: A dot-separated string indicating the hierarchical path to the
+                attribute.
+            value: The new value to set for the attribute.
+        """
+
+        current_value_dict = get_nested_dict_by_path(self.cache, path)
+
+        # This will also filter out methods as they are 'read-only'
+        if current_value_dict["readonly"]:
+            logger.debug(f"Attribute {path!r} is read-only. Ignoring new value...")
+            return
+
+        converted_value = self.__convert_value_if_needed(value, current_value_dict)
+
+        # only set value when it has changed
+        if self.__attr_value_has_changed(converted_value, current_value_dict["value"]):
+            self.__update_attribute_by_path(path, converted_value)
+        else:
+            logger.debug(f"Value of attribute {path!r} has not changed...")
+
+    def __attr_value_has_changed(self, value_object: Any, current_value: Any) -> bool:
+        """Check if the serialized value of `value_object` differs from `current_value`.
+
+        The method serializes `value_object` to compare it, which is mainly
+        necessary for handling Quantity objects.
+        """
+
+        return dump(value_object)["value"] != current_value
+
+    def __convert_value_if_needed(
+        self, value: Any, current_value_dict: dict[str, Any]
+    ) -> Any:
+        if current_value_dict["type"] == "Quantity":
+            return u.convert_to_quantity(value, current_value_dict["value"]["unit"])
+        return value
+
+    def __update_attribute_by_path(self, path: str, value: Any) -> None:
+        parent_path_list, attr_name = path.split(".")[:-1], path.split(".")[-1]
+
+        # If attr_name corresponds to a list entry, extract the attr_name and the
+        # index
+        attr_name, index = parse_list_attr_and_index(attr_name)
+
+        # Update path to reflect the attribute without list indices
+        path = ".".join([*parent_path_list, attr_name])
+
+        attr_cache_type = get_nested_dict_by_path(self.cache, path)["type"]
+
+        # Traverse the object according to the path parts
+        target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
+
+        if self.__attr_value_should_change(target_obj, attr_name):
+            if attr_cache_type in ("ColouredEnum", "Enum"):
+                enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
+                setattr(target_obj, attr_name, enum_attr.__class__[value])
+            elif attr_cache_type == "list":
+                list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
+                list_obj[index] = value
+            else:
+                setattr(target_obj, attr_name, value)
+
+    def __attr_value_should_change(self, parent_object: Any, attr_name: str) -> bool:
+        # If the attribute is a property, change it using the setter without getting
+        # the property value (would otherwise be bad for expensive getter methods)
+        if is_property_attribute(parent_object, attr_name):
+            return True
+        return True

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootstrap';
-import { emit_update } from '../socket';
+import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent } from './NumberComponent';
@@ -66,7 +66,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     max: number = props.max,
     stepSize: number = props.stepSize
   ) => {
-    emit_update(
+    setAttribute(
       name,
       parentPath,
       {

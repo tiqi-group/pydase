@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
-import { emit_update } from '../socket';
+import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 
@@ -31,7 +31,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   }, [props.value]);
 
   const setChecked = (checked: boolean) => {
-    emit_update(name, parentPath, checked);
+    setAttribute(name, parentPath, checked);
   };
 
   return (

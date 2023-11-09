@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { emit_update } from '../socket';
+import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -125,7 +125,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   // If emitUpdate is passed, use this instead of the emit_update from the socket
   // Also used when used with a slider
   const emitUpdate =
-    props.customEmitUpdate !== undefined ? props.customEmitUpdate : emit_update;
+    props.customEmitUpdate !== undefined ? props.customEmitUpdate : setAttribute;
 
   const renderCount = useRef(0);
   // Create a state for the cursor position

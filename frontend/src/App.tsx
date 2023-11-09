@@ -35,12 +35,6 @@ type ExceptionMessage = {
  *
  * If the property to be updated is an object or an array, it is updated
  * recursively.
- *
- * @param {Array<string>} path - An array where each element is a key in the object,
- * forming a path to the property to be updated.
- * @param {object} obj - The object to be updated.
- * @param {object} value - The new value for the property specified by the path.
- * @return {object} - A new object with the specified property updated.
  */
 function updateNestedObject(path: Array<string>, obj: object, value: ValueType) {
   // Base case: If the path is empty, return the new value.

@@ -9,15 +9,28 @@ console.debug('Websocket: ', URL);
 
 export const socket = io(URL, { path: '/ws/socket.io', transports: ['websocket'] });
 
-export const emit_update = (
+export const setAttribute = (
   name: string,
   parentPath: string,
   value: unknown,
   callback?: (ack: unknown) => void
 ) => {
   if (callback) {
-    socket.emit('frontend_update', { name, parent_path: parentPath, value }, callback);
+    socket.emit('set_attribute', { name, parent_path: parentPath, value }, callback);
   } else {
-    socket.emit('frontend_update', { name, parent_path: parentPath, value });
+    socket.emit('set_attribute', { name, parent_path: parentPath, value });
+  }
+};
+
+export const runMethod = (
+  name: string,
+  parentPath: string,
+  kwargs: Record<string, unknown>,
+  callback?: (ack: unknown) => void
+) => {
+  if (callback) {
+    socket.emit('run_method', { name, parent_path: parentPath, kwargs }, callback);
+  } else {
+    socket.emit('run_method', { name, parent_path: parentPath, kwargs });
   }
 };
