@@ -55,6 +55,7 @@ venvPath = "."
 venv = ".venv"
 typeCheckingMode = "basic"
 reportUnknownMemberType = true
+reportUnknownParameterType = true
 
 [tool.black]
 line-length = 88

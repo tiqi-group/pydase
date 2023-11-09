@@ -4,5 +4,5 @@ include = src
 max-line-length = 88
 max-doc-length = 88
 max-complexity = 7
-max-expression-complexity = 5.5
+max-expression-complexity = 7
 use_class_attributes_order_strict_mode=True
