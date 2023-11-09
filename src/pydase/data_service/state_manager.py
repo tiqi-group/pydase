@@ -50,11 +50,10 @@ def has_load_state_decorator(prop: property):
     decorator.
     """
 
-    if prop and isinstance(prop, property):
-        # Check if the setter function has the attribute set by the @load_state
-        # decorator
-        return getattr(prop.fset, "_load_state", False)
-    return False
+    try:
+        return getattr(prop.fset, "_load_state")
+    except AttributeError:
+        return False
 
 
 class StateManager:
