@@ -31,7 +31,7 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     return attrs
 
 
-def get_object_attr_from_path(target_obj: Any, path: list[str]) -> Any:
+def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
     """
     Traverse the object tree according to the given path.
 

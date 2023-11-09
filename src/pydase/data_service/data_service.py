@@ -13,7 +13,7 @@ from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     get_class_and_instance_attributes,
-    get_object_attr_from_path,
+    get_object_attr_from_path_list,
     is_property_attribute,
     parse_list_attr_and_index,
     update_value_if_changed,
@@ -234,7 +234,7 @@ class DataService(rpyc.Service, AbstractDataService):
         # If attr_name corresponds to a list entry, extract the attr_name and the index
         attr_name, index = parse_list_attr_and_index(attr_name)
         # Traverse the object according to the path parts
-        target_obj = get_object_attr_from_path(self, path_list)
+        target_obj = get_object_attr_from_path_list(self, path_list)
 
         # If the attribute is a property, change it using the setter without getting the
         # property value (would otherwise be bad for expensive getter methods)
@@ -242,7 +242,7 @@ class DataService(rpyc.Service, AbstractDataService):
             setattr(target_obj, attr_name, value)
             return
 
-        attr = get_object_attr_from_path(target_obj, [attr_name])
+        attr = get_object_attr_from_path_list(target_obj, [attr_name])
         if attr is None:
             return
 

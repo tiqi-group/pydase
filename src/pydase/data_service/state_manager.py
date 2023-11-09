@@ -9,7 +9,7 @@ import pydase.units as u
 from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
-    get_object_attr_from_path,
+    get_object_attr_from_path_list,
     is_property_attribute,
     parse_list_attr_and_index,
 )
@@ -195,7 +195,7 @@ class StateManager:
         attr_name, index = parse_list_attr_and_index(attr_name)
 
         # Traverse the object according to the path parts
-        target_obj = get_object_attr_from_path(self.service, parent_path_list)
+        target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
 
         # If the attribute is a property, change it using the setter without getting
         # the property value (would otherwise be bad for expensive getter methods)
