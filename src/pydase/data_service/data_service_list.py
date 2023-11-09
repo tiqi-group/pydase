@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+import pydase.units as u
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
@@ -47,6 +48,14 @@ class DataServiceList(list):
         super().__init__(*args, **kwargs)  # type: ignore
 
     def __setitem__(self, key: int, value: Any) -> None:  # type: ignore
+        current_value = self.__getitem__(key)
+
+        # parse ints into floats if current value is a float
+        if isinstance(current_value, float) and isinstance(value, int):
+            value = float(value)
+
+        if isinstance(current_value, u.Quantity):
+            value = u.convert_to_quantity(value, str(current_value.u))
         super().__setitem__(key, value)  # type: ignore
 
         for callback in self.callbacks:
