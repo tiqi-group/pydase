@@ -7,7 +7,11 @@ from pytest import LogCaptureFixture
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.data_service.state_manager import StateManager, load_state
+from pydase.data_service.state_manager import (
+    StateManager,
+    has_load_state_decorator,
+    load_state,
+)
 
 
 class SubService(pydase.DataService):
@@ -255,8 +259,13 @@ def test_property_load_state(tmp_path: Path):
         def not_loadable_attr(self, value: str) -> None:
             self._not_loadable_attr = value
 
+        @property
+        def property_without_setter(self) -> None:
+            return
+
     service_instance = Service()
     StateManager(service_instance, filename=file).load_state()
 
     assert service_instance.name == "Some other name"
     assert service_instance.not_loadable_attr == "Not loadable"
+    assert not has_load_state_decorator(type(service_instance).property_without_setter)
