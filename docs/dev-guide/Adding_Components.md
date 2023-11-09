@@ -174,52 +174,56 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
 ### Step 3: Emitting Updates to the Backend
 
-Often, React components in the frontend will need to send updates to the backend, especially when user interactions result in a change of state or data. In `pydase`, we use `socketio` to seamlessly communicate these changes. Here's a detailed guide on how to emit update events from your frontend component:
+React components in the frontend often need to send updates to the backend, particularly when user interactions modify the component's state or data. In `pydase`, we use `socketio` for smooth communication of these changes. To handle updates, we primarily use two events: `setAttribute` for updating attributes, and `runMethod` for executing backend methods. Below is a detailed guide on how to emit these events from your frontend component:
 
-1. **Setting Up Emission**: Ensure you've imported the required functions and methods for emission. The main function we'll use for this is `setAttribute` from the `socket` module:
+1. **Setup for emitting events**:
+    First, ensure you've imported the necessary functions from the `socket` module for both updating attributes and executing methods:
+
+    ```tsx
+    import { setAttribute, runMethod } from '../socket';
+    ```
+
+2. **Event Parameters**:
+
+    - When using **`setAttribute`**, we send three main pieces of data:
+        - `name`: The name of the attribute within the `DataService` instance to update.
+        - `parentPath`: The access path for the parent object of the attribute to be updated.
+        - `value`: The new value for the attribute, which must match the backend attribute type.
+    - For **`runMethod`**, the parameters are slightly different:
+        - `name`: The name of the method to be executed in the backend.
+        - `parentPath`: Similar to `setAttribute`, it's the access path to the object containing the method.
+        - `kwargs`: A dictionary of keyword arguments that the method requires.
+
+3. **Implementation**:
+
+    For illustation, take the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
 
     ```tsx
     import { setAttribute } from '../socket';
+    // ... (other imports)
+    
+    export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
+      // ... 
+      const { name, parentPath, value } = props;
+
+      const setChecked = (checked: boolean) => {
+        setAttribute(name, parentPath, checked);
+      };
+
+      return (
+        <ToggleButton
+          checked={value}
+          value={parentPath}
+          // ... other props
+          onChange={(e) => setChecked(e.currentTarget.checked)}>
+          <p>{name}</p>
+        </ToggleButton>
+      );
+    });
     ```
 
-2. **Understanding the Emission Parameters**:
-   
-   When emitting an update, we send three main pieces of data:
+    In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `setAttribute`.
 
-   - `parentPath`: This is the access path for the parent object of the attribute to be updated. This forms the basis to create the full access path for the attribute. For instance, for the attribute access path `attr1.list_attr[0].attr2`, `attr1.list_attr[0]` would be the `parentPath`.
-
-   - `name`: This represents the name of the attribute to be updated within the `DataService` instance. If the attribute is part of a nested structure, this would be the name of the attribute in the last nested object. So, for `attr1.list_attr[0].attr2`, `attr2` would be the name.
-
-   - `value`: This is the new value intended for the attribute. Ensure that the type of this value matches the type of the attribute in the backend.
-
-3. **Implementing the Emission**:
-
-   To illustrate the emission process, let's consider the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
-
-   ```tsx
-   // ... (other imports)
-   
-   export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
-     // ... 
-     const { name, parentPath, value } = props;
-
-     const setChecked = (checked: boolean) => {
-       setAttribute(name, parentPath, checked);
-     };
-
-     return (
-       <ToggleButton
-         checked={value}
-         value={parentPath}
-         // ... other props
-         onChange={(e) => setChecked(e.currentTarget.checked)}>
-         <p>{name}</p>
-       </ToggleButton>
-     );
-   });
-   ```
-
-   In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `setAttribute`.
 
 ### Step 4: Add the New Component to the GenericComponent
 
