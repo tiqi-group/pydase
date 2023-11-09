@@ -162,7 +162,7 @@ class TaskManager:
 
         @wraps(method)
         def start_task(*args: Any, **kwargs: Any) -> None:
-            def task_done_callback(task: asyncio.Task, name: str) -> None:
+            def task_done_callback(task: asyncio.Task[None], name: str) -> None:
                 """Handles tasks that have finished.
 
                 Removes a task from the tasks dictionary, calls the defined
