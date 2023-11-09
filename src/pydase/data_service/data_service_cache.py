@@ -33,4 +33,3 @@ class DataServiceCache:
         full_path = f"{parent_path}.{name}" if parent_path else name
 
         set_nested_value_by_path(self._cache, full_path, value)
-        logger.debug(f"Cache updated at path: {full_path}, with value: {value}")
