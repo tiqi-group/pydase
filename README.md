@@ -23,6 +23,7 @@
     - [Extending with New Components](#extending-with-new-components)
 - [Customizing Web Interface Style](#customizing-web-interface-style)
 - [Understanding Service Persistence](#understanding-service-persistence)
+  - [Controlling Property State Loading with `@load_state`](#controlling-property-state-loading-with-load_state)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Changing the Log Level](#changing-the-log-level)
