@@ -107,7 +107,8 @@ Write the React component code, following the structure and patterns used in exi
 For example, for the `Image` component, a template could look like this:
 
 ```tsx
-import { emit_update } from '../socket';  // use this when your component should update values in the backend
+import { setAttribute, runMethod } from '../socket';  // use this when your component should sets values of attributes
+                                                      // or runs a method, respectively
 import { DocStringComponent } from './DocStringComponent';
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, Collapse, Image } from 'react-bootstrap';
@@ -175,10 +176,10 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
 Often, React components in the frontend will need to send updates to the backend, especially when user interactions result in a change of state or data. In `pydase`, we use `socketio` to seamlessly communicate these changes. Here's a detailed guide on how to emit update events from your frontend component:
 
-1. **Setting Up Emission**: Ensure you've imported the required functions and methods for emission. The main function we'll use for this is `emit_update` from the `socket` module:
+1. **Setting Up Emission**: Ensure you've imported the required functions and methods for emission. The main function we'll use for this is `setAttribute` from the `socket` module:
 
     ```tsx
-    import { emit_update } from '../socket';
+    import { setAttribute } from '../socket';
     ```
 
 2. **Understanding the Emission Parameters**:
@@ -203,7 +204,7 @@ Often, React components in the frontend will need to send updates to the backend
      const { name, parentPath, value } = props;
 
      const setChecked = (checked: boolean) => {
-       emit_update(name, parentPath, checked);
+       setAttribute(name, parentPath, checked);
      };
 
      return (
@@ -218,7 +219,7 @@ Often, React components in the frontend will need to send updates to the backend
    });
    ```
 
-   In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `emit_update`.
+   In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `setAttribute`.
 
 ### Step 4: Add the New Component to the GenericComponent
 
