@@ -153,7 +153,10 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
     assert service.subservice.name == "SubService"  # didn't change
 
     assert "Service.some_unit changed to 12.0 A!" in caplog.text
-    assert "Attribute 'name' is read-only. Ignoring new value..." in caplog.text
+    assert (
+        "Property 'name' has no '@load_state' decorator. "
+        "Ignoring value from JSON file..." in caplog.text
+    )
     assert (
         "Attribute type of 'some_float' changed from 'int' to 'float'. "
         "Ignoring value from JSON file..."
@@ -195,7 +198,11 @@ def test_readonly_attribute(tmp_path: Path, caplog: LogCaptureFixture):
     service = Service()
     manager = StateManager(service=service, filename=str(file))
     manager.load_state()
-    assert "Attribute 'name' is read-only. Ignoring new value..." in caplog.text
+    assert service.name == "Service"
+    assert (
+        "Property 'name' has no '@load_state' decorator. "
+        "Ignoring value from JSON file..." in caplog.text
+    )
 
 
 def test_changed_type(tmp_path: Path, caplog: LogCaptureFixture):
