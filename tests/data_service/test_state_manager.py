@@ -7,7 +7,11 @@ from pytest import LogCaptureFixture
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.data_service.state_manager import StateManager
+from pydase.data_service.state_manager import (
+    StateManager,
+    has_load_state_decorator,
+    load_state,
+)
 
 
 class SubService(pydase.DataService):
@@ -28,7 +32,7 @@ class Service(pydase.DataService):
         self.list_attr = [1.0, 2.0]
         self._property_attr = 1337.0
         self._name = "Service"
-        self._state = State.RUNNING
+        self.state = State.RUNNING
         super().__init__(**kwargs)
 
     @property
@@ -42,14 +46,6 @@ class Service(pydase.DataService):
     @property_attr.setter
     def property_attr(self, value: float) -> None:
         self._property_attr = value
-
-    @property
-    def state(self) -> State:
-        return self._state
-
-    @state.setter
-    def state(self, value: State) -> None:
-        self._state = value
 
 
 CURRENT_STATE = Service().serialize()
@@ -148,7 +144,9 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
     assert service.some_unit == u.Quantity(12, "A")  # has changed
     assert service.list_attr[0] == 1.4  # has changed
     assert service.list_attr[1] == 2.0  # has not changed
-    assert service.property_attr == 1337.1  # has changed
+    assert (
+        service.property_attr == 1337
+    )  # has not changed as property has not @load_state decorator
     assert service.state == State.FAILED  # has changed
     assert service.name == "Service"  # has not changed as readonly
     assert service.some_float == 1.0  # has not changed due to different type
@@ -215,3 +213,59 @@ def test_changed_type(tmp_path: Path, caplog: LogCaptureFixture):
         "Attribute type of 'some_float' changed from 'int' to "
         "'float'. Ignoring value from JSON file..."
     ) in caplog.text
+
+
+def test_property_load_state(tmp_path: Path):
+    # Create a StateManager instance with a temporary file
+    file = tmp_path / "test_state.json"
+
+    LOAD_STATE = {
+        "name": {
+            "type": "str",
+            "value": "Some other name",
+            "readonly": False,
+            "doc": None,
+        },
+        "not_loadable_attr": {
+            "type": "str",
+            "value": "But I AM loadable!?",
+            "readonly": False,
+            "doc": None,
+        },
+    }
+
+    # Write a temporary JSON file to read back
+    with open(file, "w") as f:
+        json.dump(LOAD_STATE, f, indent=4)
+
+    class Service(pydase.DataService):
+        _name = "Service"
+        _not_loadable_attr = "Not loadable"
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+        @name.setter
+        @load_state
+        def name(self, value: str) -> None:
+            self._name = value
+
+        @property
+        def not_loadable_attr(self) -> str:
+            return self._not_loadable_attr
+
+        @not_loadable_attr.setter
+        def not_loadable_attr(self, value: str) -> None:
+            self._not_loadable_attr = value
+
+        @property
+        def property_without_setter(self) -> None:
+            return
+
+    service_instance = Service()
+    StateManager(service_instance, filename=file).load_state()
+
+    assert service_instance.name == "Some other name"
+    assert service_instance.not_loadable_attr == "Not loadable"
+    assert not has_load_state_decorator(type(service_instance).property_without_setter)

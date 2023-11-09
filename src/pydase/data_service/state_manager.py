@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, cast
 
@@ -8,7 +9,6 @@ import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
     get_object_attr_from_path_list,
-    is_property_attribute,
     parse_list_attr_and_index,
 )
 from pydase.utils.serializer import (
@@ -21,6 +21,39 @@ if TYPE_CHECKING:
     from pydase import DataService
 
 logger = logging.getLogger(__name__)
+
+
+def load_state(func: Callable[..., Any]) -> Callable[..., Any]:
+    """This function should be used as a decorator on property setters to indicate that
+    the value should be loaded from the JSON file.
+
+    Example:
+    >>>     class Service(pydase.DataService):
+    ...         _name = "Service"
+    ...
+    ...         @property
+    ...         def name(self) -> str:
+    ...             return self._name
+    ...
+    ...         @name.setter
+    ...         @load_state
+    ...         def name(self, value: str) -> None:
+    ...             self._name = value
+    """
+
+    func._load_state = True
+    return func
+
+
+def has_load_state_decorator(prop: property):
+    """Determines if the property's setter method is decorated with the `@load_state`
+    decorator.
+    """
+
+    try:
+        return getattr(prop.fset, "_load_state")
+    except AttributeError:
+        return False
 
 
 class StateManager:
@@ -211,6 +244,8 @@ class StateManager:
     def __attr_value_should_change(self, parent_object: Any, attr_name: str) -> bool:
         # If the attribute is a property, change it using the setter without getting
         # the property value (would otherwise be bad for expensive getter methods)
-        if is_property_attribute(parent_object, attr_name):
-            return True
+        prop = getattr(type(parent_object), attr_name, None)
+
+        if isinstance(prop, property):
+            return has_load_state_decorator(prop)
         return True
