@@ -41,11 +41,11 @@ def load_state(func: Callable[..., Any]) -> Callable[..., Any]:
     ...             self._name = value
     """
 
-    func._load_state = True
+    func._load_state = True  # type: ignore
     return func
 
 
-def has_load_state_decorator(prop: property):
+def has_load_state_decorator(prop: property) -> bool:
     """Determines if the property's setter method is decorated with the `@load_state`
     decorator.
     """
