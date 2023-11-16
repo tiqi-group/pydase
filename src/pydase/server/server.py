@@ -311,8 +311,11 @@ class Server:
                     get_nested_dict_by_path(self._state_manager.cache, full_access_path)
                 )
                 serialized_value = dump(value)
+
+                if cached_value_dict["type"] != "method":
+                    cached_value_dict["type"] = serialized_value["type"]
+
                 cached_value_dict["value"] = serialized_value["value"]
-                cached_value_dict["type"] = serialized_value["type"]
 
                 async def notify() -> None:
                     try:

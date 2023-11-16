@@ -259,8 +259,9 @@ def set_nested_value_by_path(
     # setting the new value
     serialized_value = dump(value)
     if "readonly" in current_dict:
+        if current_dict["type"] != "method":
+            current_dict["type"] = serialized_value["type"]
         current_dict["value"] = serialized_value["value"]
-        current_dict["type"] = serialized_value["type"]
     else:
         current_dict.update(serialized_value)
 
