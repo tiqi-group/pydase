@@ -4,7 +4,7 @@ import os
 import signal
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum
+from copy import deepcopy
 from pathlib import Path
 from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
@@ -13,9 +13,9 @@ import uvicorn
 from rpyc import ForkingServer, ThreadedServer  # type: ignore
 from uvicorn.server import HANDLED_SIGNALS
 
-import pydase.units as u
 from pydase import DataService
 from pydase.data_service.state_manager import StateManager
+from pydase.utils.serializer import dump, get_nested_dict_by_path
 from pydase.version import __version__
 
 from .web_server import WebAPI
@@ -306,11 +306,13 @@ class Server:
                 # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
                 # >       raise TypeError(f'Object of type {o.__class__.__name__} '
                 # > TypeError: Object of type list is not JSON serializable
-                notify_value = value
-                if isinstance(value, Enum):
-                    notify_value = value.name
-                if isinstance(value, u.Quantity):
-                    notify_value = {"magnitude": value.m, "unit": str(value.u)}
+                full_access_path = ".".join([*parent_path.split(".")[:-1], name])
+                cached_value_dict = deepcopy(
+                    get_nested_dict_by_path(self._state_manager.cache, full_access_path)
+                )
+                serialized_value = dump(value)
+                cached_value_dict["value"] = serialized_value["value"]
+                cached_value_dict["type"] = serialized_value["type"]
 
                 async def notify() -> None:
                     try:
@@ -320,7 +322,7 @@ class Server:
                                 "data": {
                                     "parent_path": parent_path,
                                     "name": name,
-                                    "value": notify_value,
+                                    "value": cached_value_dict,
                                 }
                             },
                         )
