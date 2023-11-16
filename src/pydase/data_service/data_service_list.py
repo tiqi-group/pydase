@@ -23,21 +23,17 @@ class DataServiceList(list):
 
     Additional callbacks can be added after initialization using the `add_callback`
     method.
-
-    Attributes:
-        callbacks (list):
-            List of callback functions to be executed on item set.
     """
 
     def __init__(
         self,
         *args: list[Any],
-        callback: list[Callable[[int, Any], None]] | None = None,
+        callback_list: list[Callable[[int, Any], None]] | None = None,
         **kwargs: Any,
     ) -> None:
-        self.callbacks: list[Callable[[int, Any], None]] = []
-        if isinstance(callback, list):
-            self.callbacks = callback
+        self._callbacks: list[Callable[[int, Any], None]] = []
+        if isinstance(callback_list, list):
+            self._callbacks = callback_list
 
         for item in args[0]:
             warn_if_instance_class_does_not_inherit_from_DataService(item)
@@ -58,7 +54,7 @@ class DataServiceList(list):
             value = u.convert_to_quantity(value, str(current_value.u))
         super().__setitem__(key, value)  # type: ignore
 
-        for callback in self.callbacks:
+        for callback in self._callbacks:
             callback(key, value)
 
     def add_callback(self, callback: Callable[[int, Any], None]) -> None:
@@ -69,4 +65,4 @@ class DataServiceList(list):
             callback (Callable[[int, Any], None]): Callback function that takes two
             arguments - index of the changed item and its new value.
         """
-        self.callbacks.append(callback)
+        self._callbacks.append(callback)

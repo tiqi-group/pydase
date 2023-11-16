@@ -119,7 +119,9 @@ class CallbackManager:
                 else:
                     # convert the builtin list into a DataServiceList and add the
                     # callback
-                    notifying_list = DataServiceList(attr_value, callback=[callback])
+                    notifying_list = DataServiceList(
+                        attr_value, callback_list=[callback]
+                    )
                     self._list_mapping[id(attr_value)] = notifying_list
 
                 setattr(obj, attr_name, notifying_list)
