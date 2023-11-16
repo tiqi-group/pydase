@@ -314,8 +314,6 @@ class Server:
 
                 if cached_value_dict["type"] != "method":
                     cached_value_dict["type"] = serialized_value["type"]
-                else:
-                    logger.debug("Got method")
 
                 cached_value_dict["value"] = serialized_value["value"]
 
