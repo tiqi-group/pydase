@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import get_class_and_instance_attributes
@@ -96,17 +96,20 @@ class CallbackManager:
                 # Default arguments solve the late binding problem by capturing the
                 # value at the time the lambda is defined, not when it is called. This
                 # prevents attr_name from being overwritten in the next loop iteration.
-                callback = (
-                    lambda index, value, attr_name=attr_name: self.service._callback_manager.emit_notification(
-                        parent_path=parent_path,
-                        name=f"{attr_name}[{index}]",
-                        value=value,
-                    )
-                    if self.service == self.service.__root__
+                def callback(
+                    index: int, value: Any, attr_name: str = attr_name
+                ) -> None:
+                    """Emits a notification through the service's callback manager."""
                     # Skip private and protected lists
-                    and not cast(str, attr_name).startswith("_")
-                    else None
-                )
+                    if (
+                        self.service == self.service.__root__
+                        and not attr_name.startswith("_")
+                    ):
+                        self.service._callback_manager.emit_notification(
+                            parent_path=parent_path,
+                            name=f"{attr_name}[{index}]",
+                            value=value,
+                        )
 
                 # Check if attr_value is already a DataServiceList or in the mapping
                 if isinstance(attr_value, DataServiceList):
@@ -164,17 +167,20 @@ class CallbackManager:
 
         # Create and register a callback for the object
         # only emit the notification when the call was registered by the root object
-        callback: Callable[[str, Any], None] = (
-            lambda name, value: obj._callback_manager.emit_notification(
-                parent_path=parent_path, name=name, value=value
-            )
-            if self.service == obj.__root__
-            and not name.startswith("_")  # we are only interested in public attributes
-            and not isinstance(
-                getattr(type(obj), name, None), property
-            )  # exlude proerty notifications -> those are handled in separate callbacks
-            else None
-        )
+        def callback(attr_name: str, value: Any) -> None:
+            """Emits a notification through the service's callback manager."""
+            # Skip private and protected attrs
+            # exlude proerty notifications -> those are handled in separate callbacks
+            if (
+                self.service == self.service.__root__
+                and not attr_name.startswith("_")
+                and not isinstance(getattr(type(obj), attr_name, None), property)
+            ):
+                self.service._callback_manager.emit_notification(
+                    parent_path=parent_path,
+                    name=attr_name,
+                    value=value,
+                )
 
         obj._callback_manager.callbacks.add(callback)
 
@@ -300,34 +306,46 @@ class CallbackManager:
                     if isinstance(
                         dependency_value, (DataServiceList, AbstractDataService)
                     ):
-                        callback = (
-                            lambda name, value, dependent_attr=attr_name: obj._callback_manager.emit_notification(
-                                parent_path=parent_path,
-                                name=dependent_attr,
-                                value=getattr(obj, dependent_attr),
-                            )
-                            if self.service == obj.__root__
-                            else None
-                        )
+
+                        def list_or_data_service_callback(
+                            name: Any, value: Any, dependent_attr: str = attr_name
+                        ) -> None:
+                            """Emits a notification through the service's callback
+                            manager.
+                            """
+                            if self.service == obj.__root__:
+                                obj._callback_manager.emit_notification(
+                                    parent_path=parent_path,
+                                    name=dependent_attr,
+                                    value=getattr(obj, dependent_attr),
+                                )
 
                         self.__register_recursive_parameter_callback(
                             dependency_value,
-                            callback=callback,
+                            callback=list_or_data_service_callback,
                         )
                     else:
-                        callback = (
-                            lambda name, _, dep_attr=attr_name, dep=dependency: obj._callback_manager.emit_notification(  # type: ignore
-                                parent_path=parent_path,
-                                name=dep_attr,
-                                value=getattr(obj, dep_attr),
-                            )
-                            if name == dep and self.service == obj.__root__
-                            else None
-                        )
+
+                        def callback(
+                            name: str,
+                            value: Any,
+                            dependent_attr: str = attr_name,
+                            dep: str = dependency,
+                        ) -> None:
+                            """Emits a notification through the service's callback
+                            manager.
+                            """
+                            if name == dep and self.service == obj.__root__:
+                                obj._callback_manager.emit_notification(
+                                    parent_path=parent_path,
+                                    name=dependent_attr,
+                                    value=getattr(obj, dependent_attr),
+                                )
+
                         # Add to callbacks
                         obj._callback_manager.callbacks.add(callback)
 
-    def _register_start_stop_task_callbacks(
+    def _register_start_stop_task_callbacks(  # noqa
         self, obj: "AbstractDataService", parent_path: str
     ) -> None:
         """
@@ -346,16 +364,22 @@ class CallbackManager:
 
         # Create and register a callback for the object
         # only emit the notification when the call was registered by the root object
-        callback: Callable[[str, dict[str, Any] | None], None] = (
-            lambda name, status: obj._callback_manager.emit_notification(
-                parent_path=parent_path, name=name, value=status
-            )
-            if self.service == obj.__root__
-            and not name.startswith("_")  # we are only interested in public attributes
-            else None
-        )
+        def task_status_change_callback(
+            name: str, task_status: dict[str, Any] | None
+        ) -> None:
+            """Emits a notification through the service's callback
+            manager.
+            """
+            if self.service == obj.__root__ and not name.startswith("_"):
+                obj._callback_manager.emit_notification(
+                    parent_path=parent_path,
+                    name=name,
+                    value=task_status,
+                )
 
-        obj._task_manager.task_status_change_callbacks.append(callback)
+        obj._task_manager.task_status_change_callbacks.append(
+            task_status_change_callback
+        )
 
         # Recursively register callbacks for all nested attributes of the object
         attrs: dict[str, Any] = get_class_and_instance_attributes(obj)
