@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
+    "@fsouza/prettierd": "^0.25.1",
     "@mui/material": "^5.14.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
@@ -46,7 +47,7 @@
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.9.0",
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
