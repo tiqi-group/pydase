@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-from collections.abc import Callable
 from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
@@ -12,6 +11,8 @@ from pydase.data_service.data_service_list import DataServiceList
 from pydase.utils.helpers import get_class_and_instance_attributes
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .data_service import DataService
 
 logger = logging.getLogger(__name__)
