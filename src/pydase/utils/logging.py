@@ -20,7 +20,7 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
       for formatting the output, instead of the plain text message.
     """
 
-    def formatMessage(self, record: logging.LogRecord) -> str:
+    def formatMessage(self, record: logging.LogRecord) -> str:  # noqa: N802
         recordcopy = copy(record)
         levelname = recordcopy.levelname
         seperator = " " * (8 - len(recordcopy.levelname))
@@ -74,7 +74,7 @@ def setup_logging(level: Optional[str | int] = None) -> None:
     with an option to override the level. By default, in a development environment, the
     log level is set to DEBUG, whereas in other environments, it is set to INFO.
 
-    Parameters:
+    Args:
         level (Optional[str | int]):
             A specific log level to set for the application. If None, the log level is
             determined based on the application's operation mode. Accepts standard log
