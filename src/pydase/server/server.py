@@ -306,7 +306,7 @@ class Server:
                 # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
                 # >       raise TypeError(f'Object of type {o.__class__.__name__} '
                 # > TypeError: Object of type list is not JSON serializable
-                full_access_path = ".".join([*parent_path.split(".")[:-1], name])
+                full_access_path = ".".join([*parent_path.split(".")[1:], name])
                 cached_value_dict = deepcopy(
                     get_nested_dict_by_path(self._state_manager.cache, full_access_path)
                 )
