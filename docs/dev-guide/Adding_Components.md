@@ -115,13 +115,14 @@ import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface ImageComponentProps {
   name: string;
   parentPath: string;
   readOnly: boolean;
   docString: string;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
   // Define your component specific props here
   value: string;
   format: string;
@@ -299,6 +300,7 @@ useEffect(() => {
 ```
 
 However, you might want to use the `addNotification` at different places. For an example, see the [MethodComponent](../../frontend/src/components/MethodComponent.tsx).
+**Note**: you can specify the notification level by passing a string of type `LevelName` (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'). The default value is 'DEBUG'.
 
 ### Step 6: Write Tests for the Component (TODO)
 
