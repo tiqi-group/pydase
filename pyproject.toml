@@ -59,7 +59,6 @@ select = ["ALL"]
 ignore = [
     "ANN101",  # typing self
     "ANN401",  # disallow Any typing 
-    "E501",
     "F403",
     "F405",
     "E203",
@@ -77,6 +76,7 @@ ignore = [
     "D412", # No blank lines allowed between a section header and its content
     "D415", # First line should end with a period, question mark, or exclamation point
     "UP007", # Use `X | Y` for type annotations
+    "PTH", # flake8-use-pathlib
     "TRY", # Exception Handling AntiPatterns in Python
     "EM", # flake8 error messages
     "SLF", # flake8-self
@@ -86,6 +86,9 @@ ignore = [
 extend-exclude = [
   "docs", "frontend", "tests"
 ]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 7
 
 
 [tool.pyright]
