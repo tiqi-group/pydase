@@ -1,8 +1,10 @@
+import asyncio
 import logging
 import sys
 from copy import copy
 from typing import Optional
 
+import socketio
 import uvicorn.logging
 from uvicorn.config import LOGGING_CONFIG
 
@@ -32,6 +34,29 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
 
     def should_use_colors(self) -> bool:
         return sys.stderr.isatty()  # pragma: no cover
+
+
+class SocketIOHandler(logging.Handler):
+    def __init__(self, sio: socketio.AsyncServer, level: int = 40) -> None:
+        super().__init__(level)
+        self.sio = sio
+
+    def format(self, record: logging.LogRecord) -> str:
+        return f"{record.name}:{record.funcName}:{record.lineno} - {record.message}"
+
+    def emit(self, record: logging.LogRecord) -> None:
+        log_entry = self.format(record)
+
+        loop = asyncio.get_event_loop()
+        loop.create_task(
+            self.sio.emit(  # type: ignore[reportUnknownMemberType]
+                "log",
+                {
+                    "levelname": record.levelname,
+                    "message": log_entry,
+                },
+            )
+        )
 
 
 def setup_logging(level: Optional[str | int] = None) -> None:
