@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { DocStringComponent } from './DocStringComponent';
 import { Attribute, GenericComponent } from './GenericComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface ListComponentProps {
   name: string;
@@ -9,7 +10,7 @@ interface ListComponentProps {
   value: Attribute[];
   docString: string;
   isInstantUpdate: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const ListComponent = React.memo((props: ListComponentProps) => {

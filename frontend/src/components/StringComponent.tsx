@@ -4,6 +4,7 @@ import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 // TODO: add button functionality
 
@@ -14,7 +15,7 @@ interface StringComponentProps {
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const StringComponent = React.memo((props: StringComponentProps) => {

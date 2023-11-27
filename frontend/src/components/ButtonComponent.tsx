@@ -3,6 +3,7 @@ import { ToggleButton } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface ButtonComponentProps {
   name: string;
@@ -11,7 +12,7 @@ interface ButtonComponentProps {
   readOnly: boolean;
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {

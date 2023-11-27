@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
+import { LevelName } from './NotificationsComponent';
 
 interface EnumComponentProps {
   name: string;
@@ -9,7 +10,7 @@ interface EnumComponentProps {
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {

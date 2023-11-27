@@ -4,13 +4,14 @@ import { Card, Collapse } from 'react-bootstrap';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { Attribute, GenericComponent } from './GenericComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 type DataServiceProps = {
   name: string;
   props: DataServiceJSON;
   parentPath?: string;
   isInstantUpdate: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 };
 
 export type DataServiceJSON = Record<string, Attribute>;
