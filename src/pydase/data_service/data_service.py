@@ -1,10 +1,9 @@
 import logging
 import warnings
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional, get_type_hints
+from typing import TYPE_CHECKING, Any, Optional, get_type_hints
 
-import rpyc  # type: ignore
+import rpyc  # type: ignore[import-untyped]
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -26,6 +25,9 @@ from pydase.utils.serializer import (
 from pydase.utils.warnings import (
     warn_if_instance_class_does_not_inherit_from_DataService,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +58,8 @@ class DataService(rpyc.Service, AbstractDataService):
         filename = kwargs.pop("filename", None)
         if filename is not None:
             warnings.warn(
-                "The 'filename' argument is deprecated and will be removed in a future version. "
-                "Please pass the 'filename' argument to `pydase.Server`.",
+                "The 'filename' argument is deprecated and will be removed in a future "
+                "version. Please pass the 'filename' argument to `pydase.Server`.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -80,7 +82,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
         super().__setattr__(__name, __value)
 
-        if self.__dict__.get("_initialised") and not __name == "_initialised":
+        if self.__dict__.get("_initialised") and __name != "_initialised":
             for callback in self._callback_manager.callbacks:
                 callback(__name, __value)
         elif __name.startswith(f"_{self.__class__.__name__}__"):
@@ -98,7 +100,7 @@ class DataService(rpyc.Service, AbstractDataService):
             if not attr_name.startswith("_"):
                 warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
 
-    def __set_attribute_based_on_type(  # noqa:CFQ002
+    def __set_attribute_based_on_type(  # noqa: PLR0913
         self,
         target_obj: Any,
         attr_name: str,
@@ -155,9 +157,11 @@ class DataService(rpyc.Service, AbstractDataService):
         )
 
         if hasattr(self, "_state_manager"):
-            getattr(self, "_state_manager").save_state()
+            self._state_manager.save_state()  # type: ignore[reportGeneralTypeIssue]
 
-    def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
+    def load_DataService_from_JSON(  # noqa: N802
+        self, json_dict: dict[str, Any]
+    ) -> None:
         warnings.warn(
             "'load_DataService_from_JSON' is deprecated and will be removed in a "
             "future version. "
@@ -202,7 +206,7 @@ class DataService(rpyc.Service, AbstractDataService):
                     class_value_type,
                 )
 
-    def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
+    def serialize(self) -> dict[str, dict[str, Any]]:
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.
@@ -221,7 +225,7 @@ class DataService(rpyc.Service, AbstractDataService):
         """
         return Serializer.serialize_object(self)["value"]
 
-    def update_DataService_attribute(
+    def update_DataService_attribute(  # noqa: N802
         self,
         path_list: list[str],
         attr_name: str,

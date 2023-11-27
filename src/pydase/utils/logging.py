@@ -4,7 +4,7 @@ import sys
 from copy import copy
 from typing import Optional
 
-import socketio
+import socketio  # type: ignore[import-untyped]
 import uvicorn.logging
 from uvicorn.config import LOGGING_CONFIG
 
@@ -33,7 +33,7 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
         return logging.Formatter.formatMessage(self, recordcopy)
 
     def should_use_colors(self) -> bool:
-        return sys.stderr.isatty()  # pragma: no cover
+        return sys.stderr.isatty()
 
 
 class SocketIOHandler(logging.Handler):

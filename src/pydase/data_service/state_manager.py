@@ -41,7 +41,7 @@ def load_state(func: Callable[..., Any]) -> Callable[..., Any]:
     ...             self._name = value
     """
 
-    func._load_state = True  # type: ignore
+    func._load_state = True  # type: ignore[attr-defined]
     return func
 
 
@@ -51,7 +51,7 @@ def has_load_state_decorator(prop: property) -> bool:
     """
 
     try:
-        return getattr(prop.fset, "_load_state")
+        return prop.fset._load_state  # type: ignore[union-attr]
     except AttributeError:
         return False
 
@@ -96,7 +96,9 @@ class StateManager:
         update.
     """
 
-    def __init__(self, service: "DataService", filename: Optional[str | Path] = None):
+    def __init__(
+        self, service: "DataService", filename: Optional[str | Path] = None
+    ) -> None:
         self.filename = getattr(service, "_filename", None)
 
         if filename is not None:
@@ -136,7 +138,7 @@ class StateManager:
         """
 
         # Traverse the serialized representation and set the attributes of the class
-        json_dict = self._get_state_dict_from_JSON_file()
+        json_dict = self._get_state_dict_from_json_file()
         if json_dict == {}:
             logger.debug("Could not load the service state.")
             return
@@ -162,9 +164,9 @@ class StateManager:
                     class_attr_value_type,
                 )
 
-    def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
+    def _get_state_dict_from_json_file(self) -> dict[str, Any]:
         if self.filename is not None and os.path.exists(self.filename):
-            with open(self.filename, "r") as f:
+            with open(self.filename) as f:
                 # Load JSON data from file and update class attributes with these
                 # values
                 return cast(dict[str, Any], json.load(f))

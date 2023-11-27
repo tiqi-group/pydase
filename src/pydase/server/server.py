@@ -10,7 +10,7 @@ from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from rpyc import ForkingServer, ThreadedServer  # type: ignore
+from rpyc import ForkingServer, ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
@@ -164,7 +164,7 @@ class Server:
         Additional keyword arguments.
     """
 
-    def __init__(  # noqa: CFQ002
+    def __init__(
         self,
         service: DataService,
         host: str = "0.0.0.0",
@@ -319,7 +319,7 @@ class Server:
 
                 async def notify() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore
+                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
                             "notify",
                             {
                                 "data": {
@@ -338,7 +338,7 @@ class Server:
 
             # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
             # SIGTERM, which makes it impossible to escape out of
-            web_server.install_signal_handlers = lambda: None  # type: ignore
+            web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
             future_or_task = self._loop.create_task(web_server.serve())
             self.servers["web"] = future_or_task
 
@@ -413,7 +413,7 @@ class Server:
 
                 async def emit_exception() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore
+                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
                             "exception",
                             {
                                 "data": {

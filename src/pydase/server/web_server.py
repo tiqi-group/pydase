@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any, TypedDict
 
-import socketio  # type: ignore
+import socketio  # type: ignore[import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -70,7 +70,7 @@ class WebAPI:
     __sio_app: socketio.ASGIApp
     __fastapi_app: FastAPI
 
-    def __init__(  # noqa: CFQ002
+    def __init__(
         self,
         service: DataService,
         state_manager: StateManager,
@@ -80,7 +80,7 @@ class WebAPI:
         info: dict[str, Any] = {},
         *args: Any,
         **kwargs: Any,
-    ):
+    ) -> None:
         self.service = service
         self.state_manager = state_manager
         self.frontend = frontend
@@ -105,7 +105,7 @@ class WebAPI:
         else:
             sio = socketio.AsyncServer(async_mode="asgi")
 
-        @sio.event  # type: ignore
+        @sio.event  # type: ignore[reportUnknownMemberType]
         def set_attribute(sid: str, data: UpdateDict) -> Any:
             logger.debug("Received frontend update: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
@@ -115,7 +115,7 @@ class WebAPI:
                 path=path, value=data["value"]
             )
 
-        @sio.event  # type: ignore
+        @sio.event  # type: ignore[reportUnknownMemberType]
         def run_method(sid: str, data: RunMethodDict) -> Any:
             logger.debug("Running method: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
@@ -126,7 +126,7 @@ class WebAPI:
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:  # noqa
+    def setup_fastapi_app(self) -> None:  # noqa: C901
         app = FastAPI()
 
         if self.enable_CORS:

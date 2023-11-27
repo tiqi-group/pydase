@@ -95,7 +95,7 @@ class TaskManager:
 
         self._set_start_and_stop_for_async_methods()
 
-    def _set_start_and_stop_for_async_methods(self) -> None:  # noqa: C901
+    def _set_start_and_stop_for_async_methods(self) -> None:
         # inspect the methods of the class
         for name, method in inspect.getmembers(
             self.service, predicate=inspect.iscoroutinefunction
@@ -119,11 +119,11 @@ class TaskManager:
         self._initiate_task_startup()
         attrs = get_class_and_instance_attributes(self.service)
 
-        for _, attr_value in attrs.items():
+        for attr_value in attrs.values():
             if isinstance(attr_value, AbstractDataService):
                 attr_value._task_manager.start_autostart_tasks()
             elif isinstance(attr_value, DataServiceList):
-                for i, item in enumerate(attr_value):
+                for item in attr_value:
                     if isinstance(item, AbstractDataService):
                         item._task_manager.start_autostart_tasks()
 
@@ -146,7 +146,7 @@ class TaskManager:
 
         return stop_task
 
-    def _make_start_task(  # noqa
+    def _make_start_task(  # noqa: C901
         self, name: str, method: Callable[..., Any]
     ) -> Callable[..., Any]:
         """
@@ -162,7 +162,7 @@ class TaskManager:
         """
 
         @wraps(method)
-        def start_task(*args: Any, **kwargs: Any) -> None:
+        def start_task(*args: Any, **kwargs: Any) -> None:  # noqa: C901
             def task_done_callback(task: asyncio.Task[None], name: str) -> None:
                 """Handles tasks that have finished.
 
@@ -210,7 +210,7 @@ class TaskManager:
                 # with the 'kwargs' dictionary. If a parameter is specified in both
                 # 'args_padded' and 'kwargs', the value from 'kwargs' is used.
                 kwargs_updated = {
-                    **dict(zip(parameter_names, args_padded)),
+                    **dict(zip(parameter_names, args_padded, strict=True)),
                     **kwargs,
                 }
 
