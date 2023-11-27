@@ -3,6 +3,7 @@ import { runMethod } from '../socket';
 import { InputGroup, Form, Button } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface AsyncMethodProps {
   name: string;
@@ -11,7 +12,7 @@ interface AsyncMethodProps {
   value: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {

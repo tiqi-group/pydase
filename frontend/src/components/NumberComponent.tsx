@@ -4,6 +4,7 @@ import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 // TODO: add button functionality
 
@@ -23,7 +24,7 @@ interface NumberComponentProps {
     value: number,
     callback?: (ack: unknown) => void
   ) => void;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and

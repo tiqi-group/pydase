@@ -12,6 +12,7 @@ from pydase import DataService
 from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.helpers import get_object_attr_from_path_list
+from pydase.utils.logging import SocketIOHandler
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -91,6 +92,11 @@ class WebAPI:
 
         self.setup_socketio()
         self.setup_fastapi_app()
+        self.setup_logging_handler()
+
+    def setup_logging_handler(self) -> None:
+        logger = logging.getLogger()
+        logger.addHandler(SocketIOHandler(self.__sio))
 
     def setup_socketio(self) -> None:
         # the socketio ASGI app, to notify clients when params update

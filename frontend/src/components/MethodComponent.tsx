@@ -3,6 +3,7 @@ import { runMethod } from '../socket';
 import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface MethodProps {
   name: string;
@@ -10,7 +11,7 @@ interface MethodProps {
   parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const MethodComponent = React.memo((props: MethodProps) => {

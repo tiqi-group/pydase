@@ -10,6 +10,7 @@ import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 import { ImageComponent } from './ImageComponent';
 import { ColouredEnumComponent } from './ColouredEnumComponent';
+import { LevelName } from './NotificationsComponent';
 
 type AttributeType =
   | 'str'
@@ -40,7 +41,7 @@ type GenericComponentProps = {
   name: string;
   parentPath: string;
   isInstantUpdate: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 };
 
 export const GenericComponent = React.memo(

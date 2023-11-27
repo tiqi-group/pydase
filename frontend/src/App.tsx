@@ -6,7 +6,11 @@ import {
   DataServiceJSON
 } from './components/DataServiceComponent';
 import './App.css';
-import { Notifications } from './components/NotificationsComponent';
+import {
+  Notifications,
+  Notification,
+  LevelName
+} from './components/NotificationsComponent';
 import { ConnectionToast } from './components/ConnectionToast';
 import { SerializedValue, setNestedValueByPath, State } from './utils/stateUtils';
 
@@ -21,8 +25,9 @@ type Action =
 type UpdateMessage = {
   data: { parent_path: string; name: string; value: SerializedValue };
 };
-type ExceptionMessage = {
-  data: { exception: string; type: string };
+type LogMessage = {
+  levelname: LevelName;
+  message: string;
 };
 
 const reducer = (state: State, action: Action): State => {
@@ -45,8 +50,7 @@ const App = () => {
   const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [exceptions, setExceptions] = useState([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
   // Keep the state reference up to date
@@ -88,49 +92,36 @@ const App = () => {
     });
 
     socket.on('notify', onNotify);
-    socket.on('exception', onException);
+    socket.on('log', onLogMessage);
 
     return () => {
       socket.off('notify', onNotify);
-      socket.off('exception', onException);
+      socket.off('log', onLogMessage);
     };
   }, []);
 
   // Adding useCallback to prevent notify to change causing a re-render of all
   // components
-  const addNotification = useCallback((text: string) => {
-    // Getting the current time in the required format
-    const timeString = new Date().toISOString().substring(11, 19);
-    // Adding an id to the notification to provide a way of removing it
-    const id = Math.random();
+  const addNotification = useCallback(
+    (message: string, levelname: LevelName = 'DEBUG') => {
+      // Getting the current time in the required format
+      const timeStamp = new Date().toISOString().substring(11, 19);
+      // Adding an id to the notification to provide a way of removing it
+      const id = Math.random();
 
-    // Custom logic for notifications
-    setNotifications((prevNotifications) => [
-      { id, text, time: timeString },
-      ...prevNotifications
-    ]);
-  }, []);
+      // Custom logic for notifications
+      setNotifications((prevNotifications) => [
+        { levelname, id, message, timeStamp },
+        ...prevNotifications
+      ]);
+    },
+    []
+  );
 
-  const notifyException = (text: string) => {
-    // Getting the current time in the required format
-    const timeString = new Date().toISOString().substring(11, 19);
-    // Adding an id to the notification to provide a way of removing it
-    const id = Math.random();
-
-    // Custom logic for notifications
-    setExceptions((prevNotifications) => [
-      { id, text, time: timeString },
-      ...prevNotifications
-    ]);
-  };
   const removeNotificationById = (id: number) => {
     setNotifications((prevNotifications) =>
       prevNotifications.filter((n) => n.id !== id)
     );
-  };
-
-  const removeExceptionById = (id: number) => {
-    setExceptions((prevNotifications) => prevNotifications.filter((n) => n.id !== id));
   };
 
   const handleCloseSettings = () => setShowSettings(false);
@@ -149,9 +140,8 @@ const App = () => {
     });
   }
 
-  function onException(value: ExceptionMessage) {
-    const newException = `${value.data.type}: ${value.data.exception}.`;
-    notifyException(newException);
+  function onLogMessage(value: LogMessage) {
+    addNotification(value.message, value.levelname);
   }
 
   // While the data is loading
@@ -170,9 +160,7 @@ const App = () => {
       <Notifications
         showNotification={showNotification}
         notifications={notifications}
-        exceptions={exceptions}
         removeNotificationById={removeNotificationById}
-        removeExceptionById={removeExceptionById}
       />
 
       <Offcanvas

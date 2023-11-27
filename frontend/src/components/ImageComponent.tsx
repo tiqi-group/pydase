@@ -3,6 +3,7 @@ import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface ImageComponentProps {
   name: string;
@@ -11,7 +12,7 @@ interface ImageComponentProps {
   readOnly: boolean;
   docString: string;
   format: string;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {

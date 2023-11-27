@@ -5,6 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent } from './NumberComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface SliderComponentProps {
   name: string;
@@ -16,7 +17,7 @@ interface SliderComponentProps {
   docString: string;
   stepSize: number;
   isInstantUpdate: boolean;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {

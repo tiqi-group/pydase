@@ -3,6 +3,7 @@ import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { LevelName } from './NotificationsComponent';
 
 interface ColouredEnumComponentProps {
   name: string;
@@ -11,7 +12,7 @@ interface ColouredEnumComponentProps {
   docString?: string;
   readOnly: boolean;
   enumDict: Record<string, string>;
-  addNotification: (message: string) => void;
+  addNotification: (message: string, levelname?: LevelName) => void;
 }
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
