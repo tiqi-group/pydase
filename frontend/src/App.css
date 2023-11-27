@@ -17,10 +17,13 @@ input.instantUpdate {
   position: fixed !important;
   padding: 5px;
 }
-.notificationToast {
+.debugToast, .infoToast {
   background-color: rgba(114, 214, 253, 0.5) !important;
 }
-.exceptionToast {
+.warningToast {
+  background-color: rgba(255, 181, 44, 0.603) !important;
+}
+.errorToast, .exceptionToast {
   background-color: rgba(216, 41, 18, 0.678) !important;
 }
 .buttonComponent {
