@@ -28,7 +28,9 @@ export const Notifications = React.memo((props: NotificationProps) => {
             onClose={() => removeNotificationById(notification.id)}
             onClick={() => removeNotificationById(notification.id)}
             onMouseLeave={() => {
-              removeNotificationById(notification.id);
+              if (notification.levelname !== 'ERROR') {
+                removeNotificationById(notification.id);
+              }
             }}
             show={true}
             autohide={
