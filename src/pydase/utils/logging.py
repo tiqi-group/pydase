@@ -38,7 +38,7 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
 
 class SocketIOHandler(logging.Handler):
     """
-    Custom logging handler that emits ERROR and EXCEPTION log records to a Socket.IO
+    Custom logging handler that emits ERROR and CRITICAL log records to a Socket.IO
     server, allowing for real-time logging in applications that use Socket.IO for
     communication.
     """

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToastContainer, Toast } from 'react-bootstrap';
 
-export type LevelName = 'ERROR' | 'WARNING' | 'INFO' | 'DEBUG';
+export type LevelName = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO' | 'DEBUG';
 export type Notification = {
   id: number;
   timeStamp: string;
@@ -24,6 +24,7 @@ export const Notifications = React.memo((props: NotificationProps) => {
         // Determine if the toast should be shown
         const shouldShow =
           notification.levelname === 'ERROR' ||
+          notification.levelname === 'CRITICAL' ||
           (showNotification &&
             ['WARNING', 'INFO', 'DEBUG'].includes(notification.levelname));
 
