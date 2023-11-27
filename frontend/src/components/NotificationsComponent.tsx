@@ -1,7 +1,7 @@
 import React from 'react';
 import { ToastContainer, Toast } from 'react-bootstrap';
 
-export type LevelName = 'ERROR' | 'WARNING' | 'INFO' | 'DEBUG'; // Added levelname
+export type LevelName = 'ERROR' | 'WARNING' | 'INFO' | 'DEBUG';
 export type Notification = {
   id: number;
   timeStamp: string;
@@ -20,8 +20,18 @@ export const Notifications = React.memo((props: NotificationProps) => {
 
   return (
     <ToastContainer className="navbarOffset toastContainer" position="top-end">
-      {showNotification &&
-        notifications.map((notification) => (
+      {notifications.map((notification) => {
+        // Determine if the toast should be shown
+        const shouldShow =
+          notification.levelname === 'ERROR' ||
+          (showNotification &&
+            ['WARNING', 'INFO', 'DEBUG'].includes(notification.levelname));
+
+        if (!shouldShow) {
+          return null;
+        }
+
+        return (
           <Toast
             className={notification.levelname.toLowerCase() + 'Toast'}
             key={notification.id}
@@ -53,7 +63,8 @@ export const Notifications = React.memo((props: NotificationProps) => {
             </Toast.Header>
             <Toast.Body>{notification.message}</Toast.Body>
           </Toast>
-        ))}
+        );
+      })}
     </ToastContainer>
   );
 });
