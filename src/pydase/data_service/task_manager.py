@@ -111,7 +111,7 @@ class TaskManager:
                     start_method(*args)
                 else:
                     logger.warning(
-                        f"No start method found for service '{service_name}'"
+                        "No start method found for service '%s'", service_name
                     )
 
     def start_autostart_tasks(self) -> None:
@@ -179,8 +179,10 @@ class TaskManager:
                 if exception is not None:
                     # Handle the exception, or you can re-raise it.
                     logger.error(
-                        f"Task '{name}' encountered an exception: "
-                        f"{type(exception).__name__}: {exception}"
+                        "Task '%s' encountered an exception: %s: %s",
+                        name,
+                        type(exception).__name__,
+                        exception,
                     )
                     raise exception
 
@@ -188,7 +190,7 @@ class TaskManager:
                 try:
                     await method(*args, **kwargs)
                 except asyncio.CancelledError:
-                    logger.info(f"Task {name} was cancelled")
+                    logger.info("Task '%s' was cancelled", name)
 
             if not self.tasks.get(name):
                 # Get the signature of the coroutine method to start
@@ -230,6 +232,6 @@ class TaskManager:
                 for callback in self.task_status_change_callbacks:
                     callback(name, kwargs_updated)
             else:
-                logger.error(f"Task `{name}` is already running!")
+                logger.error("Task '%s' is already running!", name)
 
         return start_task

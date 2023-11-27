@@ -102,7 +102,7 @@ class StateManager:
         if filename is not None:
             if self.filename is not None:
                 logger.warning(
-                    f"Overwriting filename {self.filename!r} with {filename!r}."
+                    "Overwriting filename '%s' with '%s'.", self.filename, filename
                 )
             self.filename = filename
 
@@ -155,18 +155,19 @@ class StateManager:
                 self.set_service_attribute_value_by_path(path, value)
             else:
                 logger.info(
-                    f"Attribute type of {path!r} changed from {value_type!r} to "
-                    f"{class_attr_value_type!r}. Ignoring value from JSON file..."
+                    "Attribute type of '%s' changed from '%s' to "
+                    "'%s'. Ignoring value from JSON file...",
+                    path,
+                    value_type,
+                    class_attr_value_type,
                 )
 
     def _get_state_dict_from_JSON_file(self) -> dict[str, Any]:
-        if self.filename is not None:
-            # Check if the file specified by the filename exists
-            if os.path.exists(self.filename):
-                with open(self.filename, "r") as f:
-                    # Load JSON data from file and update class attributes with these
-                    # values
-                    return cast(dict[str, Any], json.load(f))
+        if self.filename is not None and os.path.exists(self.filename):
+            with open(self.filename, "r") as f:
+                # Load JSON data from file and update class attributes with these
+                # values
+                return cast(dict[str, Any], json.load(f))
         return {}
 
     def set_service_attribute_value_by_path(
@@ -192,7 +193,7 @@ class StateManager:
 
         # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
-            logger.debug(f"Attribute {path!r} is read-only. Ignoring new value...")
+            logger.debug("Attribute '%s' is read-only. Ignoring new value...", path)
             return
 
         converted_value = self.__convert_value_if_needed(value, current_value_dict)
@@ -201,7 +202,7 @@ class StateManager:
         if self.__attr_value_has_changed(converted_value, current_value_dict["value"]):
             self.__update_attribute_by_path(path, converted_value)
         else:
-            logger.debug(f"Value of attribute {path!r} has not changed...")
+            logger.debug("Value of attribute '%s' has not changed...", path)
 
     def __attr_value_has_changed(self, value_object: Any, current_value: Any) -> bool:
         """Check if the serialized value of `value_object` differs from `current_value`.
@@ -262,8 +263,9 @@ class StateManager:
             has_decorator = has_load_state_decorator(prop)
             if not has_decorator:
                 logger.debug(
-                    f"Property {attr_name!r} has no '@load_state' decorator. "
-                    "Ignoring value from JSON file..."
+                    "Property '%s' has no '@load_state' decorator. "
+                    "Ignoring value from JSON file...",
+                    attr_name,
                 )
             return has_decorator
         return True

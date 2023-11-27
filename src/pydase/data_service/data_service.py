@@ -85,9 +85,10 @@ class DataService(rpyc.Service, AbstractDataService):
                 callback(__name, __value)
         elif __name.startswith(f"_{self.__class__.__name__}__"):
             logger.warning(
-                f"Warning: You should not set private but rather protected attributes! "
-                f"Use {__name.replace(f'_{self.__class__.__name__}__', '_')} instead "
-                f"of {__name.replace(f'_{self.__class__.__name__}__', '__')}."
+                "Warning: You should not set private but rather protected attributes! "
+                "Use %s instead of %s.",
+                __name.replace(f"_{self.__class__.__name__}__", "_"),
+                __name.replace(f"_{self.__class__.__name__}__", "__"),
             )
 
     def __check_instance_classes(self) -> None:
@@ -178,8 +179,9 @@ class DataService(rpyc.Service, AbstractDataService):
                 class_attr_is_read_only = nested_class_dict["readonly"]
                 if class_attr_is_read_only:
                     logger.debug(
-                        f'Attribute "{path}" is read-only. Ignoring value from JSON '
-                        "file..."
+                        "Attribute '%s' is read-only. Ignoring value from JSON "
+                        "file...",
+                        path,
                     )
                     continue
                 # Split the path into parts
@@ -193,8 +195,11 @@ class DataService(rpyc.Service, AbstractDataService):
                 self.update_DataService_attribute(parts[:-1], attr_name, value)
             else:
                 logger.info(
-                    f'Attribute type of "{path}" changed from "{value_type}" to '
-                    f'"{class_value_type}". Ignoring value from JSON file...'
+                    "Attribute type of '%s' changed from '%s' to "
+                    "'%s'. Ignoring value from JSON file...",
+                    path,
+                    value_type,
+                    class_value_type,
                 )
 
     def serialize(self) -> dict[str, dict[str, Any]]:  # noqa

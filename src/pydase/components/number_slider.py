@@ -44,10 +44,10 @@ class NumberSlider(DataService):
         min: float = 0.0,
         max: float = 100.0,
         step_size: float | int = 1.0,
-        type: Literal["int"] | Literal["float"] = "float",
+        type: Literal["int", "float"] = "float",
     ) -> None:
         if type not in {"float", "int"}:
-            logger.error(f"Unknown type '{type}'. Using 'float'.")
+            logger.error("Unknown type '%s'. Using 'float'.", type)
             type = "float"
 
         self._type = type

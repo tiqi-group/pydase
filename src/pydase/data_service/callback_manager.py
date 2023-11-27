@@ -411,7 +411,7 @@ class CallbackManager:
         )
 
     def emit_notification(self, parent_path: str, name: str, value: Any) -> None:
-        logger.debug(f"{parent_path}.{name} changed to {value}!")
+        logger.debug("%s.%s changed to %s!", parent_path, name, value)
 
         for callback in self._notification_callbacks:
             try:

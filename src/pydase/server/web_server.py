@@ -107,7 +107,7 @@ class WebAPI:
 
         @sio.event  # type: ignore
         def set_attribute(sid: str, data: UpdateDict) -> Any:
-            logger.debug(f"Received frontend update: {data}")
+            logger.debug("Received frontend update: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
             path = ".".join(path_list)
@@ -117,7 +117,7 @@ class WebAPI:
 
         @sio.event  # type: ignore
         def run_method(sid: str, data: RunMethodDict) -> Any:
-            logger.debug(f"Running method: {data}")
+            logger.debug("Running method: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
             method = get_object_attr_from_path_list(self.service, path_list)

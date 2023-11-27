@@ -234,7 +234,7 @@ class Server:
     async def serve(self) -> None:
         process_id = os.getpid()
 
-        logger.info(f"Started server process [{process_id}]")
+        logger.info("Started server process [%s]", process_id)
 
         await self.startup()
         if self.should_exit:
@@ -242,7 +242,7 @@ class Server:
         await self.main_loop()
         await self.shutdown()
 
-        logger.info(f"Finished server process [{process_id}]")
+        logger.info("Finished server process [%s]", process_id)
 
     async def startup(self) -> None:  # noqa: C901
         self._loop = asyncio.get_running_loop()
@@ -330,7 +330,7 @@ class Server:
                             },
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to send notification: {e}")
+                        logger.warning("Failed to send notification: %s", e)
 
                 self._loop.create_task(notify())
 
@@ -349,7 +349,7 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
-        logger.info(f"Saving data to {self._state_manager.filename}.")
+        logger.info("Saving data to %s.", self._state_manager.filename)
         if self._state_manager is not None:
             self._state_manager.save_state()
 
@@ -366,9 +366,9 @@ class Server:
             try:
                 await task
             except asyncio.CancelledError:
-                logger.debug(f"Cancelled {server_name} server.")
+                logger.debug("Cancelled '%s' server.", server_name)
             except Exception as e:
-                logger.warning(f"Unexpected exception: {e}.")
+                logger.warning("Unexpected exception: %s", e)
 
     async def __cancel_tasks(self) -> None:
         for task in asyncio.all_tasks(self._loop):
@@ -376,9 +376,9 @@ class Server:
             try:
                 await task
             except asyncio.CancelledError:
-                logger.debug(f"Cancelled task {task.get_coro()}.")
+                logger.debug("Cancelled task '%s'.", task.get_coro())
             except Exception as e:
-                logger.warning(f"Unexpected exception: {e}.")
+                logger.exception("Unexpected exception: %s", e)
 
     def install_signal_handlers(self) -> None:
         if threading.current_thread() is not threading.main_thread():
@@ -390,11 +390,13 @@ class Server:
 
     def handle_exit(self, sig: int = 0, frame: Optional[FrameType] = None) -> None:
         if self.should_exit and sig == signal.SIGINT:
-            logger.warning(f"Received signal {sig}, forcing exit...")
+            logger.warning("Received signal '%s', forcing exit...", sig)
             os._exit(1)
         else:
             self.should_exit = True
-            logger.warning(f"Received signal {sig}, exiting... (CTRL+C to force quit)")
+            logger.warning(
+                "Received signal '%s', exiting... (CTRL+C to force quit)", sig
+            )
 
     def custom_exception_handler(
         self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]
@@ -421,7 +423,7 @@ class Server:
                             },
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to send notification: {e}")
+                        logger.exception("Failed to send notification: %s", e)
 
                 loop.create_task(emit_exception())
         else:
