@@ -37,9 +37,15 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
 
 
 class SocketIOHandler(logging.Handler):
-    def __init__(self, sio: socketio.AsyncServer, level: int = 40) -> None:
-        super().__init__(level)
-        self.sio = sio
+    """
+    Custom logging handler that emits ERROR and EXCEPTION log records to a Socket.IO
+    server, allowing for real-time logging in applications that use Socket.IO for
+    communication.
+    """
+
+    def __init__(self, sio: socketio.AsyncServer) -> None:
+        super().__init__(logging.ERROR)
+        self._sio = sio
 
     def format(self, record: logging.LogRecord) -> str:
         return f"{record.name}:{record.funcName}:{record.lineno} - {record.message}"
@@ -49,7 +55,7 @@ class SocketIOHandler(logging.Handler):
 
         loop = asyncio.get_event_loop()
         loop.create_task(
-            self.sio.emit(  # type: ignore[reportUnknownMemberType]
+            self._sio.emit(  # type: ignore[reportUnknownMemberType]
                 "log",
                 {
                     "levelname": record.levelname,
