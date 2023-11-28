@@ -126,7 +126,7 @@ class StateManager:
             with open(self.filename, "w") as f:
                 json.dump(self.cache, f, indent=4)
         else:
-            logger.error(
+            logger.info(
                 "State manager was not initialised with a filename. Skipping "
                 "'save_state'..."
             )
