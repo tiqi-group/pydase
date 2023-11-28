@@ -109,8 +109,6 @@ class Server:
         Filename of the file managing the service state persistence. Defaults to None.
     use_forking_server: bool
         Whether to use ForkingServer for multiprocessing. Default is False.
-    web_settings: dict[str, Any]
-        Additional settings for the web server. Default is {} (an empty dictionary).
     additional_servers : list[AdditionalServer]
         A list of additional servers to run alongside the main server. Each entry in the
         list should be a dictionary with the following structure:
@@ -163,7 +161,7 @@ class Server:
         Additional keyword arguments.
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         service: DataService,
         host: str = "0.0.0.0",
@@ -173,7 +171,6 @@ class Server:
         enable_web: bool = True,
         filename: Optional[str | Path] = None,
         use_forking_server: bool = False,
-        web_settings: dict[str, Any] = {},
         additional_servers: list[AdditionalServer] = [],
         **kwargs: Any,
     ) -> None:
@@ -183,7 +180,6 @@ class Server:
         self._web_port = web_port
         self._enable_rpc = enable_rpc
         self._enable_web = enable_web
-        self._web_settings = web_settings
         self._kwargs = kwargs
         self._loop: asyncio.AbstractEventLoop
         self._rpc_server_type = ForkingServer if use_forking_server else ThreadedServer
