@@ -77,7 +77,6 @@ class WebAPI:
         frontend: str | Path | None = None,
         css: str | Path | None = None,
         enable_CORS: bool = True,
-        info: dict[str, Any] = {},
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -86,7 +85,6 @@ class WebAPI:
         self.frontend = frontend
         self.css = css
         self.enable_CORS = enable_CORS
-        self.info = info
         self.args = args
         self.kwargs = kwargs
 
@@ -126,7 +124,7 @@ class WebAPI:
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:  # noqa: C901
+    def setup_fastapi_app(self) -> None:
         app = FastAPI()
 
         if self.enable_CORS:
@@ -146,10 +144,6 @@ class WebAPI:
         @app.get("/name")
         def name() -> str:
             return self.service.get_service_name()
-
-        @app.get("/info")
-        def info() -> dict[str, Any]:
-            return self.info
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:

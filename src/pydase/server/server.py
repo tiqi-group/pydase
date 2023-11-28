@@ -16,7 +16,6 @@ from uvicorn.server import HANDLED_SIGNALS
 from pydase import DataService
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.serializer import dump, get_nested_dict_by_path
-from pydase.version import __version__
 
 from .web_server import WebAPI
 
@@ -192,17 +191,6 @@ class Server:
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
         self.executor: ThreadPoolExecutor | None = None
-        self._info: dict[str, Any] = {
-            "name": self._service.get_service_name(),
-            "version": __version__,
-            "rpc_port": self._rpc_port,
-            "web_port": self._web_port,
-            "enable_rpc": self._enable_rpc,
-            "enable_web": self._enable_web,
-            "web_settings": self._web_settings,
-            "additional_servers": [],
-            **kwargs,
-        }
         self._state_manager = StateManager(self._service, filename)
         if getattr(self._service, "_filename", None) is not None:
             self._service._state_manager = self._state_manager
@@ -270,20 +258,11 @@ class Server:
                 port=server["port"],
                 host=self._host,
                 state_manager=self._state_manager,
-                info=self._info,
                 **server["kwargs"],
             )
 
             server_name = (
                 addin_server.__module__ + "." + addin_server.__class__.__name__
-            )
-            self._info["additional_servers"].append(
-                {
-                    "name": server_name,
-                    "port": server["port"],
-                    "host": self._host,
-                    **server["kwargs"],
-                }
             )
 
             future_or_task = self._loop.create_task(addin_server.serve())
@@ -291,7 +270,6 @@ class Server:
         if self._enable_web:
             self._wapi: WebAPI = WebAPI(
                 service=self._service,
-                info=self._info,
                 state_manager=self._state_manager,
                 **self._kwargs,
             )
