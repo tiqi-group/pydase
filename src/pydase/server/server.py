@@ -164,16 +164,18 @@ class Server:
     def __init__(  # noqa: PLR0913
         self,
         service: DataService,
-        host: str = "0.0.0.0",
+        host: str = "127.0.0.1",
         rpc_port: int = 18871,
         web_port: int = 8001,
         enable_rpc: bool = True,
         enable_web: bool = True,
         filename: Optional[str | Path] = None,
         use_forking_server: bool = False,
-        additional_servers: list[AdditionalServer] = [],
+        additional_servers: list[AdditionalServer] | None = None,
         **kwargs: Any,
     ) -> None:
+        if additional_servers is None:
+            additional_servers = []
         self._service = service
         self._host = host
         self._rpc_port = rpc_port
@@ -276,10 +278,6 @@ class Server:
             )
 
             def sio_callback(parent_path: str, name: str, value: Any) -> None:
-                # TODO: an error happens when an attribute is set to a list
-                # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
-                # >       raise TypeError(f'Object of type {o.__class__.__name__} '
-                # > TypeError: Object of type list is not JSON serializable
                 full_access_path = ".".join([*parent_path.split(".")[1:], name])
                 cached_value_dict = deepcopy(
                     get_nested_dict_by_path(self._state_manager.cache, full_access_path)

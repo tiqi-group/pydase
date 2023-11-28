@@ -28,7 +28,7 @@ class Image(DataService):
         return self._value
 
     @property
-    def format(self) -> str:
+    def format(self) -> str:  # noqa: A003
         return self._format
 
     def load_from_path(self, path: Path | str) -> None:

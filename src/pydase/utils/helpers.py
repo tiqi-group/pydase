@@ -54,7 +54,7 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
             index_str = index_str.replace("]", "")
             index = int(index_str)
             target_obj = getattr(target_obj, attr)[index]
-        except ValueError:
+        except ValueError:  # noqa: PERF203
             # No index, so just get the attribute
             target_obj = getattr(target_obj, part)
         except AttributeError:

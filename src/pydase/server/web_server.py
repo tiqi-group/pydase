@@ -70,13 +70,13 @@ class WebAPI:
     __sio_app: socketio.ASGIApp
     __fastapi_app: FastAPI
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         service: DataService,
         state_manager: StateManager,
         frontend: str | Path | None = None,
         css: str | Path | None = None,
-        enable_CORS: bool = True,
+        enable_cors: bool = True,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -84,7 +84,7 @@ class WebAPI:
         self.state_manager = state_manager
         self.frontend = frontend
         self.css = css
-        self.enable_CORS = enable_CORS
+        self.enable_cors = enable_cors
         self.args = args
         self.kwargs = kwargs
 
@@ -98,7 +98,7 @@ class WebAPI:
 
     def setup_socketio(self) -> None:
         # the socketio ASGI app, to notify clients when params update
-        if self.enable_CORS:
+        if self.enable_cors:
             sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
         else:
             sio = socketio.AsyncServer(async_mode="asgi")
@@ -127,7 +127,7 @@ class WebAPI:
     def setup_fastapi_app(self) -> None:
         app = FastAPI()
 
-        if self.enable_CORS:
+        if self.enable_cors:
             app.add_middleware(
                 CORSMiddleware,
                 allow_credentials=True,

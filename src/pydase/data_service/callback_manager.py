@@ -309,8 +309,8 @@ class CallbackManager:
                     ):
 
                         def list_or_data_service_callback(
-                            name: Any,  # noqa: ARG001
-                            value: Any,  # noqa: ARG001
+                            name: Any,
+                            value: Any,
                             dependent_attr: str = attr_name,
                         ) -> None:
                             """Emits a notification through the service's callback
@@ -331,7 +331,7 @@ class CallbackManager:
 
                         def callback(
                             name: str,
-                            value: Any,  # noqa: ARG001
+                            value: Any,
                             dependent_attr: str = attr_name,
                             dep: str = dependency,
                         ) -> None:

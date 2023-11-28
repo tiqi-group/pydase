@@ -23,7 +23,7 @@ from pydase.utils.serializer import (
     get_nested_dict_by_path,
 )
 from pydase.utils.warnings import (
-    warn_if_instance_class_does_not_inherit_from_DataService,
+    warn_if_instance_class_does_not_inherit_from_data_service,
 )
 
 if TYPE_CHECKING:
@@ -98,7 +98,7 @@ class DataService(rpyc.Service, AbstractDataService):
             # every class defined by the user should inherit from DataService if it is
             # assigned to a public attribute
             if not attr_name.startswith("_"):
-                warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
+                warn_if_instance_class_does_not_inherit_from_data_service(attr_value)
 
     def __set_attribute_based_on_type(  # noqa: PLR0913
         self,

@@ -3,7 +3,7 @@ from typing import Any
 
 import pydase.units as u
 from pydase.utils.warnings import (
-    warn_if_instance_class_does_not_inherit_from_DataService,
+    warn_if_instance_class_does_not_inherit_from_data_service,
 )
 
 
@@ -36,7 +36,7 @@ class DataServiceList(list):
             self._callbacks = callback_list
 
         for item in args[0]:
-            warn_if_instance_class_does_not_inherit_from_DataService(item)
+            warn_if_instance_class_does_not_inherit_from_data_service(item)
 
         # prevent gc to delete the passed list by keeping a reference
         self._original_list = args[0]
