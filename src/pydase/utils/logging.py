@@ -47,7 +47,7 @@ class SocketIOHandler(logging.Handler):
         super().__init__(logging.ERROR)
         self._sio = sio
 
-    def format(self, record: logging.LogRecord) -> str:
+    def format(self, record: logging.LogRecord) -> str:  # noqa: A003
         return f"{record.name}:{record.funcName}:{record.lineno} - {record.message}"
 
     def emit(self, record: logging.LogRecord) -> None:
@@ -123,7 +123,10 @@ def setup_logging(level: Optional[str | int] = None) -> None:
     # add formatter to ch
     ch.setFormatter(
         DefaultFormatter(
-            fmt="%(asctime)s.%(msecs)03d | %(levelprefix)s | %(name)s:%(funcName)s:%(lineno)d - %(message)s",
+            fmt=(
+                "%(asctime)s.%(msecs)03d | %(levelprefix)s | "
+                "%(name)s:%(funcName)s:%(lineno)d - %(message)s"
+            ),
             datefmt="%Y-%m-%d %H:%M:%S",
         )
     )
@@ -140,7 +143,8 @@ def setup_logging(level: Optional[str | int] = None) -> None:
         "fmt"
     ] = "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
     LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
-    LOGGING_CONFIG["formatters"]["access"][
-        "fmt"
-    ] = '%(asctime)s.%(msecs)03d | %(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+    LOGGING_CONFIG["formatters"]["access"]["fmt"] = (
+        "%(asctime)s.%(msecs)03d | %(levelprefix)s %(client_addr)s "
+        '- "%(request_line)s" %(status_code)s'
+    )
     LOGGING_CONFIG["formatters"]["access"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
