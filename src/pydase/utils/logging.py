@@ -47,7 +47,7 @@ class SocketIOHandler(logging.Handler):
         super().__init__(logging.ERROR)
         self._sio = sio
 
-    def format(self, record: logging.LogRecord) -> str:  # noqa: A003
+    def format(self, record: logging.LogRecord) -> str:
         return f"{record.name}:{record.funcName}:{record.lineno} - {record.message}"
 
     def emit(self, record: logging.LogRecord) -> None:
