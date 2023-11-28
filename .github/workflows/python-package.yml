@@ -20,6 +20,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - uses: chartboost/ruff-action@v1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -29,10 +30,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install poetry
         poetry install
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        poetry run flake8 src/pydase --count --show-source --statistics
     - name: Test with pytest
       run: |
         poetry run pytest
