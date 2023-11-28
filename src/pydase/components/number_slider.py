@@ -13,15 +13,15 @@ class NumberSlider(DataService):
 
     Parameters:
     -----------
-    value (float | int, optional):
+    value (float, optional):
         The initial value of the slider. Defaults to 0.
     min (float, optional):
         The minimum value of the slider. Defaults to 0.
     max (float, optional):
         The maximum value of the slider. Defaults to 100.
-    step_size (float | int, optional):
+    step_size (float, optional):
         The increment/decrement step size of the slider. Defaults to 1.0.
-    type (Literal["int"] | Literal["float"], optional):
+    type (Literal["int", "float"], optional):
         The type of the slider value. Determines if the value is an integer or float.
         Defaults to "float".
 
@@ -38,23 +38,23 @@ class NumberSlider(DataService):
     ```
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
-        value: float | int = 0,
-        min: float = 0.0,
-        max: float = 100.0,
-        step_size: float | int = 1.0,
-        type: Literal["int"] | Literal["float"] = "float",
+        value: float = 0,
+        min_: float = 0.0,
+        max_: float = 100.0,
+        step_size: float = 1.0,
+        type_: Literal["int", "float"] = "float",
     ) -> None:
-        if type not in {"float", "int"}:
-            logger.error(f"Unknown type '{type}'. Using 'float'.")
-            type = "float"
+        if type_ not in {"float", "int"}:
+            logger.error("Unknown type '%s'. Using 'float'.", type_)
+            type_ = "float"
 
-        self._type = type
+        self._type = type_
         self.step_size = step_size
         self.value = value
-        self.min = min
-        self.max = max
+        self.min = min_
+        self.max = max_
 
         super().__init__()
 

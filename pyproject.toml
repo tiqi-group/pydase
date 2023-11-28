@@ -25,17 +25,10 @@ pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 mypy = "^1.4.1"
 black = "^23.1.0"
-isort = "^5.12.0"
-flake8 = "^5.0.4"
-flake8-use-fstring = "^1.4"
-flake8-functions = "^0.0.7"
-flake8-comprehensions = "^3.11.1"
-flake8-pep585 = "^0.1.7"
-flake8-pep604 = "^0.1.0"
-flake8-eradicate = "^1.4.0"
 matplotlib = "^3.7.2"
 pyright = "^1.1.323"
 pytest-mock = "^3.11.1"
+ruff = "^0.1.5"
 
 
 [tool.poetry.group.docs.dependencies]
@@ -47,6 +40,37 @@ pymdown-extensions = "^10.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py310" # Always generate Python 3.10-compatible code
+line-length = 88
+select = ["ALL"]
+ignore = [
+    "ANN101",  # typing self
+    "ANN401",  # disallow Any typing 
+    "B904", # Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+    "COM812", # Missing trailing comma rule; defer to Black for formatting
+    "E203", # whitespace-before-punctuation
+    "UP007", # Use `X | Y` for type annotations
+    "S310", # suspicious-url-open-usage
+    "A", # flake8-builtins
+    "ARG",  # flake8-unused-arguments
+    "BLE", # flake8-blind-except
+    "D", # pydocstyle
+    "EM", # flake8 error messages
+    "FBT", # Boolean trap detection
+    "PTH", # flake8-use-pathlib
+    "SLF", # flake8-self
+    "TD", # flake8-todos
+    "TRY", # Exception Handling AntiPatterns in Python
+]
+extend-exclude = [
+  "docs", "frontend", "tests"
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 7
+
 
 [tool.pyright]
 include = ["src/pydase"]

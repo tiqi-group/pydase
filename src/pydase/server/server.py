@@ -10,13 +10,12 @@ from types import FrameType
 from typing import Any, Optional, Protocol, TypedDict
 
 import uvicorn
-from rpyc import ForkingServer, ThreadedServer  # type: ignore
+from rpyc import ForkingServer, ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.serializer import dump, get_nested_dict_by_path
-from pydase.version import __version__
 
 from .web_server import WebAPI
 
@@ -110,8 +109,6 @@ class Server:
         Filename of the file managing the service state persistence. Defaults to None.
     use_forking_server: bool
         Whether to use ForkingServer for multiprocessing. Default is False.
-    web_settings: dict[str, Any]
-        Additional settings for the web server. Default is {} (an empty dictionary).
     additional_servers : list[AdditionalServer]
         A list of additional servers to run alongside the main server. Each entry in the
         list should be a dictionary with the following structure:
@@ -164,27 +161,27 @@ class Server:
         Additional keyword arguments.
     """
 
-    def __init__(  # noqa: CFQ002
+    def __init__(  # noqa: PLR0913
         self,
         service: DataService,
-        host: str = "0.0.0.0",
+        host: str = "127.0.0.1",
         rpc_port: int = 18871,
         web_port: int = 8001,
         enable_rpc: bool = True,
         enable_web: bool = True,
         filename: Optional[str | Path] = None,
         use_forking_server: bool = False,
-        web_settings: dict[str, Any] = {},
-        additional_servers: list[AdditionalServer] = [],
+        additional_servers: list[AdditionalServer] | None = None,
         **kwargs: Any,
     ) -> None:
+        if additional_servers is None:
+            additional_servers = []
         self._service = service
         self._host = host
         self._rpc_port = rpc_port
         self._web_port = web_port
         self._enable_rpc = enable_rpc
         self._enable_web = enable_web
-        self._web_settings = web_settings
         self._kwargs = kwargs
         self._loop: asyncio.AbstractEventLoop
         self._rpc_server_type = ForkingServer if use_forking_server else ThreadedServer
@@ -192,17 +189,6 @@ class Server:
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
         self.executor: ThreadPoolExecutor | None = None
-        self._info: dict[str, Any] = {
-            "name": self._service.get_service_name(),
-            "version": __version__,
-            "rpc_port": self._rpc_port,
-            "web_port": self._web_port,
-            "enable_rpc": self._enable_rpc,
-            "enable_web": self._enable_web,
-            "web_settings": self._web_settings,
-            "additional_servers": [],
-            **kwargs,
-        }
         self._state_manager = StateManager(self._service, filename)
         if getattr(self._service, "_filename", None) is not None:
             self._service._state_manager = self._state_manager
@@ -234,7 +220,7 @@ class Server:
     async def serve(self) -> None:
         process_id = os.getpid()
 
-        logger.info(f"Started server process [{process_id}]")
+        logger.info("Started server process [%s]", process_id)
 
         await self.startup()
         if self.should_exit:
@@ -242,7 +228,7 @@ class Server:
         await self.main_loop()
         await self.shutdown()
 
-        logger.info(f"Finished server process [{process_id}]")
+        logger.info("Finished server process [%s]", process_id)
 
     async def startup(self) -> None:  # noqa: C901
         self._loop = asyncio.get_running_loop()
@@ -270,20 +256,11 @@ class Server:
                 port=server["port"],
                 host=self._host,
                 state_manager=self._state_manager,
-                info=self._info,
                 **server["kwargs"],
             )
 
             server_name = (
                 addin_server.__module__ + "." + addin_server.__class__.__name__
-            )
-            self._info["additional_servers"].append(
-                {
-                    "name": server_name,
-                    "port": server["port"],
-                    "host": self._host,
-                    **server["kwargs"],
-                }
             )
 
             future_or_task = self._loop.create_task(addin_server.serve())
@@ -291,7 +268,6 @@ class Server:
         if self._enable_web:
             self._wapi: WebAPI = WebAPI(
                 service=self._service,
-                info=self._info,
                 state_manager=self._state_manager,
                 **self._kwargs,
             )
@@ -302,10 +278,6 @@ class Server:
             )
 
             def sio_callback(parent_path: str, name: str, value: Any) -> None:
-                # TODO: an error happens when an attribute is set to a list
-                # >   File "/usr/lib64/python3.11/json/encoder.py", line 180, in default
-                # >       raise TypeError(f'Object of type {o.__class__.__name__} '
-                # > TypeError: Object of type list is not JSON serializable
                 full_access_path = ".".join([*parent_path.split(".")[1:], name])
                 cached_value_dict = deepcopy(
                     get_nested_dict_by_path(self._state_manager.cache, full_access_path)
@@ -319,7 +291,7 @@ class Server:
 
                 async def notify() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore
+                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
                             "notify",
                             {
                                 "data": {
@@ -330,7 +302,7 @@ class Server:
                             },
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to send notification: {e}")
+                        logger.warning("Failed to send notification: %s", e)
 
                 self._loop.create_task(notify())
 
@@ -338,7 +310,7 @@ class Server:
 
             # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
             # SIGTERM, which makes it impossible to escape out of
-            web_server.install_signal_handlers = lambda: None  # type: ignore
+            web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
             future_or_task = self._loop.create_task(web_server.serve())
             self.servers["web"] = future_or_task
 
@@ -349,7 +321,7 @@ class Server:
     async def shutdown(self) -> None:
         logger.info("Shutting down")
 
-        logger.info(f"Saving data to {self._state_manager.filename}.")
+        logger.info("Saving data to %s.", self._state_manager.filename)
         if self._state_manager is not None:
             self._state_manager.save_state()
 
@@ -366,9 +338,9 @@ class Server:
             try:
                 await task
             except asyncio.CancelledError:
-                logger.debug(f"Cancelled {server_name} server.")
+                logger.debug("Cancelled '%s' server.", server_name)
             except Exception as e:
-                logger.warning(f"Unexpected exception: {e}.")
+                logger.warning("Unexpected exception: %s", e)
 
     async def __cancel_tasks(self) -> None:
         for task in asyncio.all_tasks(self._loop):
@@ -376,9 +348,9 @@ class Server:
             try:
                 await task
             except asyncio.CancelledError:
-                logger.debug(f"Cancelled task {task.get_coro()}.")
+                logger.debug("Cancelled task '%s'.", task.get_coro())
             except Exception as e:
-                logger.warning(f"Unexpected exception: {e}.")
+                logger.exception("Unexpected exception: %s", e)
 
     def install_signal_handlers(self) -> None:
         if threading.current_thread() is not threading.main_thread():
@@ -390,11 +362,13 @@ class Server:
 
     def handle_exit(self, sig: int = 0, frame: Optional[FrameType] = None) -> None:
         if self.should_exit and sig == signal.SIGINT:
-            logger.warning(f"Received signal {sig}, forcing exit...")
+            logger.warning("Received signal '%s', forcing exit...", sig)
             os._exit(1)
         else:
             self.should_exit = True
-            logger.warning(f"Received signal {sig}, exiting... (CTRL+C to force quit)")
+            logger.warning(
+                "Received signal '%s', exiting... (CTRL+C to force quit)", sig
+            )
 
     def custom_exception_handler(
         self, loop: asyncio.AbstractEventLoop, context: dict[str, Any]
@@ -411,7 +385,7 @@ class Server:
 
                 async def emit_exception() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore
+                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
                             "exception",
                             {
                                 "data": {
@@ -421,7 +395,7 @@ class Server:
                             },
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to send notification: {e}")
+                        logger.exception("Failed to send notification: %s", e)
 
                 loop.create_task(emit_exception())
         else:

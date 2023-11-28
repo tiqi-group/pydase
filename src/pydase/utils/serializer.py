@@ -28,7 +28,7 @@ class Serializer:
     def serialize_object(obj: Any) -> dict[str, Any]:
         result: dict[str, Any] = {}
         if isinstance(obj, AbstractDataService):
-            result = Serializer._serialize_DataService(obj)
+            result = Serializer._serialize_data_service(obj)
 
         elif isinstance(obj, list):
             result = Serializer._serialize_list(obj)
@@ -38,7 +38,7 @@ class Serializer:
 
         # Special handling for u.Quantity
         elif isinstance(obj, u.Quantity):
-            result = Serializer._serialize_Quantity(obj)
+            result = Serializer._serialize_quantity(obj)
 
         # Handling for Enums
         elif isinstance(obj, Enum):
@@ -83,7 +83,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_Quantity(obj: u.Quantity) -> dict[str, Any]:
+    def _serialize_quantity(obj: u.Quantity) -> dict[str, Any]:
         obj_type = "Quantity"
         readonly = False
         doc = get_attribute_doc(obj)
@@ -154,7 +154,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_DataService(obj: AbstractDataService) -> dict[str, Any]:
+    def _serialize_data_service(obj: AbstractDataService) -> dict[str, Any]:
         readonly = False
         doc = get_attribute_doc(obj)
         obj_type = type(obj).__name__
@@ -180,9 +180,7 @@ class Serializer:
 
             # Skip keys that start with "start_" or "stop_" and end with an async
             # method name
-            if (key.startswith("start_") or key.startswith("stop_")) and key.split(
-                "_", 1
-            )[1] in {
+            if key.startswith(("start_", "stop_")) and key.split("_", 1)[1] in {
                 name
                 for name, _ in inspect.getmembers(
                     obj, predicate=inspect.iscoroutinefunction
@@ -293,6 +291,7 @@ def get_nested_dict_by_path(
 def get_next_level_dict_by_key(
     serialization_dict: dict[str, Any],
     attr_name: str,
+    *,
     allow_append: bool = False,
 ) -> dict[str, Any]:
     """
@@ -366,23 +365,23 @@ def generate_serialized_data_paths(
         attribute in the serialized data.
     """
 
-    paths = []
+    paths: list[str] = []
     for key, value in data.items():
         if value["type"] == "method":
             # ignoring methods
             continue
         new_path = f"{parent_path}.{key}" if parent_path else key
         if isinstance(value["value"], dict) and value["type"] != "Quantity":
-            paths.extend(generate_serialized_data_paths(value["value"], new_path))  # type: ignore
+            paths.extend(generate_serialized_data_paths(value["value"], new_path))
         elif isinstance(value["value"], list):
             for index, item in enumerate(value["value"]):
                 indexed_key_path = f"{new_path}[{index}]"
                 if isinstance(item["value"], dict):
-                    paths.extend(  # type: ignore
+                    paths.extend(
                         generate_serialized_data_paths(item["value"], indexed_key_path)
                     )
                 else:
-                    paths.append(indexed_key_path)  # type: ignore
+                    paths.append(indexed_key_path)
         else:
-            paths.append(new_path)  # type: ignore
+            paths.append(new_path)
     return paths

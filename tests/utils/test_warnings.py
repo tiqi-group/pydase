@@ -15,7 +15,7 @@ def test_setattr_warnings(caplog: LogCaptureFixture) -> None:  # noqa
 
     ServiceClass()
 
-    assert "Warning: Class SubClass does not inherit from DataService." in caplog.text
+    assert "Warning: Class 'SubClass' does not inherit from DataService." in caplog.text
 
 
 def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa

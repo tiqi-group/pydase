@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 from urllib.request import urlopen
 
-import PIL.Image  # type: ignore
+import PIL.Image  # type: ignore[import-untyped]
 
 from pydase.data_service.data_service import DataService
 
@@ -33,17 +33,17 @@ class Image(DataService):
 
     def load_from_path(self, path: Path | str) -> None:
         with PIL.Image.open(path) as image:
-            self._load_from_PIL(image)
+            self._load_from_pil(image)
 
     def load_from_matplotlib_figure(self, fig: "Figure", format_: str = "png") -> None:
         buffer = io.BytesIO()
-        fig.savefig(buffer, format=format_)  # type: ignore
+        fig.savefig(buffer, format=format_)  # type: ignore[reportUnknownMemberType]
         value_ = base64.b64encode(buffer.getvalue())
         self._load_from_base64(value_, format_)
 
     def load_from_url(self, url: str) -> None:
         image = PIL.Image.open(urlopen(url))
-        self._load_from_PIL(image)
+        self._load_from_pil(image)
 
     def load_from_base64(self, value_: bytes, format_: Optional[str] = None) -> None:
         if format_ is None:
@@ -60,7 +60,7 @@ class Image(DataService):
         self._value = value
         self._format = format_
 
-    def _load_from_PIL(self, image: PIL.Image.Image) -> None:
+    def _load_from_pil(self, image: PIL.Image.Image) -> None:
         if image.format is not None:
             format_ = image.format
             buffer = io.BytesIO()

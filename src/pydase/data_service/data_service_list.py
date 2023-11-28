@@ -3,7 +3,7 @@ from typing import Any
 
 import pydase.units as u
 from pydase.utils.warnings import (
-    warn_if_instance_class_does_not_inherit_from_DataService,
+    warn_if_instance_class_does_not_inherit_from_data_service,
 )
 
 
@@ -36,14 +36,14 @@ class DataServiceList(list):
             self._callbacks = callback_list
 
         for item in args[0]:
-            warn_if_instance_class_does_not_inherit_from_DataService(item)
+            warn_if_instance_class_does_not_inherit_from_data_service(item)
 
         # prevent gc to delete the passed list by keeping a reference
         self._original_list = args[0]
 
-        super().__init__(*args, **kwargs)  # type: ignore
+        super().__init__(*args, **kwargs)  # type: ignore[reportUnknownMemberType]
 
-    def __setitem__(self, key: int, value: Any) -> None:  # type: ignore
+    def __setitem__(self, key: int, value: Any) -> None:  # type: ignore[override]
         current_value = self.__getitem__(key)
 
         # parse ints into floats if current value is a float
@@ -52,7 +52,7 @@ class DataServiceList(list):
 
         if isinstance(current_value, u.Quantity):
             value = u.convert_to_quantity(value, str(current_value.u))
-        super().__setitem__(key, value)  # type: ignore
+        super().__setitem__(key, value)  # type: ignore[reportUnknownMemberType]
 
         for callback in self._callbacks:
             callback(key, value)

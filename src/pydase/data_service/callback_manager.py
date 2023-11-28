@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import inspect
 import logging
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import get_class_and_instance_attributes
@@ -11,13 +10,15 @@ from pydase.utils.helpers import get_class_and_instance_attributes
 from .data_service_list import DataServiceList
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from .data_service import DataService
 
 logger = logging.getLogger(__name__)
 
 
 class CallbackManager:
-    _notification_callbacks: list[Callable[[str, str, Any], Any]] = []
+    _notification_callbacks: ClassVar[list[Callable[[str, str, Any], Any]]] = []
     """
     A list of callback functions that are executed when a change occurs in the
     DataService instance. These functions are intended to handle or respond to these
@@ -38,7 +39,7 @@ class CallbackManager:
     This implementation follows the observer pattern, with the DataService instance as
     the "subject" and the callback functions as the "observers".
     """
-    _list_mapping: dict[int, DataServiceList] = {}
+    _list_mapping: ClassVar[dict[int, DataServiceList]] = {}
     """
     A dictionary mapping the id of the original lists to the corresponding
     DataServiceList instances.
@@ -53,7 +54,7 @@ class CallbackManager:
         self.service = service
 
     def _register_list_change_callbacks(  # noqa: C901
-        self, obj: "AbstractDataService", parent_path: str
+        self, obj: AbstractDataService, parent_path: str
     ) -> None:
         """
         This method ensures that notifications are emitted whenever a public list
@@ -135,8 +136,8 @@ class CallbackManager:
                         new_path = f"{parent_path}.{attr_name}[{i}]"
                         self._register_list_change_callbacks(item, new_path)
 
-    def _register_DataService_instance_callbacks(
-        self, obj: "AbstractDataService", parent_path: str
+    def _register_data_service_instance_callbacks(
+        self, obj: AbstractDataService, parent_path: str
     ) -> None:
         """
         This function is a key part of the observer pattern implemented by the
@@ -208,7 +209,7 @@ class CallbackManager:
                 )
 
     def _register_service_callbacks(
-        self, nested_attr: "AbstractDataService", parent_path: str, attr_name: str
+        self, nested_attr: AbstractDataService, parent_path: str, attr_name: str
     ) -> None:
         """Handles registration of callbacks for DataService attributes"""
 
@@ -217,11 +218,11 @@ class CallbackManager:
         nested_attr.__dict__["__root__"] = self.service.__root__
 
         new_path = f"{parent_path}.{attr_name}"
-        self._register_DataService_instance_callbacks(nested_attr, new_path)
+        self._register_data_service_instance_callbacks(nested_attr, new_path)
 
     def __register_recursive_parameter_callback(
         self,
-        obj: "AbstractDataService | DataServiceList",
+        obj: AbstractDataService | DataServiceList,
         callback: Callable[[str | int, Any], None],
     ) -> None:
         """
@@ -248,14 +249,14 @@ class CallbackManager:
                 item._callback_manager.callbacks.add(callback)
                 for attr_name in set(dir(item)) - set(dir(object)) - {"__root__"}:
                     attr_value = getattr(item, attr_name)
-                    if isinstance(attr_value, (AbstractDataService, DataServiceList)):
+                    if isinstance(attr_value, AbstractDataService | DataServiceList):
                         self.__register_recursive_parameter_callback(
                             attr_value, callback
                         )
 
     def _register_property_callbacks(  # noqa: C901
         self,
-        obj: "AbstractDataService",
+        obj: AbstractDataService,
         parent_path: str,
     ) -> None:
         """
@@ -284,8 +285,8 @@ class CallbackManager:
                             item, parent_path=f"{parent_path}.{attr_name}[{i}]"
                         )
             if isinstance(attr_value, property):
-                dependencies = attr_value.fget.__code__.co_names  # type: ignore
-                source_code_string = inspect.getsource(attr_value.fget)  # type: ignore
+                dependencies = attr_value.fget.__code__.co_names  # type: ignore[union-attr]
+                source_code_string = inspect.getsource(attr_value.fget)  # type: ignore[arg-type]
 
                 for dependency in dependencies:
                     # check if the dependencies are attributes of obj
@@ -304,11 +305,13 @@ class CallbackManager:
                     dependency_value = getattr(obj, dependency)
 
                     if isinstance(
-                        dependency_value, (DataServiceList, AbstractDataService)
+                        dependency_value, DataServiceList | AbstractDataService
                     ):
 
                         def list_or_data_service_callback(
-                            name: Any, value: Any, dependent_attr: str = attr_name
+                            name: Any,
+                            value: Any,
+                            dependent_attr: str = attr_name,
                         ) -> None:
                             """Emits a notification through the service's callback
                             manager.
@@ -345,8 +348,8 @@ class CallbackManager:
                         # Add to callbacks
                         obj._callback_manager.callbacks.add(callback)
 
-    def _register_start_stop_task_callbacks(  # noqa
-        self, obj: "AbstractDataService", parent_path: str
+    def _register_start_stop_task_callbacks(  # noqa: C901
+        self, obj: AbstractDataService, parent_path: str
     ) -> None:
         """
         This function registers callbacks for start and stop methods of async functions.
@@ -400,7 +403,7 @@ class CallbackManager:
         self._register_list_change_callbacks(
             self.service, f"{self.service.__class__.__name__}"
         )
-        self._register_DataService_instance_callbacks(
+        self._register_data_service_instance_callbacks(
             self.service, f"{self.service.__class__.__name__}"
         )
         self._register_property_callbacks(
@@ -411,12 +414,12 @@ class CallbackManager:
         )
 
     def emit_notification(self, parent_path: str, name: str, value: Any) -> None:
-        logger.debug(f"{parent_path}.{name} changed to {value}!")
+        logger.debug("%s.%s changed to %s!", parent_path, name, value)
 
         for callback in self._notification_callbacks:
             try:
                 callback(parent_path, name, value)
-            except Exception as e:
+            except Exception as e:  # noqa: PERF203
                 logger.error(e)
 
     def add_notification_callback(

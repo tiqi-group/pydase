@@ -1,10 +1,9 @@
 import logging
 import warnings
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional, get_type_hints
+from typing import TYPE_CHECKING, Any, Optional, get_type_hints
 
-import rpyc  # type: ignore
+import rpyc  # type: ignore[import-untyped]
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -24,8 +23,11 @@ from pydase.utils.serializer import (
     get_nested_dict_by_path,
 )
 from pydase.utils.warnings import (
-    warn_if_instance_class_does_not_inherit_from_DataService,
+    warn_if_instance_class_does_not_inherit_from_data_service,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +58,8 @@ class DataService(rpyc.Service, AbstractDataService):
         filename = kwargs.pop("filename", None)
         if filename is not None:
             warnings.warn(
-                "The 'filename' argument is deprecated and will be removed in a future version. "
-                "Please pass the 'filename' argument to `pydase.Server`.",
+                "The 'filename' argument is deprecated and will be removed in a future "
+                "version. Please pass the 'filename' argument to `pydase.Server`.",
                 DeprecationWarning,
                 stacklevel=2,
             )
@@ -80,14 +82,15 @@ class DataService(rpyc.Service, AbstractDataService):
 
         super().__setattr__(__name, __value)
 
-        if self.__dict__.get("_initialised") and not __name == "_initialised":
+        if self.__dict__.get("_initialised") and __name != "_initialised":
             for callback in self._callback_manager.callbacks:
                 callback(__name, __value)
         elif __name.startswith(f"_{self.__class__.__name__}__"):
             logger.warning(
-                f"Warning: You should not set private but rather protected attributes! "
-                f"Use {__name.replace(f'_{self.__class__.__name__}__', '_')} instead "
-                f"of {__name.replace(f'_{self.__class__.__name__}__', '__')}."
+                "Warning: You should not set private but rather protected attributes! "
+                "Use %s instead of %s.",
+                __name.replace(f"_{self.__class__.__name__}__", "_"),
+                __name.replace(f"_{self.__class__.__name__}__", "__"),
             )
 
     def __check_instance_classes(self) -> None:
@@ -95,9 +98,9 @@ class DataService(rpyc.Service, AbstractDataService):
             # every class defined by the user should inherit from DataService if it is
             # assigned to a public attribute
             if not attr_name.startswith("_"):
-                warn_if_instance_class_does_not_inherit_from_DataService(attr_value)
+                warn_if_instance_class_does_not_inherit_from_data_service(attr_value)
 
-    def __set_attribute_based_on_type(  # noqa:CFQ002
+    def __set_attribute_based_on_type(  # noqa: PLR0913
         self,
         target_obj: Any,
         attr_name: str,
@@ -154,9 +157,11 @@ class DataService(rpyc.Service, AbstractDataService):
         )
 
         if hasattr(self, "_state_manager"):
-            getattr(self, "_state_manager").save_state()
+            self._state_manager.save_state()  # type: ignore[reportGeneralTypeIssue]
 
-    def load_DataService_from_JSON(self, json_dict: dict[str, Any]) -> None:
+    def load_DataService_from_JSON(  # noqa: N802
+        self, json_dict: dict[str, Any]
+    ) -> None:
         warnings.warn(
             "'load_DataService_from_JSON' is deprecated and will be removed in a "
             "future version. "
@@ -178,8 +183,9 @@ class DataService(rpyc.Service, AbstractDataService):
                 class_attr_is_read_only = nested_class_dict["readonly"]
                 if class_attr_is_read_only:
                     logger.debug(
-                        f'Attribute "{path}" is read-only. Ignoring value from JSON '
-                        "file..."
+                        "Attribute '%s' is read-only. Ignoring value from JSON "
+                        "file...",
+                        path,
                     )
                     continue
                 # Split the path into parts
@@ -193,11 +199,14 @@ class DataService(rpyc.Service, AbstractDataService):
                 self.update_DataService_attribute(parts[:-1], attr_name, value)
             else:
                 logger.info(
-                    f'Attribute type of "{path}" changed from "{value_type}" to '
-                    f'"{class_value_type}". Ignoring value from JSON file...'
+                    "Attribute type of '%s' changed from '%s' to "
+                    "'%s'. Ignoring value from JSON file...",
+                    path,
+                    value_type,
+                    class_value_type,
                 )
 
-    def serialize(self) -> dict[str, dict[str, Any]]:  # noqa
+    def serialize(self) -> dict[str, dict[str, Any]]:
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.
@@ -216,7 +225,7 @@ class DataService(rpyc.Service, AbstractDataService):
         """
         return Serializer.serialize_object(self)["value"]
 
-    def update_DataService_attribute(
+    def update_DataService_attribute(  # noqa: N802
         self,
         path_list: list[str],
         attr_name: str,

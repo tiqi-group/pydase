@@ -54,12 +54,12 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
             index_str = index_str.replace("]", "")
             index = int(index_str)
             target_obj = getattr(target_obj, attr)[index]
-        except ValueError:
+        except ValueError:  # noqa: PERF203
             # No index, so just get the attribute
             target_obj = getattr(target_obj, part)
         except AttributeError:
             # The attribute doesn't exist
-            logger.debug(f"Attribute {part} does not exist in the object.")
+            logger.debug("Attribute % does not exist in the object.", part)
             return None
     return target_obj
 
@@ -141,7 +141,7 @@ def update_value_if_changed(
         if getattr(target, attr_name_or_index) != new_value:
             setattr(target, attr_name_or_index, new_value)
     else:
-        logger.error(f"Incompatible arguments: {target}, {attr_name_or_index}.")
+        logger.error("Incompatible arguments: %s, %s.", target, attr_name_or_index)
 
 
 def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
@@ -175,7 +175,7 @@ def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
         if index_part.isdigit():
             index = int(index_part)
         else:
-            logger.error(f"Invalid index format in key: {attr_name}")
+            logger.error("Invalid index format in key: %s", attr_name)
     return attr_name, index
 
 

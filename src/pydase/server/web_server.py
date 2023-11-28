@@ -2,7 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any, TypedDict
 
-import socketio  # type: ignore
+import socketio  # type: ignore[import-untyped]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -70,23 +70,21 @@ class WebAPI:
     __sio_app: socketio.ASGIApp
     __fastapi_app: FastAPI
 
-    def __init__(  # noqa: CFQ002
+    def __init__(  # noqa: PLR0913
         self,
         service: DataService,
         state_manager: StateManager,
         frontend: str | Path | None = None,
         css: str | Path | None = None,
-        enable_CORS: bool = True,
-        info: dict[str, Any] = {},
+        enable_cors: bool = True,
         *args: Any,
         **kwargs: Any,
-    ):
+    ) -> None:
         self.service = service
         self.state_manager = state_manager
         self.frontend = frontend
         self.css = css
-        self.enable_CORS = enable_CORS
-        self.info = info
+        self.enable_cors = enable_cors
         self.args = args
         self.kwargs = kwargs
 
@@ -100,14 +98,14 @@ class WebAPI:
 
     def setup_socketio(self) -> None:
         # the socketio ASGI app, to notify clients when params update
-        if self.enable_CORS:
+        if self.enable_cors:
             sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
         else:
             sio = socketio.AsyncServer(async_mode="asgi")
 
-        @sio.event  # type: ignore
+        @sio.event  # type: ignore[reportUnknownMemberType]
         def set_attribute(sid: str, data: UpdateDict) -> Any:
-            logger.debug(f"Received frontend update: {data}")
+            logger.debug("Received frontend update: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
             path = ".".join(path_list)
@@ -115,9 +113,9 @@ class WebAPI:
                 path=path, value=data["value"]
             )
 
-        @sio.event  # type: ignore
+        @sio.event  # type: ignore[reportUnknownMemberType]
         def run_method(sid: str, data: RunMethodDict) -> Any:
-            logger.debug(f"Running method: {data}")
+            logger.debug("Running method: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
             method = get_object_attr_from_path_list(self.service, path_list)
@@ -126,10 +124,10 @@ class WebAPI:
         self.__sio = sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:  # noqa
+    def setup_fastapi_app(self) -> None:
         app = FastAPI()
 
-        if self.enable_CORS:
+        if self.enable_cors:
             app.add_middleware(
                 CORSMiddleware,
                 allow_credentials=True,
@@ -146,10 +144,6 @@ class WebAPI:
         @app.get("/name")
         def name() -> str:
             return self.service.get_service_name()
-
-        @app.get("/info")
-        def info() -> dict[str, Any]:
-            return self.info
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:

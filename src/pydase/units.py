@@ -15,7 +15,7 @@ class QuantityDict(TypedDict):
 
 
 def convert_to_quantity(
-    value: QuantityDict | float | int | Quantity, unit: str = ""
+    value: QuantityDict | float | Quantity, unit: str = ""
 ) -> Quantity:
     """
     Convert a given value into a pint.Quantity object with the specified unit.
@@ -53,4 +53,4 @@ def convert_to_quantity(
         quantity = float(value["magnitude"]) * Unit(value["unit"])
     else:
         quantity = value
-    return quantity  # type: ignore
+    return quantity  # type: ignore[reportUnknownMemberType]

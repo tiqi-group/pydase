@@ -57,5 +57,3 @@ class ColouredEnum(Enum):
     my_service.status = MyStatus.FAILED
     ```
     """
-
-    pass
