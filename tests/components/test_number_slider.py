@@ -1,4 +1,4 @@
-from pytest import CaptureFixture, LogCaptureFixture
+from pytest import LogCaptureFixture
 
 from pydase.components.number_slider import NumberSlider
 from pydase.data_service.data_service import DataService
@@ -38,6 +38,6 @@ def test_NumberSlider(caplog: LogCaptureFixture) -> None:
 
 
 def test_init_error(caplog: LogCaptureFixture) -> None:  # noqa
-    number_slider = NumberSlider(type="str")  # type: ignore # noqa
+    number_slider = NumberSlider(type_="str")  # type: ignore # noqa
 
     assert "Unknown type 'str'. Using 'float'" in caplog.text
