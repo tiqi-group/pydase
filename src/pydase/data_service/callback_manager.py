@@ -136,7 +136,7 @@ class CallbackManager:
                         new_path = f"{parent_path}.{attr_name}[{i}]"
                         self._register_list_change_callbacks(item, new_path)
 
-    def _register_DataService_instance_callbacks(
+    def _register_data_service_instance_callbacks(
         self, obj: AbstractDataService, parent_path: str
     ) -> None:
         """
@@ -218,7 +218,7 @@ class CallbackManager:
         nested_attr.__dict__["__root__"] = self.service.__root__
 
         new_path = f"{parent_path}.{attr_name}"
-        self._register_DataService_instance_callbacks(nested_attr, new_path)
+        self._register_data_service_instance_callbacks(nested_attr, new_path)
 
     def __register_recursive_parameter_callback(
         self,
@@ -249,7 +249,7 @@ class CallbackManager:
                 item._callback_manager.callbacks.add(callback)
                 for attr_name in set(dir(item)) - set(dir(object)) - {"__root__"}:
                     attr_value = getattr(item, attr_name)
-                    if isinstance(attr_value, (AbstractDataService, DataServiceList)):
+                    if isinstance(attr_value, AbstractDataService | DataServiceList):
                         self.__register_recursive_parameter_callback(
                             attr_value, callback
                         )
@@ -309,7 +309,9 @@ class CallbackManager:
                     ):
 
                         def list_or_data_service_callback(
-                            name: Any, value: Any, dependent_attr: str = attr_name
+                            name: Any,  # noqa: ARG001
+                            value: Any,  # noqa: ARG001
+                            dependent_attr: str = attr_name,
                         ) -> None:
                             """Emits a notification through the service's callback
                             manager.
@@ -329,7 +331,7 @@ class CallbackManager:
 
                         def callback(
                             name: str,
-                            value: Any,
+                            value: Any,  # noqa: ARG001
                             dependent_attr: str = attr_name,
                             dep: str = dependency,
                         ) -> None:
@@ -401,7 +403,7 @@ class CallbackManager:
         self._register_list_change_callbacks(
             self.service, f"{self.service.__class__.__name__}"
         )
-        self._register_DataService_instance_callbacks(
+        self._register_data_service_instance_callbacks(
             self.service, f"{self.service.__class__.__name__}"
         )
         self._register_property_callbacks(
@@ -417,7 +419,7 @@ class CallbackManager:
         for callback in self._notification_callbacks:
             try:
                 callback(parent_path, name, value)
-            except Exception as e:
+            except Exception as e:  # noqa: PERF203
                 logger.error(e)
 
     def add_notification_callback(
