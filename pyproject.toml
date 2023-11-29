@@ -79,7 +79,6 @@ max-complexity = 7
 
 [tool.pyright]
 include = ["src/pydase"]
-exclude = ["**/node_modules", "**/__pycache__", "docs", "frontend", "tests"]
 typeCheckingMode = "basic"
 reportUnknownMemberType = true
 reportUnknownParameterType = true
@@ -104,7 +103,6 @@ exclude = '''
 profile = "black"
 
 [tool.mypy]
-mypy_path = "src/"
 show_error_codes = true
 disallow_untyped_defs = true
 disallow_untyped_calls = true
