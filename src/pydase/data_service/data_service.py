@@ -7,7 +7,6 @@ import rpyc  # type: ignore[import-untyped]
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.callback_manager import CallbackManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
@@ -45,15 +44,11 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, **kwargs: Any) -> None:
-        self._callback_manager: CallbackManager = CallbackManager(self)
+        super().__init__()
         self._task_manager = TaskManager(self)
 
         if not hasattr(self, "_autostart_tasks"):
             self._autostart_tasks = {}
-
-        self.__root__: "DataService" = self
-        """Keep track of the root object. This helps to filter the emission of
-        notifications."""
 
         filename = kwargs.pop("filename", None)
         if filename is not None:
@@ -65,7 +60,6 @@ class DataService(rpyc.Service, AbstractDataService):
             )
             self._filename: str | Path = filename
 
-        self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
 
@@ -82,10 +76,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
         super().__setattr__(__name, __value)
 
-        if self.__dict__.get("_initialised") and __name != "_initialised":
-            for callback in self._callback_manager.callbacks:
-                callback(__name, __value)
-        elif __name.startswith(f"_{self.__class__.__name__}__"):
+        if __name.startswith(f"_{self.__class__.__name__}__"):
             logger.warning(
                 "Warning: You should not set private but rather protected attributes! "
                 "Use %s instead of %s.",

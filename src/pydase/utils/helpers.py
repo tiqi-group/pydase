@@ -26,9 +26,7 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     loops.
     """
 
-    attrs = dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
-    attrs.pop("__root__")
-    return attrs
+    return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
 
 
 def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:

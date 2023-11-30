@@ -7,7 +7,6 @@ from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.data_service_list import DataServiceList
 from pydase.utils.helpers import get_class_and_instance_attributes
 
 if TYPE_CHECKING:
@@ -122,7 +121,7 @@ class TaskManager:
         for attr_value in attrs.values():
             if isinstance(attr_value, AbstractDataService):
                 attr_value._task_manager.start_autostart_tasks()
-            elif isinstance(attr_value, DataServiceList):
+            elif isinstance(attr_value, list):
                 for item in attr_value:
                     if isinstance(item, AbstractDataService):
                         item._task_manager.start_autostart_tasks()

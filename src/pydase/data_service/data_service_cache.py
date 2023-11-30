@@ -23,7 +23,6 @@ class DataServiceCache:
         """Initializes the cache and sets up the callback."""
         logger.debug("Initializing cache.")
         self._cache = self.service.serialize()
-        self.service._callback_manager.add_notification_callback(self.update_cache)
 
     def update_cache(self, parent_path: str, name: str, value: Any) -> None:
         # Remove the part before the first "." in the parent_path
