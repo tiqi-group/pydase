@@ -53,4 +53,4 @@ def convert_to_quantity(
         quantity = float(value["magnitude"]) * Unit(value["unit"])
     else:
         quantity = value
-    return quantity  # type: ignore[reportUnknownMemberType]
+    return quantity

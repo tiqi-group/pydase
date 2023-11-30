@@ -419,7 +419,7 @@ class CallbackManager:
         for callback in self._notification_callbacks:
             try:
                 callback(parent_path, name, value)
-            except Exception as e:  # noqa: PERF203
+            except Exception as e:
                 logger.error(e)
 
     def add_notification_callback(

@@ -2,7 +2,7 @@ import inspect
 import logging
 from collections.abc import Callable
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -130,7 +130,7 @@ class Serializer:
 
         # Store parameters and their anotations in a dictionary
         sig = inspect.signature(obj)
-        parameters: dict[str, Optional[str]] = {}
+        parameters: dict[str, str | None] = {}
 
         for k, v in sig.parameters.items():
             annotation = v.annotation

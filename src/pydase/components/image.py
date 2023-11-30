@@ -2,7 +2,7 @@ import base64
 import io
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from urllib.request import urlopen
 
 import PIL.Image  # type: ignore[import-untyped]
@@ -45,7 +45,7 @@ class Image(DataService):
         image = PIL.Image.open(urlopen(url))
         self._load_from_pil(image)
 
-    def load_from_base64(self, value_: bytes, format_: Optional[str] = None) -> None:
+    def load_from_base64(self, value_: bytes, format_: str | None = None) -> None:
         if format_ is None:
             format_ = self._get_image_format_from_bytes(value_)
             if format_ is None:

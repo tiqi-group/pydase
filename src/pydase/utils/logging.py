@@ -2,7 +2,6 @@ import asyncio
 import logging
 import sys
 from copy import copy
-from typing import Optional
 
 import socketio  # type: ignore[import-untyped]
 import uvicorn.logging
@@ -65,7 +64,7 @@ class SocketIOHandler(logging.Handler):
         )
 
 
-def setup_logging(level: Optional[str | int] = None) -> None:
+def setup_logging(level: str | int | None = None) -> None:
     """
     Configures the logging settings for the application.
 

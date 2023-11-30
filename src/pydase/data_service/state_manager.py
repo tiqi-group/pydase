@@ -3,7 +3,7 @@ import logging
 import os
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
@@ -97,7 +97,7 @@ class StateManager:
     """
 
     def __init__(
-        self, service: "DataService", filename: Optional[str | Path] = None
+        self, service: "DataService", filename: str | Path | None = None
     ) -> None:
         self.filename = getattr(service, "_filename", None)
 

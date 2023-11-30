@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from pathlib import Path
 from types import FrameType
-from typing import Any, Optional, Protocol, TypedDict
+from typing import Any, Protocol, TypedDict
 
 import uvicorn
 from rpyc import ForkingServer, ThreadedServer  # type: ignore[import-untyped]
@@ -169,7 +169,7 @@ class Server:
         web_port: int = 8001,
         enable_rpc: bool = True,
         enable_web: bool = True,
-        filename: Optional[str | Path] = None,
+        filename: str | Path | None = None,
         use_forking_server: bool = False,
         additional_servers: list[AdditionalServer] | None = None,
         **kwargs: Any,
@@ -360,7 +360,7 @@ class Server:
         for sig in HANDLED_SIGNALS:
             signal.signal(sig, self.handle_exit)
 
-    def handle_exit(self, sig: int = 0, frame: Optional[FrameType] = None) -> None:
+    def handle_exit(self, sig: int = 0, frame: FrameType | None = None) -> None:
         if self.should_exit and sig == signal.SIGINT:
             logger.warning("Received signal '%s', forcing exit...", sig)
             os._exit(1)

@@ -1,12 +1,12 @@
 import inspect
 import logging
 from itertools import chain
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def get_attribute_doc(attr: Any) -> Optional[str]:
+def get_attribute_doc(attr: Any) -> str | None:
     """This function takes an input attribute attr and returns its documentation
     string if it's different from the documentation of its type, otherwise,
     it returns None.
@@ -54,7 +54,7 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
             index_str = index_str.replace("]", "")
             index = int(index_str)
             target_obj = getattr(target_obj, attr)[index]
-        except ValueError:  # noqa: PERF203
+        except ValueError:
             # No index, so just get the attribute
             target_obj = getattr(target_obj, part)
         except AttributeError:
@@ -144,7 +144,7 @@ def update_value_if_changed(
         logger.error("Incompatible arguments: %s, %s.", target, attr_name_or_index)
 
 
-def parse_list_attr_and_index(attr_string: str) -> tuple[str, Optional[int]]:
+def parse_list_attr_and_index(attr_string: str) -> tuple[str, int | None]:
     """
     Parses an attribute string and extracts a potential list attribute name and its
     index.

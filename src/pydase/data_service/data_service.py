@@ -1,7 +1,7 @@
 import logging
 import warnings
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, get_type_hints
+from typing import TYPE_CHECKING, Any, get_type_hints
 
 import rpyc  # type: ignore[import-untyped]
 
@@ -106,7 +106,7 @@ class DataService(rpyc.Service, AbstractDataService):
         attr_name: str,
         attr: Any,
         value: Any,
-        index: Optional[int],
+        index: int | None,
         path_list: list[str],
     ) -> None:
         if isinstance(attr, Enum):
