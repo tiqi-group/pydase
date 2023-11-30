@@ -65,7 +65,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # converting attributes that are not properties
-        if not isinstance(getattr(type(self), __name, None), property):
+        if not is_property_attribute(self, __name):
             current_value = getattr(self, __name, None)
             # parse ints into floats if current value is a float
             if isinstance(current_value, float) and isinstance(__value, int):
