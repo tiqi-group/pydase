@@ -1,9 +1,10 @@
 from typing import Any
 
-from pytest import LogCaptureFixture
-
 import pydase.units as u
 from pydase.data_service.data_service import DataService
+from pydase.data_service.data_service_observer import DataServiceObserver
+from pydase.data_service.state_manager import StateManager
+from pytest import LogCaptureFixture
 
 
 def test_DataService_setattr(caplog: LogCaptureFixture) -> None:
@@ -19,26 +20,28 @@ def test_DataService_setattr(caplog: LogCaptureFixture) -> None:
         def current(self, value: Any) -> None:
             self._current = value
 
-    service = ServiceClass()
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
     # You can just set floats to the Quantity objects. The DataService __setattr__ will
     # automatically convert this
-    service.voltage = 10.0  # type: ignore
-    service.current = 1.5
+    service_instance.voltage = 10.0  # type: ignore
+    service_instance.current = 1.5
 
-    assert service.voltage == 10.0 * u.units.V  # type: ignore
-    assert service.current == 1.5 * u.units.mA
+    assert service_instance.voltage == 10.0 * u.units.V  # type: ignore
+    assert service_instance.current == 1.5 * u.units.mA
 
-    assert "ServiceClass.voltage changed to 10.0 V" in caplog.text
-    assert "ServiceClass.current changed to 1.5 mA" in caplog.text
+    assert "'voltage' changed to '10.0 V'" in caplog.text
+    assert "'current' changed to '1.5 mA'" in caplog.text
 
-    service.voltage = 12.0 * u.units.V  # type: ignore
-    service.current = 1.51 * u.units.A
-    assert service.voltage == 12.0 * u.units.V  # type: ignore
-    assert service.current == 1.51 * u.units.A
+    service_instance.voltage = 12.0 * u.units.V  # type: ignore
+    service_instance.current = 1.51 * u.units.A
+    assert service_instance.voltage == 12.0 * u.units.V  # type: ignore
+    assert service_instance.current == 1.51 * u.units.A
 
-    assert "ServiceClass.voltage changed to 12.0 V" in caplog.text
-    assert "ServiceClass.current changed to 1.51 A" in caplog.text
+    assert "'voltage' changed to '12.0 V'" in caplog.text
+    assert "'current' changed to '1.51 A'" in caplog.text
 
 
 def test_convert_to_quantity() -> None:
@@ -61,23 +64,25 @@ def test_update_DataService_attribute(caplog: LogCaptureFixture) -> None:
         def current(self, value: Any) -> None:
             self._current = value
 
-    service = ServiceClass()
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
-    service.update_DataService_attribute(
+    service_instance.update_DataService_attribute(
         path_list=[], attr_name="voltage", value=1.0 * u.units.mV
     )
 
-    assert "ServiceClass.voltage changed to 1.0 mV" in caplog.text
+    assert "'voltage' changed to '1.0 mV'" in caplog.text
 
-    service.update_DataService_attribute(path_list=[], attr_name="voltage", value=2)
+    service_instance.update_DataService_attribute(path_list=[], attr_name="voltage", value=2)
 
-    assert "ServiceClass.voltage changed to 2.0 mV" in caplog.text
+    assert "'voltage' changed to '2.0 mV'" in caplog.text
 
-    service.update_DataService_attribute(
+    service_instance.update_DataService_attribute(
         path_list=[], attr_name="voltage", value={"magnitude": 123, "unit": "kV"}
     )
 
-    assert "ServiceClass.voltage changed to 123.0 kV" in caplog.text
+    assert "'voltage' changed to '123.0 kV'" in caplog.text
 
 
 def test_autoconvert_offset_to_baseunit() -> None:
@@ -104,9 +109,9 @@ def test_loading_from_json(caplog: LogCaptureFixture) -> None:
     }
 
     class ServiceClass(DataService):
-        def __init__(self):
-            self._unit: u.Quantity = 1 * u.units.A
+        def __init__(self) -> None:
             super().__init__()
+            self._unit: u.Quantity = 1 * u.units.A
 
         @property
         def some_unit(self) -> u.Quantity:
@@ -117,8 +122,10 @@ def test_loading_from_json(caplog: LogCaptureFixture) -> None:
             assert isinstance(value, u.Quantity)
             self._unit = value
 
-    service = ServiceClass()
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
-    service.load_DataService_from_JSON(JSON_DICT)
+    service_instance.load_DataService_from_JSON(JSON_DICT)
 
-    assert "ServiceClass.some_unit changed to 10.0 A" in caplog.text
+    assert "'some_unit' changed to '10.0 A'" in caplog.text

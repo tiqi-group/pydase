@@ -2,8 +2,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from pytest import LogCaptureFixture
-
 import pydase
 import pydase.units as u
 from pydase.components.coloured_enum import ColouredEnum
@@ -12,6 +10,7 @@ from pydase.data_service.state_manager import (
     has_load_state_decorator,
     load_state,
 )
+from pytest import LogCaptureFixture
 
 
 class SubService(pydase.DataService):
@@ -26,6 +25,7 @@ class State(ColouredEnum):
 
 class Service(pydase.DataService):
     def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
         self.subservice = SubService()
         self.some_unit: u.Quantity = 1.2 * u.units.A
         self.some_float = 1.0
@@ -33,7 +33,6 @@ class Service(pydase.DataService):
         self._property_attr = 1337.0
         self._name = "Service"
         self.state = State.RUNNING
-        super().__init__(**kwargs)
 
     @property
     def name(self) -> str:
@@ -152,7 +151,7 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
     assert service.some_float == 1.0  # has not changed due to different type
     assert service.subservice.name == "SubService"  # didn't change
 
-    assert "Service.some_unit changed to 12.0 A!" in caplog.text
+    assert "'some_unit' changed to '12.0 A!'" in caplog.text
     assert (
         "Property 'name' has no '@load_state' decorator. "
         "Ignoring value from JSON file..." in caplog.text

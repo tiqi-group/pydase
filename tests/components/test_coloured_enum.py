@@ -1,7 +1,8 @@
-from pytest import LogCaptureFixture
-
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.data_service import DataService
+from pydase.data_service.data_service_observer import DataServiceObserver
+from pydase.data_service.state_manager import StateManager
+from pytest import LogCaptureFixture
 
 
 def test_ColouredEnum(caplog: LogCaptureFixture) -> None:
@@ -21,14 +22,16 @@ def test_ColouredEnum(caplog: LogCaptureFixture) -> None:
             # do something ...
             self._status = value
 
-    service = ServiceClass()
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
-    service.status = MyStatus.FAILING
+    service_instance.status = MyStatus.FAILING
 
-    assert "ServiceClass.status changed to MyStatus.FAILING" in caplog.text
+    assert "'status' changed to 'MyStatus.FAILING'" in caplog.text
 
 
-def test_warning(caplog: LogCaptureFixture) -> None:  # noqa
+def test_warning(caplog: LogCaptureFixture) -> None:
     class MyStatus(ColouredEnum):
         RUNNING = "#00FF00"
         FAILING = "#FF0000"

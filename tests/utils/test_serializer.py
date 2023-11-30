@@ -1,10 +1,9 @@
 import asyncio
 from enum import Enum
 
-import pytest
-
 import pydase
 import pydase.units as u
+import pytest
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.utils.serializer import (
     SerializationPathError,
@@ -43,13 +42,13 @@ def test_enum_serialize() -> None:
 
     class EnumAttribute(pydase.DataService):
         def __init__(self) -> None:
-            self.some_enum = EnumClass.FOO
             super().__init__()
+            self.some_enum = EnumClass.FOO
 
     class EnumPropertyWithoutSetter(pydase.DataService):
         def __init__(self) -> None:
-            self._some_enum = EnumClass.FOO
             super().__init__()
+            self._some_enum = EnumClass.FOO
 
         @property
         def some_enum(self) -> EnumClass:
@@ -57,8 +56,8 @@ def test_enum_serialize() -> None:
 
     class EnumPropertyWithSetter(pydase.DataService):
         def __init__(self) -> None:
-            self._some_enum = EnumClass.FOO
             super().__init__()
+            self._some_enum = EnumClass.FOO
 
         @property
         def some_enum(self) -> EnumClass:
