@@ -7,7 +7,7 @@ from pydase.utils.warnings import (
 )
 
 
-class DataServiceList(list):
+class DataServiceList(list[Any]):
     """
     DataServiceList is a list with additional functionality to trigger callbacks
     whenever an item is set. This can be used to track changes in the list items.

@@ -93,13 +93,12 @@ max-complexity = 7
 [tool.pyright]
 include = ["src/pydase"]
 typeCheckingMode = "basic"
-reportUnknownParameterType = true
 
 
 [tool.mypy]
-show_error_codes = true
 disallow_untyped_defs = true
 disallow_untyped_calls = true
 disallow_incomplete_defs = true
+disallow_any_generics = true
 check_untyped_defs = true
 ignore_missing_imports = false
