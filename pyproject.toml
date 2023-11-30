@@ -27,7 +27,6 @@ types-toml = "^0.10.8.6"
 pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 mypy = "^1.4.1"
-black = "^23.1.0"
 matplotlib = "^3.7.2"
 pyright = "^1.1.323"
 pytest-mock = "^3.11.1"
@@ -97,24 +96,6 @@ typeCheckingMode = "basic"
 reportUnknownMemberType = true
 reportUnknownParameterType = true
 
-[tool.black]
-line-length = 88
-exclude = '''
-/(
-    \.git
-  | \.mypy_cache
-  | \.tox
-  | venv
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
 
 [tool.mypy]
 show_error_codes = true
