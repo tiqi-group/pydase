@@ -126,7 +126,7 @@ class ObservableObject(ABC):
         ...
 
 
-class _ObservableList(ObservableObject, list):
+class _ObservableList(ObservableObject, list[Any]):
     def __init__(
         self,
         original_list: list[Any],
@@ -162,10 +162,10 @@ class _ObservableList(ObservableObject, list):
         return instance_attr_name
 
 
-class _ObservableDict(dict, ObservableObject):
+class _ObservableDict(dict[str, Any], ObservableObject):
     def __init__(
         self,
-        original_dict: dict[Any, Any],
+        original_dict: dict[str, Any],
     ) -> None:
         self._original_dict = original_dict
         ObservableObject.__init__(self)
