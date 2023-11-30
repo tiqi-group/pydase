@@ -266,7 +266,7 @@ class Server:
             future_or_task = self._loop.create_task(addin_server.serve())
             self.servers[server_name] = future_or_task
         if self._enable_web:
-            self._wapi: WebAPI = WebAPI(
+            self._wapi = WebAPI(
                 service=self._service,
                 state_manager=self._state_manager,
                 **self._kwargs,
