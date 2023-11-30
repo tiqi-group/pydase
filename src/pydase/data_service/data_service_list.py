@@ -41,7 +41,7 @@ class DataServiceList(list):
         # prevent gc to delete the passed list by keeping a reference
         self._original_list = args[0]
 
-        super().__init__(*args, **kwargs)  # type: ignore[reportUnknownMemberType]
+        super().__init__(*args, **kwargs)
 
     def __setitem__(self, key: int, value: Any) -> None:  # type: ignore[override]
         current_value = self.__getitem__(key)
@@ -52,7 +52,7 @@ class DataServiceList(list):
 
         if isinstance(current_value, u.Quantity):
             value = u.convert_to_quantity(value, str(current_value.u))
-        super().__setitem__(key, value)  # type: ignore[reportUnknownMemberType]
+        super().__setitem__(key, value)
 
         for callback in self._callbacks:
             callback(key, value)

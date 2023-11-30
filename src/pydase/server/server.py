@@ -291,7 +291,7 @@ class Server:
 
                 async def notify() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
+                        await self._wapi.sio.emit(
                             "notify",
                             {
                                 "data": {
@@ -385,7 +385,7 @@ class Server:
 
                 async def emit_exception() -> None:
                     try:
-                        await self._wapi.sio.emit(  # type: ignore[reportUnknownMemberType]
+                        await self._wapi.sio.emit(
                             "exception",
                             {
                                 "data": {

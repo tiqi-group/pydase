@@ -93,7 +93,6 @@ max-complexity = 7
 [tool.pyright]
 include = ["src/pydase"]
 typeCheckingMode = "basic"
-reportUnknownMemberType = true
 reportUnknownParameterType = true
 
 

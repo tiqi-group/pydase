@@ -103,7 +103,7 @@ class WebAPI:
         else:
             sio = socketio.AsyncServer(async_mode="asgi")
 
-        @sio.event  # type: ignore[reportUnknownMemberType]
+        @sio.event
         def set_attribute(sid: str, data: UpdateDict) -> Any:
             logger.debug("Received frontend update: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
@@ -113,7 +113,7 @@ class WebAPI:
                 path=path, value=data["value"]
             )
 
-        @sio.event  # type: ignore[reportUnknownMemberType]
+        @sio.event
         def run_method(sid: str, data: RunMethodDict) -> Any:
             logger.debug("Running method: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]

@@ -37,7 +37,7 @@ class Image(DataService):
 
     def load_from_matplotlib_figure(self, fig: "Figure", format_: str = "png") -> None:
         buffer = io.BytesIO()
-        fig.savefig(buffer, format=format_)  # type: ignore[reportUnknownMemberType]
+        fig.savefig(buffer, format=format_)
         value_ = base64.b64encode(buffer.getvalue())
         self._load_from_base64(value_, format_)
 

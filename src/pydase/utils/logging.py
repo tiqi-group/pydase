@@ -54,7 +54,7 @@ class SocketIOHandler(logging.Handler):
 
         loop = asyncio.get_event_loop()
         loop.create_task(
-            self._sio.emit(  # type: ignore[reportUnknownMemberType]
+            self._sio.emit(
                 "log",
                 {
                     "levelname": record.levelname,
