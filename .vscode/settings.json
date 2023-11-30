@@ -1,18 +1,15 @@
 {
-    "autoDocstring.docstringFormat": "google",
-    "autoDocstring.startOnNewLine": true,
-    "autoDocstring.generateDocstringOnEnter": true,
     "editor.formatOnSave": true,
-    "editor.rulers": [
-        88
-    ],
-    "python.defaultInterpreterPath": ".venv/bin/python",
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.rulers": [
+            88
+        ],
         "editor.tabSize": 4,
         "editor.detectIndentation": false,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": true,
+            "source.fixAll": true
         }
     },
     "[yaml]": {
@@ -22,10 +19,9 @@
     "[typescript][javascript][vue][typescriptreact]": {
         "editor.tabSize": 2,
         "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-        "editor.formatOnPaste": false, // required
-        "editor.formatOnType": false, // required
-        "editor.formatOnSave": true, // optional
-        "editor.formatOnSaveMode": "file", // required to format on save
+        "editor.formatOnPaste": false,
+        "editor.formatOnType": false,
+        "editor.formatOnSaveMode": "file",
         "editor.codeActionsOnSave": {
             "source.fixAll.eslint": true
         }
