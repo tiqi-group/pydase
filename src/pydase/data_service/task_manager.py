@@ -86,12 +86,6 @@ class TaskManager:
         its kwargs.
         """
 
-        self.task_status_change_callbacks: list[
-            Callable[[str, dict[str, Any] | None], Any]
-        ] = []
-        """A list of callback functions to be invoked when the status of a task (start
-        or stop) changes."""
-
         self._set_start_and_stop_for_async_methods()
 
     def _set_start_and_stop_for_async_methods(self) -> None:
@@ -145,7 +139,7 @@ class TaskManager:
 
         return stop_task
 
-    def _make_start_task(  # noqa: C901
+    def _make_start_task(
         self, name: str, method: Callable[..., Any]
     ) -> Callable[..., Any]:
         """
@@ -161,7 +155,7 @@ class TaskManager:
         """
 
         @wraps(method)
-        def start_task(*args: Any, **kwargs: Any) -> None:  # noqa: C901
+        def start_task(*args: Any, **kwargs: Any) -> None:
             def task_done_callback(task: asyncio.Task[None], name: str) -> None:
                 """Handles tasks that have finished.
 
@@ -172,8 +166,7 @@ class TaskManager:
                 self.tasks.pop(name, None)
 
                 # emit the notification that the task was stopped
-                for callback in self.task_status_change_callbacks:
-                    callback(name, None)
+                self.service._notify_changed(name, None)
 
                 exception = task.exception()
                 if exception is not None:
@@ -229,8 +222,7 @@ class TaskManager:
                 }
 
                 # emit the notification that the task was started
-                for callback in self.task_status_change_callbacks:
-                    callback(name, kwargs_updated)
+                self.service._notify_changed(name, kwargs_updated)
             else:
                 logger.error("Task '%s' is already running!", name)
 
