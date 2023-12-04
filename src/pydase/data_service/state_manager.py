@@ -145,7 +145,7 @@ class StateManager:
 
         for path in generate_serialized_data_paths(json_dict):
             nested_json_dict = get_nested_dict_by_path(json_dict, path)
-            nested_class_dict = get_nested_dict_by_path(self.cache, path)
+            nested_class_dict = self._data_service_cache.get_value_dict_from_cache(path)
 
             value, value_type = nested_json_dict["value"], nested_json_dict["type"]
             class_attr_value_type = nested_class_dict.get("type", None)
