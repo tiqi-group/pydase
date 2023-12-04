@@ -164,7 +164,7 @@ class Server:
     def __init__(  # noqa: PLR0913
         self,
         service: DataService,
-        host: str = "127.0.0.1",
+        host: str = "0.0.0.0",
         rpc_port: int = 18871,
         web_port: int = 8001,
         enable_rpc: bool = True,
