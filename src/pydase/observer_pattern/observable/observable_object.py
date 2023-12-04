@@ -37,7 +37,6 @@ class ObservableObject(ABC):
         of observers. This is a crucial step to avoid unwanted notifications from
         the old value of the attribute.
         """
-        ...
 
     def _notify_changed(self, changed_attribute: str, value: Any) -> None:
         """Notifies all observers about changes to an attribute.
@@ -123,7 +122,6 @@ class ObservableObject(ABC):
         Returns:
             str: The constructed extended attribute path.
         """
-        ...
 
 
 class _ObservableList(ObservableObject, list[Any]):

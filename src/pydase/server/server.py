@@ -68,7 +68,6 @@ class AdditionalServerProtocol(Protocol):
         """Starts the server. This method should be implemented as an asynchronous
         method, which means that it should be able to run concurrently with other tasks.
         """
-        ...
 
 
 class AdditionalServer(TypedDict):
