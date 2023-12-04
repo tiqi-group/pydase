@@ -1,5 +1,6 @@
 import asyncio
 from enum import Enum
+from typing import Any
 
 import pydase
 import pydase.units as u
@@ -31,7 +32,7 @@ from pydase.utils.serializer import (
         ),
     ],
 )
-def test_dump(test_input, expected):
+def test_dump(test_input: Any, expected: dict[str, Any]) -> None:
     assert dump(test_input) == expected
 
 
@@ -400,17 +401,10 @@ def test_get_class_attribute_inside_list(setup_dict):
 
 
 def test_get_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
-    get_nested_dict_by_path(setup_dict, "attr_list[10]")
-    assert (
-        "Error occured trying to change 'attr_list[10]': list index "
-        "out of range" in caplog.text
-    )
+    with pytest.raises(SerializationPathError):
+        get_nested_dict_by_path(setup_dict, "attr_list[10]")
 
 
 def test_get_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
-    get_nested_dict_by_path(setup_dict, "invalid_path")
-    assert (
-        "Error occured trying to access the key 'invalid_path': it is either "
-        "not present in the current dictionary or its value does not contain "
-        "a 'value' key." in caplog.text
-    )
+    with pytest.raises(SerializationPathError):
+        get_nested_dict_by_path(setup_dict, "invalid_path")

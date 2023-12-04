@@ -4,7 +4,9 @@ from typing import Any
 
 import pydase
 import pydase.units as u
+import pytest
 from pydase.components.coloured_enum import ColouredEnum
+from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import (
     StateManager,
     has_load_state_decorator,
@@ -116,7 +118,7 @@ LOAD_STATE = {
 }
 
 
-def test_save_state(tmp_path: Path):
+def test_save_state(tmp_path: Path) -> None:
     # Create a StateManager instance with a temporary file
     file = tmp_path / "test_state.json"
     manager = StateManager(service=Service(), filename=str(file))
@@ -128,7 +130,7 @@ def test_save_state(tmp_path: Path):
     assert file.read_text() == json.dumps(CURRENT_STATE, indent=4)
 
 
-def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
+def test_load_state(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     # Create a StateManager instance with a temporary file
     file = tmp_path / "test_state.json"
 
@@ -137,8 +139,9 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
         json.dump(LOAD_STATE, f, indent=4)
 
     service = Service()
-    manager = StateManager(service=service, filename=str(file))
-    manager.load_state()
+    state_manager = StateManager(service=service, filename=str(file))
+    DataServiceObserver(state_manager)
+    state_manager.load_state()
 
     assert service.some_unit == u.Quantity(12, "A")  # has changed
     assert service.list_attr[0] == 1.4  # has changed
@@ -151,7 +154,7 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
     assert service.some_float == 1.0  # has not changed due to different type
     assert service.subservice.name == "SubService"  # didn't change
 
-    assert "'some_unit' changed to '12.0 A!'" in caplog.text
+    assert "'some_unit' changed to '12.0 A'" in caplog.text
     assert (
         "Property 'name' has no '@load_state' decorator. "
         "Ignoring value from JSON file..." in caplog.text
@@ -167,15 +170,17 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture):
     assert "Value of attribute 'subservice.name' has not changed..." in caplog.text
 
 
-def test_filename_warning(tmp_path: Path, caplog: LogCaptureFixture):
+def test_filename_warning(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     file = tmp_path / "test_state.json"
 
-    service = Service(filename=str(file))
-    StateManager(service=service, filename=str(file))
+    with pytest.warns(DeprecationWarning):
+        service = Service(filename=str(file))
+        StateManager(service=service, filename=str(file))
+
     assert f"Overwriting filename {str(file)!r} with {str(file)!r}." in caplog.text
 
 
-def test_filename_error(caplog: LogCaptureFixture):
+def test_filename_error(caplog: LogCaptureFixture) -> None:
     service = Service()
     manager = StateManager(service=service)
 
@@ -186,7 +191,7 @@ def test_filename_error(caplog: LogCaptureFixture):
     )
 
 
-def test_readonly_attribute(tmp_path: Path, caplog: LogCaptureFixture):
+def test_readonly_attribute(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     # Create a StateManager instance with a temporary file
     file = tmp_path / "test_state.json"
 
@@ -204,7 +209,7 @@ def test_readonly_attribute(tmp_path: Path, caplog: LogCaptureFixture):
     )
 
 
-def test_changed_type(tmp_path: Path, caplog: LogCaptureFixture):
+def test_changed_type(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     # Create a StateManager instance with a temporary file
     file = tmp_path / "test_state.json"
 
@@ -221,7 +226,7 @@ def test_changed_type(tmp_path: Path, caplog: LogCaptureFixture):
     ) in caplog.text
 
 
-def test_property_load_state(tmp_path: Path):
+def test_property_load_state(tmp_path: Path) -> None:
     # Create a StateManager instance with a temporary file
     file = tmp_path / "test_state.json"
 
