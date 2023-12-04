@@ -37,7 +37,7 @@ class DataServiceObserver(Observer):
                 full_access_path
             )
         )
-        if cache_value_dict is not None:
+        if cache_value_dict != {}:
             cache_value = cache_value_dict["value"]
             self.state_manager._data_service_cache.update_cache(
                 full_access_path,
