@@ -32,8 +32,8 @@ class DataServiceCache:
     def update_cache(self, full_access_path: str, value: Any) -> None:
         set_nested_value_by_path(self._cache, full_access_path, value)
 
-    def get_value_dict_from_cache(self, full_access_path: str) -> dict[str, Any] | None:
+    def get_value_dict_from_cache(self, full_access_path: str) -> dict[str, Any]:
         try:
             return get_nested_dict_by_path(self._cache, full_access_path)
         except (SerializationPathError, SerializationValueError, KeyError):
-            return None
+            return {}
