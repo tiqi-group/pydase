@@ -32,7 +32,11 @@ class Observable(ObservableObject):
         self._notify_changed(name, value)
 
     def __getattribute__(self, name: str) -> Any:
+        if is_property_attribute(self, name):
+            self._notify_change_start(name)
+
         value = super().__getattribute__(name)
+
         if is_property_attribute(self, name):
             self._notify_changed(name, value)
 
