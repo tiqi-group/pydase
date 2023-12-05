@@ -4,11 +4,8 @@ from copy import deepcopy
 from typing import Any
 
 from pydase.data_service.state_manager import StateManager
-from pydase.observer_pattern.observable.observable import Observable
-from pydase.observer_pattern.observer.observer import Observer
 from pydase.observer_pattern.observer.property_observer import (
-    get_property_dependencies,
-    reverse_dict,
+    PropertyObserver,
 )
 from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.utils.serializer import dump
@@ -16,23 +13,15 @@ from pydase.utils.serializer import dump
 logger = logging.getLogger(__name__)
 
 
-class DataServiceObserver(Observer):
+class DataServiceObserver(PropertyObserver):
     def __init__(self, state_manager: StateManager) -> None:
-        super().__init__(state_manager.service)
-        self.initialised = False
         self.state_manager = state_manager
-        self.property_deps_dict = reverse_dict(
-            self._get_properties_and_their_dependencies(self.observable)
-        )
         self._notification_callbacks: list[
             Callable[[str, Any, dict[str, Any]], None]
         ] = []
-        self.initialised = True
+        super().__init__(state_manager.service)
 
     def on_change(self, full_access_path: str, value: Any) -> None:
-        if not self.initialised:
-            return
-
         cached_value_dict = deepcopy(
             self.state_manager._data_service_cache.get_value_dict_from_cache(
                 full_access_path
@@ -83,64 +72,6 @@ class DataServiceObserver(Observer):
                     prop,
                     get_object_attr_from_path_list(self.observable, prop.split(".")),
                 )
-
-    def _get_properties_and_their_dependencies(
-        self, obj: Observable, prefix: str = ""
-    ) -> dict[str, list[str]]:
-        deps: dict[str, Any] = {}
-
-        self._process_observable_properties(obj, deps, prefix)
-        self._process_nested_observables_properties(obj, deps, prefix)
-
-        return deps
-
-    def _process_observable_properties(
-        self, obj: Observable, deps: dict[str, Any], prefix: str
-    ) -> None:
-        for k, value in vars(type(obj)).items():
-            prefix = (
-                f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
-            )
-            key = f"{prefix}{k}"
-            if isinstance(value, property):
-                deps[key] = get_property_dependencies(value, prefix)
-
-    def _process_nested_observables_properties(
-        self, obj: Observable, deps: dict[str, Any], prefix: str
-    ) -> None:
-        for k, value in vars(obj).items():
-            prefix = (
-                f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
-            )
-            parent_path = f"{prefix}{k}"
-            if isinstance(value, Observable):
-                new_prefix = f"{parent_path}."
-                deps.update(
-                    self._get_properties_and_their_dependencies(value, new_prefix)
-                )
-            elif isinstance(value, list | dict):
-                self._process_collection_item_properties(value, deps, parent_path)
-
-    def _process_collection_item_properties(
-        self,
-        collection: list[Any] | dict[str, Any],
-        deps: dict[str, Any],
-        parent_path: str,
-    ) -> None:
-        if isinstance(collection, list):
-            for i, item in enumerate(collection):
-                if isinstance(item, Observable):
-                    new_prefix = f"{parent_path}[{i}]"
-                    deps.update(
-                        self._get_properties_and_their_dependencies(item, new_prefix)
-                    )
-        elif isinstance(collection, dict):
-            for key, val in collection.items():
-                if isinstance(val, Observable):
-                    new_prefix = f"{parent_path}['{key}']"
-                    deps.update(
-                        self._get_properties_and_their_dependencies(val, new_prefix)
-                    )
 
     def add_notification_callback(
         self, callback: Callable[[str, Any, dict[str, Any]], None]
