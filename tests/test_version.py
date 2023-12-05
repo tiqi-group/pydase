@@ -1,6 +1,5 @@
-import toml
-
 import pydase.version
+import toml
 
 
 def test_project_version() -> None:
