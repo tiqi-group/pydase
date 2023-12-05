@@ -32,9 +32,6 @@ class DataServiceObserver(Observer):
         if not self.initialised:
             return
 
-        if full_access_path in self.changing_attributes:
-            self.changing_attributes.remove(full_access_path)
-
         cached_value_dict = copy(
             self.state_manager._data_service_cache.get_value_dict_from_cache(
                 full_access_path
@@ -72,9 +69,6 @@ class DataServiceObserver(Observer):
                     prop,
                     get_object_attr_from_path_list(self.observable, prop.split(".")),
                 )
-
-    def on_change_start(self, full_access_path: str) -> None:
-        self.changing_attributes.append(full_access_path)
 
     def _get_properties_and_their_dependencies(
         self, obj: Observable, prefix: str = ""
