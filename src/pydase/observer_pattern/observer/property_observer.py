@@ -29,6 +29,9 @@ def get_property_dependencies(prop: property, prefix: str = "") -> list[str]:
 class PropertyObserver(Observer):
     def __init__(self, observable: Observable) -> None:
         super().__init__(observable)
+        self._update_property_deps_dict()
+
+    def _update_property_deps_dict(self) -> None:
         self.property_deps_dict = reverse_dict(
             self._get_properties_and_their_dependencies(self.observable)
         )
