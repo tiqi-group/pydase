@@ -24,24 +24,24 @@ def test_DataService_setattr(caplog: LogCaptureFixture) -> None:
     state_manager = StateManager(service_instance)
     DataServiceObserver(state_manager)
 
-    # You can just set floats to the Quantity objects. The DataService __setattr__ will
-    # automatically convert this
-    service_instance.voltage = 10.0  # type: ignore
-    service_instance.current = 1.5
-
-    assert service_instance.voltage == 10.0 * u.units.V  # type: ignore
-    assert service_instance.current == 1.5 * u.units.mA
+    service_instance.voltage = 10.0 * u.units.V
+    service_instance.current = 1.5 * u.units.mA
 
     assert "'voltage' changed to '10.0 V'" in caplog.text
     assert "'current' changed to '1.5 mA'" in caplog.text
 
-    service_instance.voltage = 12.0 * u.units.V  # type: ignore
+    assert service_instance.voltage == 10.0 * u.units.V
+    assert service_instance.current == 1.5 * u.units.mA
+    caplog.clear()
+
+    service_instance.voltage = 12.0 * u.units.V
     service_instance.current = 1.51 * u.units.A
-    assert service_instance.voltage == 12.0 * u.units.V  # type: ignore
-    assert service_instance.current == 1.51 * u.units.A
 
     assert "'voltage' changed to '12.0 V'" in caplog.text
     assert "'current' changed to '1.51 A'" in caplog.text
+
+    assert service_instance.voltage == 12.0 * u.units.V
+    assert service_instance.current == 1.51 * u.units.A
 
 
 def test_convert_to_quantity() -> None:
