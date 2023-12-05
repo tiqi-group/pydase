@@ -220,6 +220,8 @@ class StateManager:
     ) -> Any:
         if current_value_dict["type"] == "Quantity":
             return u.convert_to_quantity(value, current_value_dict["value"]["unit"])
+        if current_value_dict["type"] == "float" and not isinstance(value, float):
+            return float(value)
         return value
 
     def __update_attribute_by_path(self, path: str, value: Any) -> None:
