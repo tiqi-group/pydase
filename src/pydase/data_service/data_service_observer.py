@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Callable
 from copy import copy
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from pydase.data_service.state_manager import StateManager
 from pydase.observer_pattern.observable.observable import Observable
@@ -11,10 +12,6 @@ from pydase.observer_pattern.observer.property_observer import (
 )
 from pydase.utils.helpers import get_object_attr_from_path_list
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -23,11 +20,12 @@ class DataServiceObserver(Observer):
         super().__init__(state_manager.service)
         self.initialised = False
         self.state_manager = state_manager
-        self.changing_attributes: list[str] = []
         self.property_deps_dict = reverse_dict(
             self._get_properties_and_their_dependencies(self.observable)
         )
-        self._change_callbacks: list[Callable[[str, Any, dict[str, Any]], None]] = []
+        self._notification_callbacks: list[
+            Callable[[str, Any, dict[str, Any]], None]
+        ] = []
         self.initialised = True
 
     def on_change(self, full_access_path: str, value: Any) -> None:
@@ -49,7 +47,7 @@ class DataServiceObserver(Observer):
 
         self._update_cache_value(full_access_path, cached_value_dict, value)
 
-        for callback in self._change_callbacks:
+        for callback in self._notification_callbacks:
             callback(full_access_path, value, cached_value_dict)
 
         self._notify_dependent_property_changes(full_access_path)
@@ -134,3 +132,30 @@ class DataServiceObserver(Observer):
                 new_prefix = f"{key}." if not key.endswith("]") else key
                 values.update(self._get_property_values(value, new_prefix))
         return values
+
+    def add_notification_callback(
+        self, callback: Callable[[str, Any, dict[str, Any]], None]
+    ) -> None:
+        """
+        Registers a callback function to be invoked upon attribute changes in the
+        observed object.
+
+        This method allows for the addition of custom callback functions that will be
+        executed whenever there is a change in the value of an observed attribute. The
+        callback function is called with detailed information about the change, enabling
+        external logic to respond to specific state changes within the observable
+        object.
+
+        Args:
+            callback (Callable[[str, Any, dict[str, Any]]): The callback function to be
+            registered. The function should have the following signature:
+                - full_access_path (str): The full dot-notation access path of the
+                  changed attribute. This path indicates the location of the changed
+                  attribute within the observable object's structure.
+                - value (Any): The new value of the changed attribute.
+                - cached_value_dict (dict[str, Any]): A dictionary representing the
+                  cached state of the attribute prior to the change. This can be useful
+                  for understanding the nature of the change and for historical
+                  comparison.
+        """
+        self._notification_callbacks.append(callback)
