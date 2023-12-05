@@ -11,6 +11,7 @@ from pydase.observer_pattern.observer.property_observer import (
     reverse_dict,
 )
 from pydase.utils.helpers import get_object_attr_from_path_list
+from pydase.utils.serializer import dump
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class DataServiceObserver(Observer):
         )
 
         cached_value = cached_value_dict.get("value")
-        if cached_value != value:
+        if cached_value != dump(value)["value"]:
             logger.debug("'%s' changed to '%s'", full_access_path, value)
 
         self._update_cache_value(full_access_path, value, cached_value_dict)
