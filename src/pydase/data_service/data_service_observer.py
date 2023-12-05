@@ -42,7 +42,7 @@ class DataServiceObserver(Observer):
         if cached_value != value:
             logger.debug("'%s' changed to '%s'", full_access_path, value)
 
-        self._update_cache_value(full_access_path, cached_value_dict, value)
+        self._update_cache_value(full_access_path, value, cached_value_dict)
 
         for callback in self._notification_callbacks:
             callback(full_access_path, value, cached_value_dict)
@@ -50,9 +50,19 @@ class DataServiceObserver(Observer):
         self._notify_dependent_property_changes(full_access_path)
 
     def _update_cache_value(
-        self, full_access_path: str, cached_value_dict: dict[str, Any], value: Any
+        self, full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
     ) -> None:
+        value_dict = dump(value)
         if cached_value_dict != {}:
+            if cached_value_dict["type"] != value_dict["type"]:
+                logger.warning(
+                    "Type of '%s' changed from '%s' to '%s'. This could have unwanted "
+                    "side effects! Consider setting it to '%s' directly.",
+                    full_access_path,
+                    cached_value_dict["type"],
+                    value_dict["type"],
+                    cached_value_dict["type"],
+                )
             self.state_manager._data_service_cache.update_cache(
                 full_access_path,
                 value,
