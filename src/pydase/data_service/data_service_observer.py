@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable
-from copy import copy
+from copy import deepcopy
 from typing import Any
 
 from pydase.data_service.state_manager import StateManager
@@ -33,7 +33,7 @@ class DataServiceObserver(Observer):
         if not self.initialised:
             return
 
-        cached_value_dict = copy(
+        cached_value_dict = deepcopy(
             self.state_manager._data_service_cache.get_value_dict_from_cache(
                 full_access_path
             )
@@ -55,7 +55,10 @@ class DataServiceObserver(Observer):
     ) -> None:
         value_dict = dump(value)
         if cached_value_dict != {}:
-            if cached_value_dict["type"] != value_dict["type"]:
+            if (
+                cached_value_dict["type"] != "method"
+                and cached_value_dict["type"] != value_dict["type"]
+            ):
                 logger.warning(
                     "Type of '%s' changed from '%s' to '%s'. This could have unwanted "
                     "side effects! Consider setting it to '%s' directly.",
