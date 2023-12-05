@@ -87,7 +87,16 @@ class DataServiceObserver(Observer):
     def _get_properties_and_their_dependencies(
         self, obj: Observable, prefix: str = ""
     ) -> dict[str, list[str]]:
-        deps = {}
+        deps: dict[str, Any] = {}
+
+        self._process_observable_properties(obj, deps, prefix)
+        self._process_nested_observables_properties(obj, deps, prefix)
+
+        return deps
+
+    def _process_observable_properties(
+        self, obj: Observable, deps: dict[str, Any], prefix: str
+    ) -> None:
         for k, value in vars(type(obj)).items():
             prefix = (
                 f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
@@ -96,50 +105,42 @@ class DataServiceObserver(Observer):
             if isinstance(value, property):
                 deps[key] = get_property_dependencies(value, prefix)
 
+    def _process_nested_observables_properties(
+        self, obj: Observable, deps: dict[str, Any], prefix: str
+    ) -> None:
         for k, value in vars(obj).items():
             prefix = (
                 f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
             )
-            key = f"{prefix}{k}"
+            parent_path = f"{prefix}{k}"
             if isinstance(value, Observable):
-                new_prefix = f"{key}."
+                new_prefix = f"{parent_path}."
                 deps.update(
                     self._get_properties_and_their_dependencies(value, new_prefix)
                 )
-            elif isinstance(value, list):
-                for i, item in enumerate(value):
-                    if isinstance(item, Observable):
-                        new_prefix = f"{key}[{i}]"
-                        deps.update(
-                            self._get_properties_and_their_dependencies(
-                                item, new_prefix
-                            )
-                        )
-            elif isinstance(value, dict):
-                for key, val in value.items():
-                    if isinstance(val, Observable):
-                        new_prefix = f"{key}['{key}']"
-                        deps.update(
-                            self._get_properties_and_their_dependencies(val, new_prefix)
-                        )
+            elif isinstance(value, list | dict):
+                self._process_collection_item_properties(value, deps, parent_path)
 
-        return deps
-
-    def _get_property_values(
-        self, obj: Observable, prefix: str = ""
-    ) -> dict[str, list[str]]:
-        values = {}
-        for k, value in vars(type(obj)).items():
-            key = f"{prefix}{k}"
-            if isinstance(value, property):
-                values[key] = getattr(obj, k)
-
-        for k, value in vars(obj).items():
-            key = f"{prefix}{k}"
-            if isinstance(value, Observable):
-                new_prefix = f"{key}." if not key.endswith("]") else key
-                values.update(self._get_property_values(value, new_prefix))
-        return values
+    def _process_collection_item_properties(
+        self,
+        collection: list[Any] | dict[str, Any],
+        deps: dict[str, Any],
+        parent_path: str,
+    ) -> None:
+        if isinstance(collection, list):
+            for i, item in enumerate(collection):
+                if isinstance(item, Observable):
+                    new_prefix = f"{parent_path}[{i}]"
+                    deps.update(
+                        self._get_properties_and_their_dependencies(item, new_prefix)
+                    )
+        elif isinstance(collection, dict):
+            for key, val in collection.items():
+                if isinstance(val, Observable):
+                    new_prefix = f"{parent_path}['{key}']"
+                    deps.update(
+                        self._get_properties_and_their_dependencies(val, new_prefix)
+                    )
 
     def add_notification_callback(
         self, callback: Callable[[str, Any, dict[str, Any]], None]
