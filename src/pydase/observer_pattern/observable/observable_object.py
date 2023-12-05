@@ -146,6 +146,11 @@ class _ObservableList(ObservableObject, list[Any]):
 
         self._notify_changed(f"[{key}]", value)
 
+    def append(self, __object: Any) -> None:
+        self._initialise_new_objects(f"[{len(self)}]", __object)
+        super().append(__object)
+        self._notify_changed("", self)
+
     def _remove_observer_if_observable(self, name: str) -> None:
         key = int(name[1:-1])
         current_value = self.__getitem__(key)
