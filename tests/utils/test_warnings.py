@@ -2,8 +2,22 @@ from pydase import DataService
 from pytest import LogCaptureFixture
 
 
-def test_setattr_warnings(caplog: LogCaptureFixture) -> None:
-    # def test_setattr_warnings(capsys: CaptureFixture) -> None:
+def test_class_attr_inheritance_warning(caplog: LogCaptureFixture) -> None:
+    class SubClass:
+        name = "Hello"
+
+    class ServiceClass(DataService):
+        attr_1 = SubClass()
+
+    ServiceClass()
+
+    assert (
+        "Class 'SubClass' does not inherit from DataService. This may lead to "
+        "unexpected behaviour!"
+    ) in caplog.text
+
+
+def test_instance_attr_inheritance_warning(caplog: LogCaptureFixture) -> None:
     class SubClass:
         name = "Hello"
 
@@ -14,7 +28,10 @@ def test_setattr_warnings(caplog: LogCaptureFixture) -> None:
 
     ServiceClass()
 
-    assert "Warning: Class 'SubClass' does not inherit from DataService." in caplog.text
+    assert (
+        "Class 'SubClass' does not inherit from DataService. This may lead to "
+        "unexpected behaviour!"
+    ) in caplog.text
 
 
 def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:

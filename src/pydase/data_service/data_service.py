@@ -70,6 +70,11 @@ class DataService(rpyc.Service, AbstractDataService):
         # Warn if setting private attributes
         self._warn_on_private_attr_set(__name)
 
+        # every class defined by the user should inherit from DataService if it is
+        # assigned to a public attribute
+        if not __name.startswith("_"):
+            warn_if_instance_class_does_not_inherit_from_data_service(__value)
+
         # Set the attribute
         super().__setattr__(__name, __value)
 
