@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
 if TYPE_CHECKING:
     from pydase.observer_pattern.observer.observer import Observer
@@ -150,6 +151,41 @@ class _ObservableList(ObservableObject, list[Any]):
         self._initialise_new_objects(f"[{len(self)}]", __object)
         super().append(__object)
         self._notify_changed("", self)
+
+    def clear(self) -> None:
+        logger.warning(
+            "'clear' has not been overridden yet. This might lead to unexpected "
+            "behaviour."
+        )
+        super().clear()
+
+    def extend(self, __iterable: Iterable[Any]) -> None:
+        logger.warning(
+            "'extend' has not been overridden yet. This might lead to unexpected "
+            "behaviour."
+        )
+        return super().extend(__iterable)
+
+    def insert(self, __index: SupportsIndex, __object: Any) -> None:
+        logger.warning(
+            "'insert' has not been overridden yet. This might lead to unexpected "
+            "behaviour."
+        )
+        super().insert(__index, __object)
+
+    def pop(self, __index: SupportsIndex = -1) -> Any:
+        logger.warning(
+            "'pop' has not been overridden yet. This might lead to unexpected "
+            "behaviour."
+        )
+        return super().pop(__index)
+
+    def remove(self, __value: Any) -> None:
+        logger.warning(
+            "'remove' has not been overridden yet. This might lead to unexpected "
+            "behaviour."
+        )
+        super().remove(__value)
 
     def _remove_observer_if_observable(self, name: str) -> None:
         key = int(name[1:-1])

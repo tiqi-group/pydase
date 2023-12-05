@@ -280,3 +280,44 @@ def test_list_in_dict_instance(caplog: pytest.LogCaptureFixture) -> None:
     instance.list_in_dict["some_list"][0] = "Ciao"
 
     assert "'list_in_dict['some_list'][0]' changed to 'Ciao'" in caplog.text
+
+
+def test_list_warnings(caplog: pytest.LogCaptureFixture) -> None:
+    class MyObservable(Observable):
+        def __init__(self) -> None:
+            super().__init__()
+            self.my_list = [1, 2, 3]
+
+    observable_instance = MyObservable()
+
+    observable_instance.my_list.insert(1, -1)
+    assert (
+        "'insert' has not been overridden yet. This might lead to unexpected "
+        "behaviour."
+    ) in caplog.text
+    caplog.clear()
+
+    observable_instance.my_list.extend([1])
+    assert (
+        "'extend' has not been overridden yet. This might lead to unexpected "
+        "behaviour."
+    ) in caplog.text
+    caplog.clear()
+
+    observable_instance.my_list.remove(1)
+    assert (
+        "'remove' has not been overridden yet. This might lead to unexpected "
+        "behaviour."
+    ) in caplog.text
+    caplog.clear()
+
+    observable_instance.my_list.pop()
+    assert (
+        "'pop' has not been overridden yet. This might lead to unexpected behaviour."
+    ) in caplog.text
+    caplog.clear()
+
+    observable_instance.my_list.clear()
+    assert (
+        "'clear' has not been overridden yet. This might lead to unexpected behaviour."
+    ) in caplog.text
