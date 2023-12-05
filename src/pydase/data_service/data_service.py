@@ -176,7 +176,7 @@ class DataService(rpyc.Service, AbstractDataService):
         )
 
         if hasattr(self, "_state_manager"):
-            self._state_manager.save_state()  # type: ignore[reportGeneralTypeIssue]
+            self._state_manager.save_state()
 
     def load_DataService_from_JSON(  # noqa: N802
         self, json_dict: dict[str, Any]

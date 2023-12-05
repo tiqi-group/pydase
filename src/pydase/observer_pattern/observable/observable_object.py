@@ -171,7 +171,7 @@ class _ObservableDict(dict[str, Any], ObservableObject):
         for key, value in self._original_dict.items():
             super().__setitem__(key, self._initialise_new_objects(f"['{key}']", value))
 
-    def __setitem__(self, key: str, value: Any) -> None:  # type: ignore[override]
+    def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):
             logger.warning("Converting non-string dictionary key %s to string.", key)
             key = str(key)
