@@ -153,39 +153,60 @@ class _ObservableList(ObservableObject, list[Any]):
         self._notify_changed("", self)
 
     def clear(self) -> None:
-        logger.warning(
-            "'clear' has not been overridden yet. This might lead to unexpected "
-            "behaviour."
-        )
+        self._remove_self_from_observables()
+
         super().clear()
 
+        self._notify_changed("", self)
+
     def extend(self, __iterable: Iterable[Any]) -> None:
-        logger.warning(
-            "'extend' has not been overridden yet. This might lead to unexpected "
-            "behaviour."
-        )
-        return super().extend(__iterable)
+        self._remove_self_from_observables()
+
+        try:
+            super().extend(__iterable)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
 
     def insert(self, __index: SupportsIndex, __object: Any) -> None:
-        logger.warning(
-            "'insert' has not been overridden yet. This might lead to unexpected "
-            "behaviour."
-        )
-        super().insert(__index, __object)
+        self._remove_self_from_observables()
+
+        try:
+            super().insert(__index, __object)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
 
     def pop(self, __index: SupportsIndex = -1) -> Any:
-        logger.warning(
-            "'pop' has not been overridden yet. This might lead to unexpected "
-            "behaviour."
-        )
-        return super().pop(__index)
+        self._remove_self_from_observables()
+
+        try:
+            popped_item = super().pop(__index)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+        return popped_item
 
     def remove(self, __value: Any) -> None:
-        logger.warning(
-            "'remove' has not been overridden yet. This might lead to unexpected "
-            "behaviour."
-        )
-        super().remove(__value)
+        self._remove_self_from_observables()
+
+        try:
+            super().remove(__value)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+
+    def _remove_self_from_observables(self) -> None:
+        for i in range(len(self)):
+            self._remove_observer_if_observable(f"[{i}]")
 
     def _remove_observer_if_observable(self, name: str) -> None:
         key = int(name[1:-1])
