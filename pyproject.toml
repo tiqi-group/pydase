@@ -82,7 +82,7 @@ ignore = [
     "PERF203",  # try-except-in-loop
 ]
 extend-exclude = [
-  "docs", "frontend"
+  "docs", "frontend", "tests"
 ]
 
 [tool.ruff.lint.mccabe]
