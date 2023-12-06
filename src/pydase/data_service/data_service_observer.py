@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import Any
 
 from pydase.data_service.state_manager import StateManager
+from pydase.observer_pattern.observable.observable_object import ObservableObject
 from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
@@ -36,6 +37,9 @@ class DataServiceObserver(PropertyObserver):
 
         for callback in self._notification_callbacks:
             callback(full_access_path, value, cached_value_dict)
+
+        if isinstance(value, ObservableObject):
+            self._update_property_deps_dict()
 
         self._notify_dependent_property_changes(full_access_path)
 

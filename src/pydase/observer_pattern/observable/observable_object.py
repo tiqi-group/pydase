@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, ClassVar
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
 if TYPE_CHECKING:
     from pydase.observer_pattern.observer.observer import Observer
@@ -145,6 +146,67 @@ class _ObservableList(ObservableObject, list[Any]):
         super().__setitem__(key, value)
 
         self._notify_changed(f"[{key}]", value)
+
+    def append(self, __object: Any) -> None:
+        self._initialise_new_objects(f"[{len(self)}]", __object)
+        super().append(__object)
+        self._notify_changed("", self)
+
+    def clear(self) -> None:
+        self._remove_self_from_observables()
+
+        super().clear()
+
+        self._notify_changed("", self)
+
+    def extend(self, __iterable: Iterable[Any]) -> None:
+        self._remove_self_from_observables()
+
+        try:
+            super().extend(__iterable)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+
+    def insert(self, __index: SupportsIndex, __object: Any) -> None:
+        self._remove_self_from_observables()
+
+        try:
+            super().insert(__index, __object)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+
+    def pop(self, __index: SupportsIndex = -1) -> Any:
+        self._remove_self_from_observables()
+
+        try:
+            popped_item = super().pop(__index)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+        return popped_item
+
+    def remove(self, __value: Any) -> None:
+        self._remove_self_from_observables()
+
+        try:
+            super().remove(__value)
+        finally:
+            for i, item in enumerate(self):
+                super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+            self._notify_changed("", self)
+
+    def _remove_self_from_observables(self) -> None:
+        for i in range(len(self)):
+            self._remove_observer_if_observable(f"[{i}]")
 
     def _remove_observer_if_observable(self, name: str) -> None:
         key = int(name[1:-1])
