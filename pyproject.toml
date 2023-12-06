@@ -56,7 +56,6 @@ select = [
     "F",     # pyflakes
     "FLY",   # flynt
     "G",     # flake8-logging-format
-    "LOG",   # flake8-logging
     "I",     # isort
     "ICN",   # flake8-import-conventions
     "INP",   # flake8-no-pep420
@@ -83,7 +82,7 @@ ignore = [
     "PERF203",  # try-except-in-loop
 ]
 extend-exclude = [
-  "docs", "frontend", "tests"
+  "docs", "frontend"
 ]
 
 [tool.ruff.lint.mccabe]
