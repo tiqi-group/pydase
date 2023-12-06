@@ -67,9 +67,6 @@ class DataService(rpyc.Service, AbstractDataService):
         # Check and warn for unexpected type changes in attributes
         self._warn_on_type_change(__name, __value)
 
-        # Warn if setting private attributes
-        self._warn_on_private_attr_set(__name)
-
         # every class defined by the user should inherit from DataService if it is
         # assigned to a public attribute
         if not __name.startswith("_"):
@@ -102,15 +99,6 @@ class DataService(rpyc.Service, AbstractDataService):
                 and not isinstance(new_value, u.Quantity)
             )
         )
-
-    def _warn_on_private_attr_set(self, attr_name: str) -> None:
-        if attr_name.startswith(f"_{self.__class__.__name__}__"):
-            logger.warning(
-                "Warning: You should not set private but rather protected attributes! "
-                "Use %s instead of %s.",
-                attr_name.replace(f"_{self.__class__.__name__}__", "_"),
-                attr_name.replace(f"_{self.__class__.__name__}__", "__"),
-            )
 
     def __check_instance_classes(self) -> None:
         for attr_name, attr_value in get_class_and_instance_attributes(self).items():
