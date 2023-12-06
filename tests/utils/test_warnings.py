@@ -1,28 +1,44 @@
+from pydase import DataService
 from pytest import LogCaptureFixture
 
-from pydase import DataService
+
+def test_class_attr_inheritance_warning(caplog: LogCaptureFixture) -> None:
+    class SubClass:
+        name = "Hello"
+
+    class ServiceClass(DataService):
+        attr_1 = SubClass()
+
+    ServiceClass()
+
+    assert (
+        "Class 'SubClass' does not inherit from DataService. This may lead to "
+        "unexpected behaviour!"
+    ) in caplog.text
 
 
-def test_setattr_warnings(caplog: LogCaptureFixture) -> None:  # noqa
-    # def test_setattr_warnings(capsys: CaptureFixture) -> None:
+def test_instance_attr_inheritance_warning(caplog: LogCaptureFixture) -> None:
     class SubClass:
         name = "Hello"
 
     class ServiceClass(DataService):
         def __init__(self) -> None:
-            self.attr_1 = SubClass()
             super().__init__()
+            self.attr_1 = SubClass()
 
     ServiceClass()
 
-    assert "Warning: Class 'SubClass' does not inherit from DataService." in caplog.text
+    assert (
+        "Class 'SubClass' does not inherit from DataService. This may lead to "
+        "unexpected behaviour!"
+    ) in caplog.text
 
 
-def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa
+def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         def __init__(self) -> None:
-            self.__something = ""
             super().__init__()
+            self.__something = ""
 
     ServiceClass()
 
@@ -32,14 +48,14 @@ def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa
     )
 
 
-def test_protected_attribute_warning(caplog: LogCaptureFixture) -> None:  # noqa
+def test_protected_attribute_warning(caplog: LogCaptureFixture) -> None:
     class SubClass:
         name = "Hello"
 
     class ServiceClass(DataService):
         def __init__(self) -> None:
-            self._subclass = SubClass
             super().__init__()
+            self._subclass = SubClass
 
     ServiceClass()
 

@@ -7,7 +7,6 @@ import rpyc  # type: ignore[import-untyped]
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.callback_manager import CallbackManager
 from pydase.data_service.task_manager import TaskManager
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
@@ -45,15 +44,11 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
 
 class DataService(rpyc.Service, AbstractDataService):
     def __init__(self, **kwargs: Any) -> None:
-        self._callback_manager: CallbackManager = CallbackManager(self)
+        super().__init__()
         self._task_manager = TaskManager(self)
 
         if not hasattr(self, "_autostart_tasks"):
             self._autostart_tasks = {}
-
-        self.__root__: "DataService" = self
-        """Keep track of the root object. This helps to filter the emission of
-        notifications."""
 
         filename = kwargs.pop("filename", None)
         if filename is not None:
@@ -65,32 +60,56 @@ class DataService(rpyc.Service, AbstractDataService):
             )
             self._filename: str | Path = filename
 
-        self._callback_manager.register_callbacks()
         self.__check_instance_classes()
         self._initialised = True
 
     def __setattr__(self, __name: str, __value: Any) -> None:
-        # converting attributes that are not properties
-        if not isinstance(getattr(type(self), __name, None), property):
-            current_value = getattr(self, __name, None)
-            # parse ints into floats if current value is a float
-            if isinstance(current_value, float) and isinstance(__value, int):
-                __value = float(__value)
+        # Check and warn for unexpected type changes in attributes
+        self._warn_on_type_change(__name, __value)
 
-            if isinstance(current_value, u.Quantity):
-                __value = u.convert_to_quantity(__value, str(current_value.u))
+        # Warn if setting private attributes
+        self._warn_on_private_attr_set(__name)
 
+        # every class defined by the user should inherit from DataService if it is
+        # assigned to a public attribute
+        if not __name.startswith("_"):
+            warn_if_instance_class_does_not_inherit_from_data_service(__value)
+
+        # Set the attribute
         super().__setattr__(__name, __value)
 
-        if self.__dict__.get("_initialised") and __name != "_initialised":
-            for callback in self._callback_manager.callbacks:
-                callback(__name, __value)
-        elif __name.startswith(f"_{self.__class__.__name__}__"):
+    def _warn_on_type_change(self, attr_name: str, new_value: Any) -> None:
+        if is_property_attribute(self, attr_name):
+            return
+
+        current_value = getattr(self, attr_name, None)
+        if self._is_unexpected_type_change(current_value, new_value):
+            logger.warning(
+                "Type of '%s' changed from '%s' to '%s'. This may have unwanted "
+                "side effects! Consider setting it to '%s' directly.",
+                attr_name,
+                type(current_value).__name__,
+                type(new_value).__name__,
+                type(current_value).__name__,
+            )
+
+    def _is_unexpected_type_change(self, current_value: Any, new_value: Any) -> bool:
+        return (
+            isinstance(current_value, float)
+            and not isinstance(new_value, float)
+            or (
+                isinstance(current_value, u.Quantity)
+                and not isinstance(new_value, u.Quantity)
+            )
+        )
+
+    def _warn_on_private_attr_set(self, attr_name: str) -> None:
+        if attr_name.startswith(f"_{self.__class__.__name__}__"):
             logger.warning(
                 "Warning: You should not set private but rather protected attributes! "
                 "Use %s instead of %s.",
-                __name.replace(f"_{self.__class__.__name__}__", "_"),
-                __name.replace(f"_{self.__class__.__name__}__", "__"),
+                attr_name.replace(f"_{self.__class__.__name__}__", "_"),
+                attr_name.replace(f"_{self.__class__.__name__}__", "__"),
             )
 
     def __check_instance_classes(self) -> None:
@@ -157,7 +176,7 @@ class DataService(rpyc.Service, AbstractDataService):
         )
 
         if hasattr(self, "_state_manager"):
-            self._state_manager.save_state()  # type: ignore[reportGeneralTypeIssue]
+            self._state_manager.save_state()
 
     def load_DataService_from_JSON(  # noqa: N802
         self, json_dict: dict[str, Any]

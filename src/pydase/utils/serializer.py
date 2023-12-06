@@ -271,21 +271,12 @@ def get_nested_dict_by_path(
     parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
     current_dict: dict[str, Any] = serialization_dict
 
-    try:
-        for path_part in parent_path_parts:
-            current_dict = get_next_level_dict_by_key(
-                current_dict, path_part, allow_append=False
-            )
-            current_dict = current_dict["value"]
+    for path_part in parent_path_parts:
         current_dict = get_next_level_dict_by_key(
-            current_dict, attr_name, allow_append=False
+            current_dict, path_part, allow_append=False
         )
-
-    except (SerializationPathError, SerializationValueError, KeyError) as e:
-        logger.error(e)
-        return {}
-
-    return current_dict
+        current_dict = current_dict["value"]
+    return get_next_level_dict_by_key(current_dict, attr_name, allow_append=False)
 
 
 def get_next_level_dict_by_key(

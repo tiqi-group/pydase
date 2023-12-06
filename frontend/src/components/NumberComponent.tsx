@@ -123,7 +123,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   // Whether to show the name infront of the component (false if used with a slider)
   const showName = props.showName !== undefined ? props.showName : true;
-  // If emitUpdate is passed, use this instead of the emit_update from the socket
+  // If emitUpdate is passed, use this instead of the setAttribute from the socket
   // Also used when used with a slider
   const emitUpdate =
     props.customEmitUpdate !== undefined ? props.customEmitUpdate : setAttribute;

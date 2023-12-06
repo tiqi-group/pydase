@@ -10,6 +10,7 @@ nav:
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
     - Adding Components: dev-guide/Adding_Components.md
+    - Observer Pattern Implementation: dev-guide/Observer_Pattern_Implementation.md  # <-- New section
   - About:
     - Release Notes: about/release-notes.md
     - Contributing: about/contributing.md

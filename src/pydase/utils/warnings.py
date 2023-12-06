@@ -22,6 +22,7 @@ def warn_if_instance_class_does_not_inherit_from_data_service(__value: object) -
         and type(__value).__name__ not in ["CallbackManager", "TaskManager", "Quantity"]
     ):
         logger.warning(
-            "Warning: Class '%s' does not inherit from DataService.",
+            "Class '%s' does not inherit from DataService. This may lead to unexpected "
+            "behaviour!",
             type(__value).__name__,
         )

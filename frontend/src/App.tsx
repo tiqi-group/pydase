@@ -18,12 +18,11 @@ type Action =
   | { type: 'SET_DATA'; data: State }
   | {
       type: 'UPDATE_ATTRIBUTE';
-      parentPath: string;
-      name: string;
-      value: SerializedValue;
+      fullAccessPath: string;
+      newValue: SerializedValue;
     };
 type UpdateMessage = {
-  data: { parent_path: string; name: string; value: SerializedValue };
+  data: { full_access_path: string; value: SerializedValue };
 };
 type LogMessage = {
   levelname: LevelName;
@@ -35,10 +34,7 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_DATA':
       return action.data;
     case 'UPDATE_ATTRIBUTE': {
-      const pathList = action.parentPath.split('.').slice(1).concat(action.name);
-      const joinedPath = pathList.join('.');
-
-      return setNestedValueByPath(state, joinedPath, action.value);
+      return setNestedValueByPath(state, action.fullAccessPath, action.newValue);
     }
     default:
       throw new Error();
@@ -129,14 +125,13 @@ const App = () => {
 
   function onNotify(value: UpdateMessage) {
     // Extracting data from the notification
-    const { parent_path: parentPath, name, value: newValue } = value.data;
+    const { full_access_path: fullAccessPath, value: newValue } = value.data;
 
     // Dispatching the update to the reducer
     dispatch({
       type: 'UPDATE_ATTRIBUTE',
-      parentPath,
-      name,
-      value: newValue
+      fullAccessPath,
+      newValue
     });
   }
 

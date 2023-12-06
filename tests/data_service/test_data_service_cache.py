@@ -1,8 +1,8 @@
 import logging
 
 import pydase
-from pydase.data_service.data_service_cache import DataServiceCache
-from pydase.utils.serializer import get_nested_dict_by_path
+from pydase.data_service.data_service_observer import DataServiceObserver
+from pydase.data_service.state_manager import StateManager
 
 logger = logging.getLogger()
 
@@ -15,14 +15,23 @@ def test_nested_attributes_cache_callback() -> None:
         class_attr = SubClass()
         name = "World"
 
-    test_service = ServiceClass()
-    cache = DataServiceCache(test_service)
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
-    test_service.name = "Peepz"
-    assert get_nested_dict_by_path(cache.cache, "name")["value"] == "Peepz"
+    service_instance.name = "Peepz"
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("name")["value"]
+        == "Peepz"
+    )
 
-    test_service.class_attr.name = "Ciao"
-    assert get_nested_dict_by_path(cache.cache, "class_attr.name")["value"] == "Ciao"
+    service_instance.class_attr.name = "Ciao"
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("class_attr.name")[
+            "value"
+        ]
+        == "Ciao"
+    )
 
 
 def test_task_status_update() -> None:
@@ -32,11 +41,29 @@ def test_task_status_update() -> None:
         async def my_method(self) -> None:
             pass
 
-    test_service = ServiceClass()
-    cache = DataServiceCache(test_service)
-    assert get_nested_dict_by_path(cache.cache, "my_method")["type"] == "method"
-    assert get_nested_dict_by_path(cache.cache, "my_method")["value"] is None
+    service_instance = ServiceClass()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
 
-    test_service.start_my_method()  # type: ignore
-    assert get_nested_dict_by_path(cache.cache, "my_method")["type"] == "method"
-    assert get_nested_dict_by_path(cache.cache, "my_method")["value"] == {}
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("my_method")["type"]
+        == "method"
+    )
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("my_method")[
+            "value"
+        ]
+        is None
+    )
+
+    service_instance.start_my_method()  # type: ignore
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("my_method")["type"]
+        == "method"
+    )
+    assert (
+        state_manager._data_service_cache.get_value_dict_from_cache("my_method")[
+            "value"
+        ]
+        == {}
+    )
