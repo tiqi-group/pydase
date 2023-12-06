@@ -13,7 +13,8 @@ class ObservableObject(ABC):
     _dict_mapping: ClassVar[dict[int, "_ObservableDict"]] = {}
 
     def __init__(self) -> None:
-        self._observers: dict[str, list["ObservableObject | Observer"]] = {}
+        if not hasattr(self, "_observers"):
+            self._observers: dict[str, list["ObservableObject | Observer"]] = {}
 
     def add_observer(
         self, observer: "ObservableObject | Observer", attr_name: str = ""

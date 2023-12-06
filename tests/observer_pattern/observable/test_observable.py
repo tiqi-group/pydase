@@ -13,6 +13,20 @@ class MyObserver(Observer):
         logger.info("'%s' changed to '%s'", full_access_path, value)
 
 
+def test_constructor_error_message(caplog: pytest.LogCaptureFixture) -> None:
+    class MyObservable(Observable):
+        def __init__(self) -> None:
+            self.attr = 1
+            super().__init__()
+
+    MyObservable()
+
+    assert (
+        "Ensure that super().__init__() is called at the start of the 'MyObservable' "
+        "constructor! Failing to do so may lead to unexpected behavior." in caplog.text
+    )
+
+
 def test_simple_class_attribute(caplog: pytest.LogCaptureFixture) -> None:
     class MyObservable(Observable):
         int_attribute = 10

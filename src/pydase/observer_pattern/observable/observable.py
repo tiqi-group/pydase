@@ -22,10 +22,15 @@ class Observable(ObservableObject):
             self.__dict__[name] = self._initialise_new_objects(name, value)
 
     def __setattr__(self, name: str, value: Any) -> None:
-        if hasattr(self, "_observers"):
-            self._remove_observer_if_observable(name)
-            value = self._initialise_new_objects(name, value)
-            self._notify_change_start(name)
+        if not hasattr(self, "_observers") and name != "_observers":
+            logger.warning(
+                "Ensure that super().__init__() is called at the start of the '%s' "
+                "constructor! Failing to do so may lead to unexpected behavior.",
+                type(self).__name__,
+            )
+            self._observers = {}
+
+        value = self._handle_observable_setattr(name, value)
 
         super().__setattr__(name, value)
 
@@ -40,6 +45,15 @@ class Observable(ObservableObject):
         if is_property_attribute(self, name):
             self._notify_changed(name, value)
 
+        return value
+
+    def _handle_observable_setattr(self, name: str, value: Any) -> Any:
+        if name == "_observers":
+            return value
+
+        self._remove_observer_if_observable(name)
+        value = self._initialise_new_objects(name, value)
+        self._notify_change_start(name)
         return value
 
     def _remove_observer_if_observable(self, name: str) -> None:
