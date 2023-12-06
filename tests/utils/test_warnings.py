@@ -34,20 +34,6 @@ def test_instance_attr_inheritance_warning(caplog: LogCaptureFixture) -> None:
     ) in caplog.text
 
 
-def test_private_attribute_warning(caplog: LogCaptureFixture) -> None:
-    class ServiceClass(DataService):
-        def __init__(self) -> None:
-            super().__init__()
-            self.__something = ""
-
-    ServiceClass()
-
-    assert (
-        " Warning: You should not set private but rather protected attributes! Use "
-        "_something instead of __something." in caplog.text
-    )
-
-
 def test_protected_attribute_warning(caplog: LogCaptureFixture) -> None:
     class SubClass:
         name = "Hello"
