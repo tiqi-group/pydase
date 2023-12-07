@@ -150,11 +150,9 @@ class StateManager:
             value, value_type = nested_json_dict["value"], nested_json_dict["type"]
             class_attr_value_type = nested_class_dict.get("type", None)
 
-            if (
-                class_attr_value_type == value_type
-                and self.__is_loadable_state_attribute(path)
-            ):
-                self.set_service_attribute_value_by_path(path, value)
+            if class_attr_value_type == value_type:
+                if self.__is_loadable_state_attribute(path):
+                    self.set_service_attribute_value_by_path(path, value)
             else:
                 logger.info(
                     "Attribute type of '%s' changed from '%s' to "
