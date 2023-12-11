@@ -56,6 +56,9 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         def some_method(self) -> None:
             ...
 
+        async def some_task(self) -> None:
+            ...
+
     ServiceClass()
 
     # neither of the attributes, methods or properties cause a warning log

@@ -70,7 +70,7 @@ class DataService(rpyc.Service, AbstractDataService):
 
         # every class defined by the user should inherit from DataService if it is
         # assigned to a public attribute
-        if not __name.startswith("_"):
+        if not __name.startswith("_") and not inspect.isfunction(__value):
             self.__warn_if_not_observable(__value)
 
         # Set the attribute
