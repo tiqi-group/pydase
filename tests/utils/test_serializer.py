@@ -294,6 +294,30 @@ def test_dict_serialization() -> None:
     }
 
 
+def test_derived_data_service_serialization() -> None:
+    class BaseService(pydase.DataService):
+        class_attr = 1337
+
+        def __init__(self) -> None:
+            super().__init__()
+            self._name = "Service"
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+        @name.setter
+        def name(self, value: str) -> None:
+            self._name = value
+
+    class DerivedService(BaseService):
+        ...
+
+    base_instance = BaseService()
+    service_instance = DerivedService()
+    assert service_instance.serialize() == base_instance.serialize()
+
+
 @pytest.fixture
 def setup_dict():
     class MySubclass(pydase.DataService):

@@ -177,19 +177,21 @@ def parse_list_attr_and_index(attr_string: str) -> tuple[str, int | None]:
     return attr_name, index
 
 
-def get_component_class_names() -> list[str]:
+def get_component_classes() -> list[type]:
     """
-    Returns the names of the component classes in a list.
-
-    It takes the names from the pydase/components/__init__.py file, so this file should
-    always be up-to-date with the currently available components.
-
-    Returns:
-        list[str]: List of component class names
+    Returns references to the component classes in a list.
     """
     import pydase.components
 
-    return pydase.components.__all__
+    return [
+        getattr(pydase.components, cls_name) for cls_name in pydase.components.__all__
+    ]
+
+
+def get_data_service_class_reference() -> Any:
+    import pydase.data_service.data_service
+
+    return getattr(pydase.data_service.data_service, "DataService")
 
 
 def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
