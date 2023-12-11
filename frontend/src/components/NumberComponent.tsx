@@ -18,12 +18,6 @@ interface NumberComponentProps {
   isInstantUpdate: boolean;
   unit?: string;
   showName?: boolean;
-  customEmitUpdate?: (
-    name: string,
-    parent_path: string,
-    value: number,
-    callback?: (ack: unknown) => void
-  ) => void;
   addNotification: (message: string, levelname?: LevelName) => void;
 }
 
@@ -123,10 +117,6 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   // Whether to show the name infront of the component (false if used with a slider)
   const showName = props.showName !== undefined ? props.showName : true;
-  // If emitUpdate is passed, use this instead of the setAttribute from the socket
-  // Also used when used with a slider
-  const emitUpdate =
-    props.customEmitUpdate !== undefined ? props.customEmitUpdate : setAttribute;
 
   const renderCount = useRef(0);
   // Create a state for the cursor position
@@ -263,7 +253,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      emitUpdate(name, parentPath, Number(newValue));
+      setAttribute(name, parentPath, Number(newValue));
       return;
     } else {
       console.debug(key);
@@ -272,7 +262,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      emitUpdate(name, parentPath, Number(newValue));
+      setAttribute(name, parentPath, Number(newValue));
     }
 
     setInputString(newValue);
@@ -284,7 +274,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      emitUpdate(name, parentPath, Number(inputString));
+      setAttribute(name, parentPath, Number(inputString));
     }
   };
 
