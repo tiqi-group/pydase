@@ -58,50 +58,17 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     addNotification(`${parentPath}.${name}.stepSize changed to ${stepSize}.`);
   }, [props.stepSize]);
 
-  const emitSliderUpdate = (
-    name: string,
-    parentPath: string,
-    value: number,
-    callback?: (ack: unknown) => void,
-    min: number = props.min,
-    max: number = props.max,
-    stepSize: number = props.stepSize
-  ) => {
-    setAttribute(
-      name,
-      parentPath,
-      {
-        value: value,
-        min: min,
-        max: max,
-        step_size: stepSize
-      },
-      callback
-    );
-  };
   const handleOnChange = (event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
     // make sure this is properly handled.
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    emitSliderUpdate(name, parentPath, newNumber);
+    setAttribute(`${name}.value`, parentPath, newNumber);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
-    switch (valueType) {
-      case 'min':
-        emitSliderUpdate(name, parentPath, value, undefined, newValue);
-        break;
-      case 'max':
-        emitSliderUpdate(name, parentPath, value, undefined, min, newValue);
-        break;
-      case 'stepSize':
-        emitSliderUpdate(name, parentPath, value, undefined, min, max, newValue);
-        break;
-      default:
-        break;
-    }
+    setAttribute(`${name}.${valueType}`, parentPath, newValue);
   };
 
   return (
@@ -136,13 +103,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
             parentPath={parentPath}
-            name={name}
+            name={`${name}.value`}
             docString=""
             readOnly={readOnly}
             type="float"
             value={value}
             showName={false}
-            customEmitUpdate={emitSliderUpdate}
             addNotification={() => null}
           />
         </Col>
@@ -197,7 +163,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
               <Form.Control
                 type="number"
                 value={stepSize}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'stepSize')}
+                onChange={(e) => handleValueChange(Number(e.target.value), 'step_size')}
               />
             </Col>
           </Row>
