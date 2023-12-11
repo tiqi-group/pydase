@@ -19,9 +19,9 @@ class Image(DataService):
     def __init__(
         self,
     ) -> None:
+        super().__init__()
         self._value: str = ""
         self._format: str = ""
-        super().__init__()
 
     @property
     def value(self) -> str:
