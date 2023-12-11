@@ -8,7 +8,8 @@ import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import (
     get_attribute_doc,
-    get_component_class_names,
+    get_component_classes,
+    get_data_service_class_reference,
     parse_list_attr_and_index,
 )
 
@@ -157,24 +158,26 @@ class Serializer:
     def _serialize_data_service(obj: AbstractDataService) -> dict[str, Any]:
         readonly = False
         doc = get_attribute_doc(obj)
-        obj_type = type(obj).__name__
-        if type(obj).__name__ not in get_component_class_names():
-            obj_type = "DataService"
+        obj_type = "DataService"
 
-        # Get the dictionary of the base class
-        base_set = set(type(obj).__base__.__dict__)
-        # Get the dictionary of the derived class
-        derived_set = set(type(obj).__dict__)
-        # Get the difference between the two dictionaries
-        derived_only_set = derived_set - base_set
+        # Get component base class if any
+        component_base_cls = next(
+            (cls for cls in get_component_classes() if isinstance(obj, cls)), None
+        )
+        if component_base_cls:
+            obj_type = component_base_cls.__name__
 
-        instance_dict = set(obj.__dict__)
-        # Merge the class and instance dictionaries
-        merged_set = derived_only_set | instance_dict
+        # Get the set of DataService class attributes
+        data_service_attr_set = set(dir(get_data_service_class_reference()))
+        # Get the set of the object attributes
+        obj_attr_set = set(dir(obj))
+        # Get the difference between the two sets
+        derived_only_attr_set = obj_attr_set - data_service_attr_set
+
         value = {}
 
         # Iterate over attributes, properties, class attributes, and methods
-        for key in sorted(merged_set):
+        for key in sorted(derived_only_attr_set):
             if key.startswith("_"):
                 continue  # Skip attributes that start with underscore
 
