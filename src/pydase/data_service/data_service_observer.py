@@ -30,7 +30,9 @@ class DataServiceObserver(PropertyObserver):
         )
 
         cached_value = cached_value_dict.get("value")
-        if cached_value != dump(value)["value"]:
+        if cached_value != dump(value)["value"] and all(
+            part[0] != "_" for part in full_access_path.split(".")
+        ):
             logger.debug("'%s' changed to '%s'", full_access_path, value)
 
         self._update_cache_value(full_access_path, value, cached_value_dict)

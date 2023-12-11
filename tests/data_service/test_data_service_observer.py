@@ -1,6 +1,7 @@
 import logging
 
 import pydase
+import pytest
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 
@@ -74,3 +75,22 @@ def test_dynamic_list_property_dependencies() -> None:
         "list_attr[0]._name": ["list_attr[0].name"],
         "list_attr[1]._name": ["list_attr[1].name"],
     }
+
+
+def test_protected_or_private_change_logs(caplog: pytest.LogCaptureFixture) -> None:
+    class OtherService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self._name = "Hi"
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.subclass = OtherService()
+
+    service = MyService()
+    state_manager = StateManager(service)
+    DataServiceObserver(state_manager)
+
+    service.subclass._name = "Hello"
+    assert "'subclass._name' changed to 'Hello'" not in caplog.text
