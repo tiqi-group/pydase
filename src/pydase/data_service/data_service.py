@@ -105,7 +105,8 @@ class DataService(rpyc.Service, AbstractDataService):
         value_class = __value if inspect.isclass(__value) else __value.__class__
 
         if not issubclass(
-            value_class, (int | float | bool | str | Enum | u.Quantity | Observable)
+            value_class,
+            (int | float | bool | str | list | Enum | u.Quantity | Observable),
         ):
             logger.warning(
                 "Class '%s' does not inherit from DataService. This may lead to"
