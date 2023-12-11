@@ -44,6 +44,7 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         some_float = 1.0
         some_bool = True
         some_quantity = 1.0 * u.units.A
+        some_list = [1, 2]
         some_string = "Hello"
         some_enum = SomeEnum.HI
         _name = "Service"
