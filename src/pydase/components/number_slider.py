@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Literal
 
 from pydase.data_service.data_service import DataService
 
@@ -21,15 +20,12 @@ class NumberSlider(DataService):
         The maximum value of the slider. Defaults to 100.
     step_size (float, optional):
         The increment/decrement step size of the slider. Defaults to 1.0.
-    type (Literal["int", "float"], optional):
-        The type of the slider value. Determines if the value is an integer or float.
-        Defaults to "float".
 
     Example:
     --------
     ```python
     class MyService(DataService):
-        voltage = NumberSlider(1, 0, 10, 0.1, "int")
+        voltage = NumberSlider(1, 0, 10, 0.1)
 
     # Modifying or accessing the voltage value:
     my_service = MyService()
@@ -38,29 +34,51 @@ class NumberSlider(DataService):
     ```
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         value: float = 0,
         min_: float = 0.0,
         max_: float = 100.0,
         step_size: float = 1.0,
-        type_: Literal["int", "float"] = "float",
     ) -> None:
         super().__init__()
-        if type_ not in {"float", "int"}:
-            logger.error("Unknown type '%s'. Using 'float'.", type_)
-            type_ = "float"
+        self._step_size = step_size
+        self._value = value
+        self._min = min_
+        self._max = max_
 
-        self._type = type_
-        self.step_size = step_size
-        self.value = value
-        self.min = min_
-        self.max = max_
+    @property
+    def min(self) -> float:
+        """The min property."""
+        return self._min
 
-    def __setattr__(self, name: str, value: Any) -> None:
-        if name in ["value", "step_size"]:
-            value = int(value) if self._type == "int" else float(value)
-        elif not name.startswith("_"):
-            value = float(value)
+    @min.setter
+    def min(self, value: float) -> None:
+        self._min = value
 
-        return super().__setattr__(name, value)
+    @property
+    def max(self) -> float:
+        """The min property."""
+        return self._max
+
+    @max.setter
+    def max(self, value: float) -> None:
+        self._max = value
+
+    @property
+    def step_size(self) -> float:
+        """The min property."""
+        return self._step_size
+
+    @step_size.setter
+    def step_size(self, value: float) -> None:
+        self._step_size = value
+
+    @property
+    def value(self) -> float:
+        """The value property."""
+        return self._value
+
+    @value.setter
+    def value(self, value: float) -> None:
+        self._value = value
