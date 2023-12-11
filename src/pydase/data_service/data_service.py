@@ -1,3 +1,4 @@
+import inspect
 import logging
 import warnings
 from enum import Enum
@@ -8,6 +9,9 @@ import rpyc  # type: ignore[import-untyped]
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.task_manager import TaskManager
+from pydase.observer_pattern.observable.observable import (
+    Observable,
+)
 from pydase.utils.helpers import (
     convert_arguments_to_hinted_types,
     get_class_and_instance_attributes,
@@ -20,9 +24,6 @@ from pydase.utils.serializer import (
     Serializer,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
-)
-from pydase.utils.warnings import (
-    warn_if_instance_class_does_not_inherit_from_data_service,
 )
 
 if TYPE_CHECKING:
@@ -70,7 +71,7 @@ class DataService(rpyc.Service, AbstractDataService):
         # every class defined by the user should inherit from DataService if it is
         # assigned to a public attribute
         if not __name.startswith("_"):
-            warn_if_instance_class_does_not_inherit_from_data_service(__value)
+            self.__warn_if_not_observable(__value)
 
         # Set the attribute
         super().__setattr__(__name, __value)
@@ -100,12 +101,28 @@ class DataService(rpyc.Service, AbstractDataService):
             )
         )
 
+    def __warn_if_not_observable(self, __value: Any) -> None:
+        value_class = __value if inspect.isclass(__value) else __value.__class__
+
+        if not issubclass(
+            value_class, (int | float | bool | str | Enum | u.Quantity | Observable)
+        ):
+            logger.warning(
+                "Class '%s' does not inherit from DataService. This may lead to"
+                " unexpected behaviour!",
+                value_class.__name__,
+            )
+
     def __check_instance_classes(self) -> None:
         for attr_name, attr_value in get_class_and_instance_attributes(self).items():
             # every class defined by the user should inherit from DataService if it is
             # assigned to a public attribute
-            if not attr_name.startswith("_"):
-                warn_if_instance_class_does_not_inherit_from_data_service(attr_value)
+            if (
+                not attr_name.startswith("_")
+                and not inspect.isfunction(attr_value)
+                and not isinstance(attr_value, property)
+            ):
+                self.__warn_if_not_observable(attr_value)
 
     def __set_attribute_based_on_type(  # noqa: PLR0913
         self,

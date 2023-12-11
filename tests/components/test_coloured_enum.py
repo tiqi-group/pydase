@@ -39,6 +39,9 @@ def test_warning(caplog: LogCaptureFixture) -> None:
     class ServiceClass(DataService):
         status = MyStatus.RUNNING
 
+    ServiceClass()
+
     assert (
-        "Warning: Class MyStatus does not inherit from DataService." not in caplog.text
+        "Class 'MyStatus' does not inherit from DataService. This may lead to "
+        "unexpected behaviour!" not in caplog.text
     )
