@@ -42,8 +42,7 @@
 - [Saving and restoring the service state for service persistence](#understanding-service-persistence)
 - [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
 - [Support for units](#understanding-units-in-pydase)
-<!-- * Event-based callback functionality for real-time updates
-- Support for additional servers for specific use-cases -->
+<!-- Support for additional servers for specific use-cases -->
 
 ## Installation
 
@@ -286,25 +285,131 @@ if __name__ == "__main__":
 
 #### `NumberSlider`
 
-This component provides an interactive slider interface for adjusting numerical values on the frontend. It supports both floats and integers. The values adjusted on the frontend are synchronized with the backend in real-time, ensuring consistent data representation.
+The `NumberSlider` component in the `pydase` package provides an interactive slider interface for adjusting numerical values on the frontend. It is designed to support both numbers and quantities and ensures that values adjusted on the frontend are synchronized with the backend.
 
-The slider can be customized with initial values, minimum and maximum limits, and step sizes to fit various use cases.
+To utilize the `NumberSlider`, users should implement a class that derives from `NumberSlider`. This class can then define the initial values, minimum and maximum limits, step sizes, and additional logic as needed.
+
+Here's an example of how to implement and use a custom slider:
 
 ```python
 import pydase
-from pydase.components import NumberSlider
+import pydase.components
+
+
+class MySlider(pydase.components.NumberSlider):
+    def __init__(
+        self,
+        value: float = 0.0,
+        min_: float = 0.0,
+        max_: float = 100.0,
+        step_size: float = 1.0,
+    ) -> None:
+        super().__init__(value, min_, max_, step_size)
+
+    @property
+    def min(self) -> float:
+        return self._min
+
+    @min.setter
+    def min(self, value: float) -> None:
+        self._min = value
+
+    @property
+    def max(self) -> float:
+        return self._max
+
+    @max.setter
+    def max(self, value: float) -> None:
+        self._max = value
+
+    @property
+    def step_size(self) -> float:
+        return self._step_size
+
+    @step_size.setter
+    def step_size(self, value: float) -> None:
+        self._step_size = value
+
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    def value(self, value: float) -> None:
+        if value < self._min or value > self._max:
+            raise ValueError("Value is either below allowed min or above max value.")
+        self._value = value
 
 
 class MyService(pydase.DataService):
-    slider = NumberSlider(value=3.5, min=0, max=10, step_size=0.1, type="float")
+    def __init__(self) -> None:
+        super().__init__()
+        self.voltage = MySlider()
 
 
 if __name__ == "__main__":
-    service = MyService()
-    pydase.Server(service).run()
+    service_instance = MyService()
+    service_instance.voltage.value = 5
+    print(service_instance.voltage.value)  # Output: 5
+    pydase.Server(service_instance).run()
 ```
 
+In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value` properties. Users can make any of these properties read-only by omitting the corresponding setter method.
+
 ![Slider Component](docs/images/Slider_component.png)
+
+- Accessing parent class resources in `NumberSlider`
+
+  In scenarios where you need the slider component to interact with or access resources from its parent class, you can achieve this by passing a callback function to it. This method avoids directly passing the entire parent class instance (`self`) and offers a more encapsulated approach. The callback function can be designed to utilize specific attributes or methods of the parent class, allowing the slider to perform actions or retrieve data in response to slider events.
+
+  Here's an illustrative example:
+
+    ```python
+    from collections.abc import Callable
+
+    import pydase
+    import pydase.components
+
+
+    class MySlider(pydase.components.NumberSlider):
+        def __init__(
+            self,
+            value: float,
+            on_change: Callable[[float], None],
+        ) -> None:
+            super().__init__(value=value)
+            self._on_change = on_change
+
+        # ... other properties ...
+
+        @property
+        def value(self) -> float:
+            return self._value
+
+        @value.setter
+        def value(self, new_value: float) -> None:
+            if new_value < self._min or new_value > self._max:
+                raise ValueError("Value is either below allowed min or above max value.")
+            self._value = new_value
+            self._on_change(new_value)
+
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            self.voltage = MySlider(
+                5,
+                on_change=self.handle_voltage_change,
+            )
+
+        def handle_voltage_change(self, new_voltage: float) -> None:
+            print(f"Voltage changed to: {new_voltage}")
+            # Additional logic here
+
+   if __name__ == "__main__":
+       service_instance = MyService()
+       my_service.voltage.value = 7  # Output: "Voltage changed to: 7"
+       pydase.Server(service_instance).run()
+  ````
 
 #### `ColouredEnum`
 
@@ -542,34 +647,34 @@ You have two primary ways to adjust the log levels in `pydase`:
 1. directly targeting `pydase` loggers
 
    You can set the log level for any `pydase` logger directly in your code. This method is useful for fine-tuning logging levels for specific modules within `pydase`. For instance, if you want to change the log level of the main `pydase` logger or target a submodule like `pydase.data_service`, you can do so as follows:
- 
+
    ```python
    # <your_script.py>
    import logging
- 
+
    # Set the log level for the main pydase logger
    logging.getLogger("pydase").setLevel(logging.INFO)
- 
+
    # Optionally, target a specific submodule logger
    # logging.getLogger("pydase.data_service").setLevel(logging.DEBUG)
- 
+
    # Your logger for the current script
    logger = logging.getLogger(__name__)
    logger.info("My info message.")
    ```
- 
+
    This approach allows for specific control over different parts of the `pydase` library, depending on your logging needs.
 
 2. using the `ENVIRONMENT` environment variable
 
    For a more global setting that affects the entire `pydase` library, you can utilize the `ENVIRONMENT` environment variable. Setting this variable to "production" will configure all `pydase` loggers to only log messages of level "INFO" and above, filtering out more verbose logging. This is particularly useful for production environments where excessive logging can be overwhelming or unnecessary.
- 
+
    ```bash
    ENVIRONMENT="production" python -m <module_using_pydase>
    ```
- 
+
    In the absence of this setting, the default behavior is to log everything of level "DEBUG" and above, suitable for development environments where more detailed logs are beneficial.
- 
+
 **Note**: It is recommended to avoid calling the `pydase.utils.logging.setup_logging` function directly, as this may result in duplicated logging messages.
 
 ## Documentation
