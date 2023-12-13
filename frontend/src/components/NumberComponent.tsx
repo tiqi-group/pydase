@@ -8,6 +8,29 @@ import { LevelName } from './NotificationsComponent';
 
 // TODO: add button functionality
 
+export type QuantityObject = {
+  type: 'Quantity';
+  readonly: boolean;
+  value: {
+    magnitude: number;
+    unit: string;
+  };
+  doc?: string;
+};
+export type IntObject = {
+  type: 'int';
+  readonly: boolean;
+  value: number;
+  doc?: string;
+};
+export type FloatObject = {
+  type: 'float';
+  readonly: boolean;
+  value: number;
+  doc?: string;
+};
+export type NumberObject = IntObject | FloatObject | QuantityObject;
+
 interface NumberComponentProps {
   name: string;
   type: 'float' | 'int';
