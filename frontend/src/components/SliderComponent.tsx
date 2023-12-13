@@ -3,19 +3,19 @@ import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootst
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
-import { NumberComponent } from './NumberComponent';
+import { NumberComponent, NumberObject } from './NumberComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 interface SliderComponentProps {
   name: string;
-  min: number;
-  max: number;
+  min: NumberObject;
+  max: NumberObject;
   parentPath?: string;
-  value: number;
+  value: NumberObject;
   readOnly: boolean;
   docString: string;
-  stepSize: number;
+  stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
 }
@@ -30,7 +30,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     min,
     max,
     stepSize,
-    readOnly,
     docString,
     isInstantUpdate,
     addNotification
@@ -58,51 +57,40 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     addNotification(`${parentPath}.${name}.stepSize changed to ${stepSize}.`);
   }, [props.stepSize]);
 
-  const emitSliderUpdate = (
-    name: string,
-    parentPath: string,
-    value: number,
-    callback?: (ack: unknown) => void,
-    min: number = props.min,
-    max: number = props.max,
-    stepSize: number = props.stepSize
-  ) => {
-    setAttribute(
-      name,
-      parentPath,
-      {
-        value: value,
-        min: min,
-        max: max,
-        step_size: stepSize
-      },
-      callback
-    );
-  };
   const handleOnChange = (event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
     // make sure this is properly handled.
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    emitSliderUpdate(name, parentPath, newNumber);
+    setAttribute(`${name}.value`, parentPath, newNumber);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
-    switch (valueType) {
-      case 'min':
-        emitSliderUpdate(name, parentPath, value, undefined, newValue);
-        break;
-      case 'max':
-        emitSliderUpdate(name, parentPath, value, undefined, min, newValue);
-        break;
-      case 'stepSize':
-        emitSliderUpdate(name, parentPath, value, undefined, min, max, newValue);
-        break;
-      default:
-        break;
-    }
+    setAttribute(`${name}.${valueType}`, parentPath, newValue);
   };
+
+  const deconstructNumberDict = (
+    numberDict: NumberObject
+  ): [number, boolean, string | null] => {
+    let numberMagnitude: number;
+    let numberUnit: string | null = null;
+    const numberReadOnly = numberDict.readonly;
+
+    if (numberDict.type === 'int' || numberDict.type === 'float') {
+      numberMagnitude = numberDict.value;
+    } else if (numberDict.type === 'Quantity') {
+      numberMagnitude = numberDict.value.magnitude;
+      numberUnit = numberDict.value.unit;
+    }
+
+    return [numberMagnitude, numberReadOnly, numberUnit];
+  };
+
+  const [valueMagnitude, valueReadOnly, valueUnit] = deconstructNumberDict(value);
+  const [minMagnitude, minReadOnly] = deconstructNumberDict(min);
+  const [maxMagnitude, maxReadOnly] = deconstructNumberDict(max);
+  const [stepSizeMagnitude, stepSizeReadOnly] = deconstructNumberDict(stepSize);
 
   return (
     <div className="sliderComponent" id={id}>
@@ -120,15 +108,15 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
             style={{ margin: '0px 0px 10px 0px' }}
             aria-label="Always visible"
             // valueLabelDisplay="on"
-            disabled={readOnly}
-            value={value}
+            disabled={valueReadOnly}
+            value={valueMagnitude}
             onChange={(event, newNumber) => handleOnChange(event, newNumber)}
-            min={min}
-            max={max}
-            step={stepSize}
+            min={minMagnitude}
+            max={maxMagnitude}
+            step={stepSizeMagnitude}
             marks={[
-              { value: min, label: `${min}` },
-              { value: max, label: `${max}` }
+              { value: minMagnitude, label: `${minMagnitude}` },
+              { value: maxMagnitude, label: `${maxMagnitude}` }
             ]}
           />
         </Col>
@@ -136,13 +124,13 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
             parentPath={parentPath}
-            name={name}
+            name={`${name}.value`}
             docString=""
-            readOnly={readOnly}
+            readOnly={valueReadOnly}
             type="float"
-            value={value}
+            value={valueMagnitude}
+            unit={valueUnit}
             showName={false}
-            customEmitUpdate={emitSliderUpdate}
             addNotification={() => null}
           />
         </Col>
@@ -178,7 +166,8 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
               <Form.Label>Min Value</Form.Label>
               <Form.Control
                 type="number"
-                value={min}
+                value={minMagnitude}
+                disabled={minReadOnly}
                 onChange={(e) => handleValueChange(Number(e.target.value), 'min')}
               />
             </Col>
@@ -187,7 +176,8 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
               <Form.Label>Max Value</Form.Label>
               <Form.Control
                 type="number"
-                value={max}
+                value={maxMagnitude}
+                disabled={maxReadOnly}
                 onChange={(e) => handleValueChange(Number(e.target.value), 'max')}
               />
             </Col>
@@ -196,8 +186,9 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
               <Form.Label>Step Size</Form.Label>
               <Form.Control
                 type="number"
-                value={stepSize}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'stepSize')}
+                value={stepSizeMagnitude}
+                disabled={stepSizeReadOnly}
+                onChange={(e) => handleValueChange(Number(e.target.value), 'step_size')}
               />
             </Col>
           </Row>

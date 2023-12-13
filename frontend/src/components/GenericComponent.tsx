@@ -97,10 +97,10 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
-          value={attribute.value['value']['value']}
-          min={attribute.value['min']['value']}
-          max={attribute.value['max']['value']}
-          stepSize={attribute.value['step_size']['value']}
+          value={attribute.value['value']}
+          min={attribute.value['min']}
+          max={attribute.value['max']}
+          stepSize={attribute.value['step_size']}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
         />
