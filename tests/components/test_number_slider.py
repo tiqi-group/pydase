@@ -35,8 +35,20 @@ def test_number_slider(caplog: LogCaptureFixture) -> None:
             self._value = value
 
         @property
-        def min(self) -> float:
-            return super().min
+        def max(self) -> float:
+            return self._max
+
+        @max.setter
+        def max(self, value: float) -> None:
+            self._max = value
+
+        @property
+        def step_size(self) -> float:
+            return self._step_size
+
+        @step_size.setter
+        def step_size(self, value: float) -> None:
+            self._step_size = value
 
     class MyService(DataService):
         def __init__(self) -> None:
@@ -68,4 +80,4 @@ def test_number_slider(caplog: LogCaptureFixture) -> None:
 
     # by overriding the getter only you can make the property read-only
     with pytest.raises(AttributeError):
-        service_instance.my_slider.min = 1.1  # type: ignore[reportGeneralTypeIssues]
+        service_instance.my_slider.min = 1.1  # type: ignore[reportGeneralTypeIssues, misc]
