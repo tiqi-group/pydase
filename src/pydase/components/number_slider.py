@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 from pydase.data_service.data_service import DataService
 
@@ -24,8 +25,56 @@ class NumberSlider(DataService):
     Example:
     --------
     ```python
-    class MyService(DataService):
-        voltage = NumberSlider(1, 0, 10, 0.1)
+    class MySlider(pydase.components.NumberSlider):
+        def __init__(
+            self,
+            value: float = 0.0,
+            min_: float = 0.0,
+            max_: float = 100.0,
+            step_size: float = 1.0,
+        ) -> None:
+            super().__init__(value, min_, max_, step_size)
+
+        @property
+        def min(self) -> float:
+            return self._min
+
+        @min.setter
+        def min(self, value: float) -> None:
+            self._min = value
+
+        @property
+        def max(self) -> float:
+            return self._max
+
+        @max.setter
+        def max(self, value: float) -> None:
+            self._max = value
+
+        @property
+        def step_size(self) -> float:
+            return self._step_size
+
+        @step_size.setter
+        def step_size(self, value: float) -> None:
+            self._step_size = value
+
+        @property
+        def value(self) -> float:
+            return self._value
+
+        @value.setter
+        def value(self, value: float) -> None:
+            if value < self._min or value > self._max:
+                raise ValueError(
+                    "Value is either below allowed min or above max value."
+                )
+
+            self._value = value
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            self.voltage = MyService()
 
     # Modifying or accessing the voltage value:
     my_service = MyService()
@@ -36,7 +85,7 @@ class NumberSlider(DataService):
 
     def __init__(
         self,
-        value: float = 0,
+        value: Any = 0.0,
         min_: float = 0.0,
         max_: float = 100.0,
         step_size: float = 1.0,
@@ -52,33 +101,21 @@ class NumberSlider(DataService):
         """The min property."""
         return self._min
 
-    @min.setter
-    def min(self, value: float) -> None:
-        self._min = value
-
     @property
     def max(self) -> float:
         """The min property."""
         return self._max
-
-    @max.setter
-    def max(self, value: float) -> None:
-        self._max = value
 
     @property
     def step_size(self) -> float:
         """The min property."""
         return self._step_size
 
-    @step_size.setter
-    def step_size(self, value: float) -> None:
-        self._step_size = value
-
     @property
-    def value(self) -> float:
+    def value(self) -> Any:
         """The value property."""
         return self._value
 
     @value.setter
-    def value(self, value: float) -> None:
+    def value(self, value: Any) -> None:
         self._value = value
