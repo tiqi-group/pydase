@@ -364,52 +364,92 @@ In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value`
 
   Here's an illustrative example:
 
-    ```python
-    from collections.abc import Callable
+  ```python
+  from collections.abc import Callable
 
-    import pydase
-    import pydase.components
-
-
-    class MySlider(pydase.components.NumberSlider):
-        def __init__(
-            self,
-            value: float,
-            on_change: Callable[[float], None],
-        ) -> None:
-            super().__init__(value=value)
-            self._on_change = on_change
-
-        # ... other properties ...
-
-        @property
-        def value(self) -> float:
-            return self._value
-
-        @value.setter
-        def value(self, new_value: float) -> None:
-            if new_value < self._min or new_value > self._max:
-                raise ValueError("Value is either below allowed min or above max value.")
-            self._value = new_value
-            self._on_change(new_value)
+  import pydase
+  import pydase.components
 
 
-    class MyService(pydase.DataService):
-        def __init__(self) -> None:
-            self.voltage = MySlider(
-                5,
-                on_change=self.handle_voltage_change,
-            )
+  class MySlider(pydase.components.NumberSlider):
+      def __init__(
+          self,
+          value: float,
+          on_change: Callable[[float], None],
+      ) -> None:
+          super().__init__(value=value)
+          self._on_change = on_change
 
-        def handle_voltage_change(self, new_voltage: float) -> None:
-            print(f"Voltage changed to: {new_voltage}")
-            # Additional logic here
+      # ... other properties ...
 
-   if __name__ == "__main__":
-       service_instance = MyService()
-       my_service.voltage.value = 7  # Output: "Voltage changed to: 7"
-       pydase.Server(service_instance).run()
-  ````
+      @property
+      def value(self) -> float:
+          return self._value
+
+      @value.setter
+      def value(self, new_value: float) -> None:
+          if new_value < self._min or new_value > self._max:
+              raise ValueError("Value is either below allowed min or above max value.")
+          self._value = new_value
+          self._on_change(new_value)
+
+
+  class MyService(pydase.DataService):
+      def __init__(self) -> None:
+          self.voltage = MySlider(
+              5,
+              on_change=self.handle_voltage_change,
+          )
+
+      def handle_voltage_change(self, new_voltage: float) -> None:
+          print(f"Voltage changed to: {new_voltage}")
+          # Additional logic here
+
+  if __name__ == "__main__":
+     service_instance = MyService()
+     my_service.voltage.value = 7  # Output: "Voltage changed to: 7"
+     pydase.Server(service_instance).run()
+  ```
+
+- Incorporating units in `NumberSlider`
+
+  The `NumberSlider` is capable of displaying units alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
+
+  Here's how to implement a `NumberSlider` with unit display:
+
+  ```python
+  import pydase
+  import pydase.components
+  import pydase.units as u
+
+  class MySlider(pydase.components.NumberSlider):
+      def __init__(
+          self,
+          value: u.Quantity = 0.0 * u.units.V,
+      ) -> None:
+          super().__init__(value)
+
+      @property
+      def value(self) -> u.Quantity:
+          return self._value
+
+      @value.setter
+      def value(self, value: u.Quantity) -> None:
+          if value.m < self._min or value.m > self._max:
+              raise ValueError("Value is either below allowed min or above max value.")
+          self._value = value
+
+  class MyService(pydase.DataService):
+      def __init__(self) -> None:
+          super().__init__()
+          self.voltage = MySlider()
+
+  if __name__ == "__main__":
+      service_instance = MyService()
+      service_instance.voltage.value = 5 * u.units.V
+      print(service_instance.voltage.value)  # Output: 5 V
+      pydase.Server(service_instance).run()
+  ```
 
 #### `ColouredEnum`
 
