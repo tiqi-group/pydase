@@ -1,5 +1,4 @@
 import pytest
-
 from pydase.utils.helpers import is_property_attribute
 
 

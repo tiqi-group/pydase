@@ -1,8 +1,7 @@
 import logging
 
-from pytest import LogCaptureFixture
-
 from pydase.utils.logging import setup_logging
+from pytest import LogCaptureFixture
 
 
 def test_log_error(caplog: LogCaptureFixture):
