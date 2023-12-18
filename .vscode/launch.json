@@ -6,7 +6,7 @@
             "type": "python",
             "request": "launch",
             "module": "foo",
-            "justMyCode": true,
+            "justMyCode": false,
             "env": {
                 "ENVIRONMENT": "development"
             }

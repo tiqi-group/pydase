@@ -8,8 +8,8 @@
         "editor.tabSize": 4,
         "editor.detectIndentation": false,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true,
-            "source.fixAll": true
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
         }
     },
     "[yaml]": {
@@ -23,7 +23,7 @@
         "editor.formatOnType": false,
         "editor.formatOnSaveMode": "file",
         "editor.codeActionsOnSave": {
-            "source.fixAll.eslint": true
+            "source.fixAll.eslint": "explicit"
         }
     }
 }
