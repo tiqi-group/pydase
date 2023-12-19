@@ -28,35 +28,27 @@ class AdditionalServerProtocol(Protocol):
     any server implementing it should have an __init__ method for initialization and a
     serve method for starting the server.
 
-    Parameters:
-    -----------
-    service: DataService
-        The instance of DataService that the server will use. This could be the main
-        application or a specific service that the server will provide.
-
-    port: int
-        The port number at which the server will be accessible. This should be a valid
-        port number, typically in the range 1024-65535.
-
-    host: str
-        The hostname or IP address at which the server will be hosted. This could be a
-        local address (like '127.0.0.1' for localhost) or a public IP address.
-
-    state_manager: StateManager
-        The state manager managing the state cache and persistence of the exposed
-        service.
-
-    **kwargs: Any
-        Any additional parameters required for initializing the server. These parameters
-        are specific to the server's implementation.
+    Args:
+        data_service_observer:
+          Observer for the DataService, handling state updates and communication to
+          connected clients through injected callbacks. Can be utilized to access the
+          service and state manager, and to add custom state-update callbacks.
+        host:
+          Hostname or IP address where the server is accessible. Commonly '0.0.0.0' to
+          bind to all network interfaces.
+        port:
+          Port number on which the server listens. Typically in the range 1024-65535
+          (non-standard ports).
+        **kwargs:
+          Any additional parameters required for initializing the server. These
+          parameters are specific to the server's implementation.
     """
 
     def __init__(
         self,
-        service: DataService,
-        port: int,
+        data_service_observer: DataServiceObserver,
         host: str,
-        state_manager: StateManager,
+        port: int,
         **kwargs: Any,
     ) -> None:
         ...
@@ -252,7 +244,6 @@ class Server:
                 service=self._service,
                 host=self._host,
                 port=server["port"],
-                state_manager=self._state_manager,
                 data_service_observer=self._observer,
                 **server["kwargs"],
             )
@@ -268,7 +259,6 @@ class Server:
                 service=self._service,
                 host=self._host,
                 port=self._web_port,
-                state_manager=self._state_manager,
                 data_service_observer=self._observer,
                 **self._kwargs,
             )

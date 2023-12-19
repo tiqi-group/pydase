@@ -10,10 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from pydase import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
-from pydase.data_service.state_manager import StateManager
-from pydase.server.web_server.sio_server import SioServerWrapper
+from pydase.server.web_server.sio_server_wrapper import SioServerWrapper
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -53,22 +51,20 @@ class WebServer:
 
     def __init__(  # noqa: PLR0913
         self,
-        service: DataService,
+        data_service_observer: DataServiceObserver,
         host: str,
         port: int,
-        state_manager: StateManager,
-        data_service_observer: DataServiceObserver,
         css: str | Path | None = None,
         enable_cors: bool = True,
         **kwargs: Any,
     ) -> None:
-        self.service = service
-        self.state_manager = state_manager
+        self.observer = data_service_observer
+        self.state_manager = self.observer.state_manager
+        self.service = self.state_manager.service
         self.port = port
         self.host = host
         self.css = css
         self.enable_cors = enable_cors
-        self.observer = data_service_observer
         self._loop: asyncio.AbstractEventLoop
 
         self.setup_fastapi_app()
