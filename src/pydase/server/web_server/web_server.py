@@ -21,6 +21,47 @@ from pydase.version import __version__
 logger = logging.getLogger(__name__)
 
 
+def generate_serialized_data_paths(
+    data: dict[str, Any], parent_path: str = ""
+) -> list[str]:
+    """
+    Generate a list of access paths for all attributes in a dictionary representing
+    data serialized with `pydase.utils.serializer.Serializer`, excluding those that are
+    methods.
+
+    Args:
+        data: The dictionary representing serialized data, typically produced by
+            `pydase.utils.serializer.Serializer`.
+        parent_path: The base path to prepend to the keys in the `data` dictionary to
+            form the access paths. Defaults to an empty string.
+
+    Returns:
+        A list of strings where each string is a dot-notation access path to an
+        attribute in the serialized data.
+    """
+
+    paths: list[str] = []
+    for key, value in data.items():
+        if value["type"] == "method":
+            # ignoring methods
+            continue
+        new_path = f"{parent_path}.{key}" if parent_path else key
+        if isinstance(value["value"], dict) and value["type"] not in ("Quantity",):
+            paths.append(new_path)
+            paths.extend(generate_serialized_data_paths(value["value"], new_path))
+        elif isinstance(value["value"], list):
+            for index, item in enumerate(value["value"]):
+                indexed_key_path = f"{new_path}[{index}]"
+                if isinstance(item["value"], dict):
+                    paths.extend(
+                        generate_serialized_data_paths(item["value"], indexed_key_path)
+                    )
+                paths.append(indexed_key_path)
+        else:
+            paths.append(new_path)
+    return paths
+
+
 class WebServer:
     """
     Represents a web server that adheres to the AdditionalServerProtocol, designed to
@@ -88,6 +129,7 @@ class WebServer:
             else WebServerConfig().generate_new_web_settings
         )
         self._loop: asyncio.AbstractEventLoop
+        self._initialise_configuration()
 
     async def serve(self) -> None:
         self._loop = asyncio.get_running_loop()
@@ -101,11 +143,42 @@ class WebServer:
         self.web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
         await self.web_server.serve()
 
+    def _initialise_configuration(self) -> None:
+        logger.debug("Initialising web server configuration...")
+
+        self.web_settings = {}
+        file_path = self._service_config_dir / "web_settings.json"
+
+        if self._generate_new_web_settings:
+            # File does not exist, create it with default content
+            logger.debug("Generating web settings file...")
+            file_path.parent.mkdir(
+                parents=True, exist_ok=True
+            )  # Ensure directory exists
+            file_path.write_text(
+                json.dumps(self._generated_web_settings_dict(), indent=4)
+            )
+
+        # File exists, read and return its content
+        if file_path.exists():
+            logger.debug(
+                "Reading configuration from file '%s' ...", file_path.absolute()
+            )
+
+            with file_path.open("r", encoding="utf-8") as file:
+                self.web_settings = json.load(file)
+
+    def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
+        return {
+            path: {"display_name": path.split(".")[-1]}
+            for path in generate_serialized_data_paths(self.state_manager.cache)
+        }
+
     def _setup_socketio(self) -> None:
         self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
         self.__sio_app = socketio.ASGIApp(self._sio)
 
-    def _setup_fastapi_app(self) -> None:
+    def _setup_fastapi_app(self) -> None:  # noqa: C901
         app = FastAPI()
 
         if self.enable_cors:
@@ -129,6 +202,10 @@ class WebServer:
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
             return self.state_manager.cache
+
+        @app.get("/web-settings")
+        def web_settings() -> dict[str, Any]:
+            return self.web_settings
 
         # exposing custom.css file provided by user
         if self.css is not None:
