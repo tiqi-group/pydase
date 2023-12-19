@@ -8,7 +8,7 @@ from pathlib import Path
 from types import FrameType
 from typing import Any, Protocol, TypedDict
 
-from rpyc import ForkingServer, ThreadedServer  # type: ignore[import-untyped]
+from rpyc import ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
@@ -156,7 +156,6 @@ class Server:
         enable_rpc: bool = True,
         enable_web: bool = True,
         filename: str | Path | None = None,
-        use_forking_server: bool = False,
         additional_servers: list[AdditionalServer] | None = None,
         **kwargs: Any,
     ) -> None:
@@ -170,7 +169,6 @@ class Server:
         self._enable_web = enable_web
         self._kwargs = kwargs
         self._loop: asyncio.AbstractEventLoop
-        self._rpc_server_type = ForkingServer if use_forking_server else ThreadedServer
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
@@ -225,7 +223,7 @@ class Server:
 
         if self._enable_rpc:
             self.executor = ThreadPoolExecutor()
-            self._rpc_server = self._rpc_server_type(
+            self._rpc_server = ThreadedServer(
                 self._service,
                 port=self._rpc_port,
                 protocol_config={
