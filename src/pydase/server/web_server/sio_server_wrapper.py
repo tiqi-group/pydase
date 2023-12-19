@@ -2,7 +2,7 @@ import asyncio
 import logging
 from typing import Any, TypedDict
 
-import socketio
+import socketio  # type: ignore[import-untyped]
 
 from pydase.data_service.data_service import process_callable_attribute
 from pydase.data_service.data_service_observer import DataServiceObserver
