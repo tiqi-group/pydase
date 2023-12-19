@@ -8,16 +8,13 @@ from pathlib import Path
 from types import FrameType
 from typing import Any, Protocol, TypedDict
 
-import uvicorn
 from rpyc import ForkingServer, ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.serializer import dump
-
-from .web_server import WebAPI
+from pydase.server.web_server import WebServer
 
 logger = logging.getLogger(__name__)
 
@@ -230,7 +227,7 @@ class Server:
 
         logger.info("Finished server process [%s]", process_id)
 
-    async def startup(self) -> None:  # noqa: C901
+    async def startup(self) -> None:
         self._loop = asyncio.get_running_loop()
         self._loop.set_exception_handler(self.custom_exception_handler)
         self.install_signal_handlers()
@@ -252,10 +249,11 @@ class Server:
             self.servers["rpyc"] = future_or_task
         for server in self._additional_servers:
             addin_server = server["server"](
-                self._service,
-                port=server["port"],
+                service=self._service,
                 host=self._host,
+                port=server["port"],
                 state_manager=self._state_manager,
+                data_service_observer=self._observer,
                 **server["kwargs"],
             )
 
@@ -266,48 +264,14 @@ class Server:
             future_or_task = self._loop.create_task(addin_server.serve())
             self.servers[server_name] = future_or_task
         if self._enable_web:
-            self._wapi = WebAPI(
+            web_server = WebServer(
                 service=self._service,
+                host=self._host,
+                port=self._web_port,
                 state_manager=self._state_manager,
+                data_service_observer=self._observer,
                 **self._kwargs,
             )
-            web_server = uvicorn.Server(
-                uvicorn.Config(
-                    self._wapi.fastapi_app, host=self._host, port=self._web_port
-                )
-            )
-
-            def sio_callback(
-                full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
-            ) -> None:
-                if cached_value_dict != {}:
-                    serialized_value = dump(value)
-                    if cached_value_dict["type"] != "method":
-                        cached_value_dict["type"] = serialized_value["type"]
-
-                    cached_value_dict["value"] = serialized_value["value"]
-
-                    async def notify() -> None:
-                        try:
-                            await self._wapi.sio.emit(
-                                "notify",
-                                {
-                                    "data": {
-                                        "full_access_path": full_access_path,
-                                        "value": cached_value_dict,
-                                    }
-                                },
-                            )
-                        except Exception as e:
-                            logger.warning("Failed to send notification: %s", e)
-
-                    self._loop.create_task(notify())
-
-            self._observer.add_notification_callback(sio_callback)
-
-            # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
-            # SIGTERM, which makes it impossible to escape out of
-            web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
             future_or_task = self._loop.create_task(web_server.serve())
             self.servers["web"] = future_or_task
 

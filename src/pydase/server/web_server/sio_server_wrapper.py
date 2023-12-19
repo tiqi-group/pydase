@@ -1,19 +1,14 @@
+import asyncio
 import logging
-from pathlib import Path
 from typing import Any, TypedDict
 
-import socketio  # type: ignore[import-untyped]
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+import socketio
 
-from pydase import DataService
 from pydase.data_service.data_service import process_callable_attribute
-from pydase.data_service.state_manager import StateManager
+from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.utils.logging import SocketIOHandler
-from pydase.version import __version__
+from pydase.utils.serializer import dump
 
 logger = logging.getLogger(__name__)
 
@@ -94,64 +89,53 @@ class UpdateWebSettingsDict(TypedDict):
     value: Any
 
 
-class WebAPI:
-    __sio_app: socketio.ASGIApp
-    __fastapi_app: FastAPI
-
-    def __init__(  # noqa: PLR0913
+class SioServerWrapper:
+    def __init__(
         self,
-        service: DataService,
-        state_manager: StateManager,
-        frontend: str | Path | None = None,
-        css: str | Path | None = None,
-        enable_cors: bool = True,
-        *args: Any,
-        **kwargs: Any,
+        observer: DataServiceObserver,
+        enable_cors: bool,
+        loop: asyncio.AbstractEventLoop,
     ) -> None:
-        self.service = service
-        self.state_manager = state_manager
-        self.frontend = frontend
-        self.css = css
-        self.enable_cors = enable_cors
-        self.args = args
-        self.kwargs = kwargs
+        self._loop = loop
+        self._enable_cors = enable_cors
+        self._observer = observer
+        self._state_manager = self._observer.state_manager
+        self._service = self._state_manager.service
 
-        self.setup_socketio()
-        self.setup_fastapi_app()
-        self.setup_logging_handler()
+        self._setup_sio()
+        self._setup_logging_handler()
 
-    def setup_logging_handler(self) -> None:
+    def _setup_logging_handler(self) -> None:
         logger = logging.getLogger()
-        logger.addHandler(SocketIOHandler(self.__sio))
+        logger.addHandler(SocketIOHandler(self.sio))
 
-    def setup_socketio(self) -> None:
-        # the socketio ASGI app, to notify clients when params update
-        if self.enable_cors:
-            sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+    def _setup_sio(self) -> None:
+        if self._enable_cors:
+            self.sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
         else:
-            sio = socketio.AsyncServer(async_mode="asgi")
+            self.sio = socketio.AsyncServer(async_mode="asgi")
 
-        @sio.event
+        @self.sio.event
         def set_attribute(sid: str, data: UpdateDict) -> Any:
             logger.debug("Received frontend update: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
             path = ".".join(path_list)
-            return self.state_manager.set_service_attribute_value_by_path(
+            return self._state_manager.set_service_attribute_value_by_path(
                 path=path, value=data["value"]
             )
 
-        @sio.event
+        @self.sio.event
         def run_method(sid: str, data: RunMethodDict) -> Any:
             logger.debug("Running method: %s", data)
             path_list = [*data["parent_path"].split("."), data["name"]]
             path_list.remove("DataService")  # always at the start, does not do anything
-            method = get_object_attr_from_path_list(self.service, path_list)
+            method = get_object_attr_from_path_list(self._service, path_list)
             return process_callable_attribute(method, data["kwargs"])
 
-        @sio.event  # type: ignore
+        @self.sio.event
         def web_settings(sid: str, data: UpdateWebSettingsDict) -> Any:
-            logger.debug(f"Received web settings update: {data}")
+            logger.debug("Received web settings update: %s", data)
             path_list, config_option, value = (
                 data["access_path"].split("."),
                 data["config_option"],
@@ -160,55 +144,33 @@ class WebAPI:
             path_list.pop(0)  # remove first entry (specifies root object, not needed)
             # write to web-settings.json file
 
-        self.__sio = sio
-        self.__sio_app = socketio.ASGIApp(self.__sio)
+        self._add_notification_callback_to_observer()
 
-    def setup_fastapi_app(self) -> None:
-        app = FastAPI()
+    def _add_notification_callback_to_observer(self) -> None:
+        def sio_callback(
+            full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
+        ) -> None:
+            if cached_value_dict != {}:
+                serialized_value = dump(value)
+                if cached_value_dict["type"] != "method":
+                    cached_value_dict["type"] = serialized_value["type"]
 
-        if self.enable_cors:
-            app.add_middleware(
-                CORSMiddleware,
-                allow_credentials=True,
-                allow_origins=["*"],
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
-        app.mount("/ws", self.__sio_app)
+                cached_value_dict["value"] = serialized_value["value"]
 
-        @app.get("/version")
-        def version() -> str:
-            return __version__
+                async def notify() -> None:
+                    try:
+                        await self.sio.emit(
+                            "notify",
+                            {
+                                "data": {
+                                    "full_access_path": full_access_path,
+                                    "value": cached_value_dict,
+                                }
+                            },
+                        )
+                    except Exception as e:
+                        logger.warning("Failed to send notification: %s", e)
 
-        @app.get("/name")
-        def name() -> str:
-            return self.service.get_service_name()
+                self._loop.create_task(notify())
 
-        @app.get("/service-properties")
-        def service_properties() -> dict[str, Any]:
-            return self.state_manager.cache
-
-        # exposing custom.css file provided by user
-        if self.css is not None:
-
-            @app.get("/custom.css")
-            async def styles() -> FileResponse:
-                return FileResponse(str(self.css))
-
-        app.mount(
-            "/",
-            StaticFiles(
-                directory=Path(__file__).parent.parent / "frontend",
-                html=True,
-            ),
-        )
-
-        self.__fastapi_app = app
-
-    @property
-    def sio(self) -> socketio.AsyncServer:
-        return self.__sio
-
-    @property
-    def fastapi_app(self) -> FastAPI:
-        return self.__fastapi_app
+        self._observer.add_notification_callback(sio_callback)
