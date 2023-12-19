@@ -30,19 +30,32 @@ class WebServer:
     The WebServer class initializes and manages a web server environment using FastAPI
     and Socket.IO, allowing for HTTP and WebSocket communications. It incorporates CORS
     (Cross-Origin Resource Sharing) support, custom CSS, and serves a frontend static
-    files directory.
+    files directory. It also initializes web server settings based on configuration
+    files or generates default settings if necessary.
+
+    Configuration for the web server (like service settings directory and whether to
+    generate new web settings) is determined in the following order of precedence:
+    1. Values provided directly to the constructor.
+    2. Environment variable settings (via configuration classes like ServiceConfig and
+       WebServerConfig).
+    3. Default values defined in the configuration classes.
 
     Args:
         data_service_observer (DataServiceObserver): Observer for the DataService,
-            handling state updates and communication to connected clients.
+          handling state updates and communication to connected clients.
         host (str): Hostname or IP address where the server is accessible. Commonly
-            '0.0.0.0' to bind to all network interfaces.
+          '0.0.0.0' to bind to all network interfaces.
         port (int): Port number on which the server listens. Typically in the range
-            1024-65535 (non-standard ports).
+          1024-65535 (non-standard ports).
         css (str | Path | None, optional): Path to a custom CSS file for styling the
-            frontend. If None, no custom styles are applied. Defaults to None.
+          frontend. If None, no custom styles are applied. Defaults to None.
         enable_cors (bool, optional): Flag to enable or disable CORS policy. When True,
-            CORS is enabled, allowing cross-origin requests. Defaults to True.
+          CORS is enabled, allowing cross-origin requests. Defaults to True.
+        service_settings_dir (Path | None, optional): Path to the configuration
+          directory where the web settings will be stored. Defaults to None.
+        generate_new_web_settings (bool | None, optional): Flag to enable or disable
+          generation of new web settings if the configuration file is missing. Defaults
+          to None.
         **kwargs (Any): Additional unused keyword arguments.
     """
 
