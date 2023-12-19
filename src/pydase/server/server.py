@@ -241,10 +241,9 @@ class Server:
             self.servers["rpyc"] = future_or_task
         for server in self._additional_servers:
             addin_server = server["server"](
-                service=self._service,
+                data_service_observer=self._observer,
                 host=self._host,
                 port=server["port"],
-                data_service_observer=self._observer,
                 **server["kwargs"],
             )
 
@@ -256,10 +255,9 @@ class Server:
             self.servers[server_name] = future_or_task
         if self._enable_web:
             self._web_server = WebServer(
-                service=self._service,
+                data_service_observer=self._observer,
                 host=self._host,
                 port=self._web_port,
-                data_service_observer=self._observer,
                 **self._kwargs,
             )
             future_or_task = self._loop.create_task(self._web_server.serve())
