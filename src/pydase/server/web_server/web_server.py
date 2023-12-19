@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from pydase.config import ServiceConfig, WebServerConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
@@ -51,6 +53,8 @@ class WebServer:
         port: int,
         css: str | Path | None = None,
         enable_cors: bool = True,
+        service_settings_dir: Path | None = None,
+        generate_new_web_settings: bool | None = None,
         **kwargs: Any,
     ) -> None:
         self.observer = data_service_observer
@@ -60,6 +64,16 @@ class WebServer:
         self.host = host
         self.css = css
         self.enable_cors = enable_cors
+        self._service_config_dir = (
+            service_settings_dir
+            if service_settings_dir is not None
+            else ServiceConfig().service_config_dir
+        )
+        self._generate_new_web_settings = (
+            generate_new_web_settings
+            if generate_new_web_settings is not None
+            else WebServerConfig().generate_new_web_settings
+        )
         self._loop: asyncio.AbstractEventLoop
 
     async def serve(self) -> None:
