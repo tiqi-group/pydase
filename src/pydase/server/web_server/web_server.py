@@ -67,7 +67,7 @@ class WebServer:
         self.enable_cors = enable_cors
         self._loop: asyncio.AbstractEventLoop
 
-        self.setup_fastapi_app()
+        self._setup_fastapi_app()
         self.web_server = uvicorn.Server(
             uvicorn.Config(self.__fastapi_app, host=self.host, port=self.port)
         )
@@ -80,14 +80,14 @@ class WebServer:
         method, which means that it should be able to run concurrently with other tasks.
         """
         self._loop = asyncio.get_running_loop()
-        self.setup_socketio()
+        self._setup_socketio()
         await self.web_server.serve()
 
-    def setup_socketio(self) -> None:
+    def _setup_socketio(self) -> None:
         self.__sio = SioServerWrapper(self.observer, self.enable_cors, self._loop).sio
         self.__sio_app = socketio.ASGIApp(self.__sio)
 
-    def setup_fastapi_app(self) -> None:
+    def _setup_fastapi_app(self) -> None:
         app = FastAPI()
 
         if self.enable_cors:
