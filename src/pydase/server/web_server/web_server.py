@@ -97,7 +97,7 @@ class WebServer:
 
         @app.get("/name")
         def name() -> str:
-            return self.service.get_service_name()
+            return type(self.service).__name__
 
         @app.get("/service-properties")
         def service_properties() -> dict[str, Any]:
