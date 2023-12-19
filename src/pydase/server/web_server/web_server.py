@@ -77,8 +77,8 @@ class WebServer:
         await self.web_server.serve()
 
     def _setup_socketio(self) -> None:
-        self.__sio = SioServerWrapper(self.observer, self.enable_cors, self._loop).sio
-        self.__sio_app = socketio.ASGIApp(self.__sio)
+        self._sio = SioServerWrapper(self.observer, self.enable_cors, self._loop).sio
+        self.__sio_app = socketio.ASGIApp(self._sio)
 
     def _setup_fastapi_app(self) -> None:
         app = FastAPI()

@@ -255,14 +255,14 @@ class Server:
             future_or_task = self._loop.create_task(addin_server.serve())
             self.servers[server_name] = future_or_task
         if self._enable_web:
-            web_server = WebServer(
+            self._web_server = WebServer(
                 service=self._service,
                 host=self._host,
                 port=self._web_port,
                 data_service_observer=self._observer,
                 **self._kwargs,
             )
-            future_or_task = self._loop.create_task(web_server.serve())
+            future_or_task = self._loop.create_task(self._web_server.serve())
             self.servers["web"] = future_or_task
 
     async def main_loop(self) -> None:
@@ -335,7 +335,7 @@ class Server:
 
                 async def emit_exception() -> None:
                     try:
-                        await self._wapi.sio.emit(
+                        await self._web_server._sio.emit(
                             "exception",
                             {
                                 "data": {
