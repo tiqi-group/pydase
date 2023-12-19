@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase.data_service.data_service_observer import DataServiceObserver
-from pydase.server.web_server.sio_server import (
+from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
 from pydase.version import __version__
