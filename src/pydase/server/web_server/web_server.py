@@ -62,6 +62,9 @@ class WebServer:
         self.enable_cors = enable_cors
         self._loop: asyncio.AbstractEventLoop
 
+    async def serve(self) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._setup_socketio()
         self._setup_fastapi_app()
         self.web_server = uvicorn.Server(
             uvicorn.Config(self.__fastapi_app, host=self.host, port=self.port)
@@ -69,13 +72,6 @@ class WebServer:
         # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
         # SIGTERM, which makes it impossible to escape out of
         self.web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
-
-    async def serve(self) -> Any:
-        """Starts the server. This method should be implemented as an asynchronous
-        method, which means that it should be able to run concurrently with other tasks.
-        """
-        self._loop = asyncio.get_running_loop()
-        self._setup_socketio()
         await self.web_server.serve()
 
     def _setup_socketio(self) -> None:
@@ -117,7 +113,7 @@ class WebServer:
         app.mount(
             "/",
             StaticFiles(
-                directory=Path(__file__).parent.parent / "frontend",
+                directory=Path(__file__).parent.parent.parent / "frontend",
                 html=True,
             ),
         )
