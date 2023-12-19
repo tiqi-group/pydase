@@ -11,7 +11,9 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from pydase.data_service.data_service_observer import DataServiceObserver
-from pydase.server.web_server.sio_server_wrapper import SioServerWrapper
+from pydase.server.web_server.sio_server import (
+    setup_sio_server,
+)
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -77,7 +79,7 @@ class WebServer:
         await self.web_server.serve()
 
     def _setup_socketio(self) -> None:
-        self._sio = SioServerWrapper(self.observer, self.enable_cors, self._loop).sio
+        self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
         self.__sio_app = socketio.ASGIApp(self._sio)
 
     def _setup_fastapi_app(self) -> None:
