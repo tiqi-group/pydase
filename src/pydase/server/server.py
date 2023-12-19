@@ -78,75 +78,73 @@ class Server:
     """
     The `Server` class provides a flexible server implementation for the `DataService`.
 
-    Parameters:
-    -----------
-    service: DataService
-        The DataService instance that this server will manage.
-    host: str
-        The host address for the server. Default is '0.0.0.0', which means all available
-        network interfaces.
-    rpc_port: int
-        The port number for the RPC server. Default is 18871.
-    web_port: int
-        The port number for the web server. Default is 8001.
-    enable_rpc: bool
-        Whether to enable the RPC server. Default is True.
-    enable_web: bool
-        Whether to enable the web server. Default is True.
-    filename: str | Path | None
-        Filename of the file managing the service state persistence. Defaults to None.
-    use_forking_server: bool
-        Whether to use ForkingServer for multiprocessing. Default is False.
-    additional_servers : list[AdditionalServer]
-        A list of additional servers to run alongside the main server. Each entry in the
-        list should be a dictionary with the following structure:
+    Args:
+        service: DataService
+          The DataService instance that this server will manage.
+        host: str
+          The host address for the server. Default is '0.0.0.0', which means all
+          available network interfaces.
+        rpc_port: int
+          The port number for the RPC server. Default is 18871.
+        web_port: int
+          The port number for the web server. Default is 8001.
+        enable_rpc: bool
+          Whether to enable the RPC server. Default is True.
+        enable_web: bool
+          Whether to enable the web server. Default is True.
+        filename: str | Path | None
+          Filename of the file managing the service state persistence. Defaults to None.
+        use_forking_server: bool
+          Whether to use ForkingServer for multiprocessing. Default is False.
+        additional_servers : list[AdditionalServer]
+          A list of additional servers to run alongside the main server. Each entry in
+          the list should be a dictionary with the following structure:
+            - server: A class that adheres to the AdditionalServerProtocol. This class
+                should have an `__init__` method that accepts the DataService instance,
+                port, host, and optional keyword arguments, and a `serve` method that is
+                a coroutine responsible for starting the server.
+            - port: The port on which the additional server will be running.
+            - kwargs: A dictionary containing additional keyword arguments that will be
+                passed to the server's `__init__` method.
 
-        - server: A class that adheres to the AdditionalServerProtocol. This class
-            should have an `__init__` method that accepts the DataService instance,
-            port, host, and optional keyword arguments, and a `serve` method that is a
-            coroutine responsible for starting the server.
-        - port: The port on which the additional server will be running.
-        - kwargs: A dictionary containing additional keyword arguments that will be
-            passed to the server's `__init__` method.
-
-        Here's an example of how you might define an additional server:
+          Here's an example of how you might define an additional server:
 
 
-        >>>     class MyCustomServer:
-        ...         def __init__(
-        ...             self,
-        ...             service: DataService,
-        ...             port: int,
-        ...             host: str,
-        ...             state_manager: StateManager,
-        ...             **kwargs: Any
-        ...         ):
-        ...             self.service = service
-        ...             self.state_manager = state_manager
-        ...             self.port = port
-        ...             self.host = host
-        ...             # handle any additional arguments...
-        ...
-        ...         async def serve(self):
-        ...             # code to start the server...
+          >>>     class MyCustomServer:
+          ...         def __init__(
+          ...             self,
+          ...             data_service_observer: DataServiceObserver,
+          ...             host: str,
+          ...             port: int,
+          ...             **kwargs: Any,
+          ...         ) -> None:
+          ...             self.observer = data_service_observer
+          ...             self.state_manager = self.observer.state_manager
+          ...             self.service = self.state_manager.service
+          ...             self.port = port
+          ...             self.host = host
+          ...             # handle any additional arguments...
+          ...
+          ...         async def serve(self):
+          ...             # code to start the server...
 
-        And here's how you might add it to the `additional_servers` list when creating a
-        `Server` instance:
+          And here's how you might add it to the `additional_servers` list when creating
+          a `Server` instance:
 
-        >>>    server = Server(
-        ...        service=my_data_service,
-        ...        additional_servers=[
-        ...            {
-        ...                "server": MyCustomServer,
-        ...                "port": 12345,
-        ...                "kwargs": {"some_arg": "some_value"}
-        ...            }
-        ...        ],
-        ...    )
-        ...    server.run()
+          >>>    server = Server(
+          ...        service=my_data_service,
+          ...        additional_servers=[
+          ...            {
+          ...                "server": MyCustomServer,
+          ...                "port": 12345,
+          ...                "kwargs": {"some_arg": "some_value"}
+          ...            }
+          ...        ],
+          ...    )
+          ...    server.run()
 
-    **kwargs: Any
-        Additional keyword arguments.
+        **kwargs: Any
+          Additional keyword arguments.
     """
 
     def __init__(  # noqa: PLR0913
