@@ -19,34 +19,27 @@ logger = logging.getLogger(__name__)
 
 class WebServer:
     """
-    A Protocol that defines the interface for additional servers.
+    Represents a web server that adheres to the AdditionalServerProtocol, designed to
+    work with a DataService instance. This server facilitates client-server
+    communication and state management through web protocols and socket connections.
 
-    This protocol sets the standard for how additional servers should be implemented
-    to ensure compatibility with the main Server class. The protocol requires that
-    any server implementing it should have an __init__ method for initialization and a
-    serve method for starting the server.
+    The WebServer class initializes and manages a web server environment using FastAPI
+    and Socket.IO, allowing for HTTP and WebSocket communications. It incorporates CORS
+    (Cross-Origin Resource Sharing) support, custom CSS, and serves a frontend static
+    files directory.
 
-    Parameters:
-    -----------
-    service: DataService
-        The instance of DataService that the server will use. This could be the main
-        application or a specific service that the server will provide.
-
-    port: int
-        The port number at which the server will be accessible. This should be a valid
-        port number, typically in the range 1024-65535.
-
-    host: str
-        The hostname or IP address at which the server will be hosted. This could be a
-        local address (like '127.0.0.1' for localhost) or a public IP address.
-
-    state_manager: StateManager
-        The state manager managing the state cache and persistence of the exposed
-        service.
-
-    **kwargs: Any
-        Any additional parameters required for initializing the server. These parameters
-        are specific to the server's implementation.
+    Args:
+        data_service_observer (DataServiceObserver): Observer for the DataService,
+            handling state updates and communication to connected clients.
+        host (str): Hostname or IP address where the server is accessible. Commonly
+            '0.0.0.0' to bind to all network interfaces.
+        port (int): Port number on which the server listens. Typically in the range
+            1024-65535 (non-standard ports).
+        css (str | Path | None, optional): Path to a custom CSS file for styling the
+            frontend. If None, no custom styles are applied. Defaults to None.
+        enable_cors (bool, optional): Flag to enable or disable CORS policy. When True,
+            CORS is enabled, allowing cross-origin requests. Defaults to True.
+        **kwargs (Any): Additional unused keyword arguments.
     """
 
     def __init__(  # noqa: PLR0913
