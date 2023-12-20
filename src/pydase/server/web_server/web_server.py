@@ -16,50 +16,10 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
+from pydase.utils.serializer import generate_serialized_data_paths
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
-
-
-def generate_serialized_data_paths(
-    data: dict[str, Any], parent_path: str = ""
-) -> list[str]:
-    """
-    Generate a list of access paths for all attributes in a dictionary representing
-    data serialized with `pydase.utils.serializer.Serializer`, excluding those that are
-    methods.
-
-    Args:
-        data: The dictionary representing serialized data, typically produced by
-            `pydase.utils.serializer.Serializer`.
-        parent_path: The base path to prepend to the keys in the `data` dictionary to
-            form the access paths. Defaults to an empty string.
-
-    Returns:
-        A list of strings where each string is a dot-notation access path to an
-        attribute in the serialized data.
-    """
-
-    paths: list[str] = []
-    for key, value in data.items():
-        if value["type"] == "method":
-            # ignoring methods
-            continue
-        new_path = f"{parent_path}.{key}" if parent_path else key
-        if isinstance(value["value"], dict) and value["type"] not in ("Quantity",):
-            paths.append(new_path)
-            paths.extend(generate_serialized_data_paths(value["value"], new_path))
-        elif isinstance(value["value"], list):
-            for index, item in enumerate(value["value"]):
-                indexed_key_path = f"{new_path}[{index}]"
-                if isinstance(item["value"], dict):
-                    paths.extend(
-                        generate_serialized_data_paths(item["value"], indexed_key_path)
-                    )
-                paths.append(indexed_key_path)
-        else:
-            paths.append(new_path)
-    return paths
 
 
 class WebServer:
