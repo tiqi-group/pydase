@@ -11,6 +11,7 @@ from pydase.utils.serializer import (
     dump,
     get_nested_dict_by_path,
     get_next_level_dict_by_key,
+    serialized_dict_is_nested_object,
     set_nested_value_by_path,
 )
 
@@ -360,7 +361,9 @@ def test_update_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture)
     )
 
 
-def test_update_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
+def test_update_invalid_path(
+    setup_dict: dict[str, Any], caplog: pytest.LogCaptureFixture
+) -> None:
     set_nested_value_by_path(setup_dict, "invalid_path", 30)
     assert (
         "Error occured trying to access the key 'invalid_path': it is either "
@@ -369,66 +372,165 @@ def test_update_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
     )
 
 
-def test_update_list_inside_class(setup_dict):
+def test_update_list_inside_class(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.list_attr[1]", 40)
     assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40
 
 
-def test_update_class_attribute_inside_list(setup_dict):
+def test_update_class_attribute_inside_list(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50
 
 
-def test_get_next_level_attribute_nested_dict(setup_dict):
+def test_get_next_level_attribute_nested_dict(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_next_level_dict_by_key(setup_dict, "attr1")
     assert nested_dict == setup_dict["attr1"]
 
 
-def test_get_next_level_list_entry_nested_dict(setup_dict):
+def test_get_next_level_list_entry_nested_dict(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_next_level_dict_by_key(setup_dict, "attr_list[0]")
     assert nested_dict == setup_dict["attr_list"]["value"][0]
 
 
-def test_get_next_level_invalid_path_nested_dict(setup_dict):
+def test_get_next_level_invalid_path_nested_dict(setup_dict: dict[str, Any]) -> None:
     with pytest.raises(SerializationPathError):
         get_next_level_dict_by_key(setup_dict, "invalid_path")
 
 
-def test_get_next_level_invalid_list_index(setup_dict):
+def test_get_next_level_invalid_list_index(setup_dict: dict[str, Any]) -> None:
     with pytest.raises(SerializationPathError):
         get_next_level_dict_by_key(setup_dict, "attr_list[10]")
 
 
-def test_get_attribute(setup_dict):
+def test_get_attribute(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_nested_dict_by_path(setup_dict, "attr1")
     assert nested_dict["value"] == 1.0
 
 
-def test_get_nested_attribute(setup_dict):
+def test_get_nested_attribute(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_nested_dict_by_path(setup_dict, "attr2.attr3")
     assert nested_dict["value"] == 1.0
 
 
-def test_get_list_entry(setup_dict):
+def test_get_list_entry(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_nested_dict_by_path(setup_dict, "attr_list[1]")
     assert nested_dict["value"] == 1
 
 
-def test_get_list_inside_class(setup_dict):
+def test_get_list_inside_class(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_nested_dict_by_path(setup_dict, "attr2.list_attr[1]")
     assert nested_dict["value"] == 1.0
 
 
-def test_get_class_attribute_inside_list(setup_dict):
+def test_get_class_attribute_inside_list(setup_dict: dict[str, Any]) -> None:
     nested_dict = get_nested_dict_by_path(setup_dict, "attr_list[2].attr3")
     assert nested_dict["value"] == 1.0
 
 
-def test_get_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
+def test_get_invalid_list_index(setup_dict: dict[str, Any]) -> None:
     with pytest.raises(SerializationPathError):
         get_nested_dict_by_path(setup_dict, "attr_list[10]")
 
 
-def test_get_invalid_path(setup_dict, caplog: pytest.LogCaptureFixture):
+def test_get_invalid_path(setup_dict: dict[str, Any]) -> None:
     with pytest.raises(SerializationPathError):
         get_nested_dict_by_path(setup_dict, "invalid_path")
+
+
+def test_serialized_dict_is_nested_object() -> None:
+    serialized_dict = {
+        "list_attr": {
+            "type": "list",
+            "value": [
+                {"type": "float", "value": 1.4, "readonly": False, "doc": None},
+                {"type": "float", "value": 2.0, "readonly": False, "doc": None},
+            ],
+            "readonly": False,
+            "doc": None,
+        },
+        "my_slider": {
+            "type": "NumberSlider",
+            "value": {
+                "max": {
+                    "type": "float",
+                    "value": 101.0,
+                    "readonly": False,
+                    "doc": "The min property.",
+                },
+                "min": {
+                    "type": "float",
+                    "value": 1.0,
+                    "readonly": False,
+                    "doc": "The min property.",
+                },
+                "step_size": {
+                    "type": "float",
+                    "value": 2.0,
+                    "readonly": False,
+                    "doc": "The min property.",
+                },
+                "value": {
+                    "type": "float",
+                    "value": 1.0,
+                    "readonly": False,
+                    "doc": "The value property.",
+                },
+            },
+            "readonly": False,
+            "doc": None,
+        },
+        "string": {
+            "type": "str",
+            "value": "Another name",
+            "readonly": True,
+            "doc": None,
+        },
+        "float": {
+            "type": "int",
+            "value": 10,
+            "readonly": False,
+            "doc": None,
+        },
+        "unit": {
+            "type": "Quantity",
+            "value": {"magnitude": 12.0, "unit": "A"},
+            "readonly": False,
+            "doc": None,
+        },
+        "state": {
+            "type": "ColouredEnum",
+            "value": "FAILED",
+            "readonly": True,
+            "doc": None,
+            "enum": {
+                "RUNNING": "#0000FF80",
+                "COMPLETED": "hsl(120, 100%, 50%)",
+                "FAILED": "hsla(0, 100%, 50%, 0.7)",
+            },
+        },
+        "subservice": {
+            "type": "DataService",
+            "value": {
+                "name": {
+                    "type": "str",
+                    "value": "SubService",
+                    "readonly": False,
+                    "doc": None,
+                }
+            },
+            "readonly": False,
+            "doc": None,
+        },
+    }
+
+    assert serialized_dict_is_nested_object(serialized_dict["list_attr"])
+    assert serialized_dict_is_nested_object(serialized_dict["my_slider"])
+    assert serialized_dict_is_nested_object(serialized_dict["subservice"])
+
+    assert not serialized_dict_is_nested_object(
+        serialized_dict["list_attr"]["value"][0]  # type: ignore[index]
+    )
+    assert not serialized_dict_is_nested_object(serialized_dict["string"])
+    assert not serialized_dict_is_nested_object(serialized_dict["unit"])
+    assert not serialized_dict_is_nested_object(serialized_dict["float"])
+    assert not serialized_dict_is_nested_object(serialized_dict["state"])
