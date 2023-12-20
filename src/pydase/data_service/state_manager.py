@@ -9,12 +9,14 @@ import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
     get_object_attr_from_path_list,
+    is_property_attribute,
     parse_list_attr_and_index,
 )
 from pydase.utils.serializer import (
     dump,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
+    serialized_dict_is_nested_object,
 )
 
 if TYPE_CHECKING:
@@ -246,7 +248,7 @@ class StateManager:
         else:
             setattr(target_obj, attr_name, value)
 
-    def __is_loadable_state_attribute(self, property_path: str) -> bool:
+    def __is_loadable_state_attribute(self, full_access_path: str) -> bool:
         """Checks if an attribute defined by a dot-separated path should be loaded from
         storage.
 
@@ -255,13 +257,12 @@ class StateManager:
         """
 
         parent_object = get_object_attr_from_path_list(
-            self.service, property_path.split(".")[:-1]
+            self.service, full_access_path.split(".")[:-1]
         )
-        attr_name = property_path.split(".")[-1]
+        attr_name = full_access_path.split(".")[-1]
 
-        prop = getattr(type(parent_object), attr_name, None)
-
-        if isinstance(prop, property):
+        if is_property_attribute(parent_object, attr_name):
+            prop = getattr(type(parent_object), attr_name)
             has_decorator = has_load_state_decorator(prop)
             if not has_decorator:
                 logger.debug(
@@ -270,4 +271,10 @@ class StateManager:
                     attr_name,
                 )
             return has_decorator
-        return True
+
+        cached_serialization_dict = get_nested_dict_by_path(
+            self.cache, full_access_path
+        )
+
+        # nested objects cannot be loaded
+        return not serialized_dict_is_nested_object(cached_serialization_dict)
