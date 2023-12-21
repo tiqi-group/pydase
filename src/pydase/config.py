@@ -11,9 +11,11 @@ class OperationMode(BaseConfig):  # type: ignore[misc]
 
 
 class ServiceConfig(BaseConfig):  # type: ignore[misc]
-    service_config_dir: Path = Path("config")
+    config_dir: Path = Path("config")
+    web_port: int = 8001
+    rpc_port: int = 18871
 
-    CONFIG_SOURCES = EnvSource(allow=["SERVICE_CONFIG_DIR"])
+    CONFIG_SOURCES = EnvSource(prefix="SERVICE_")
 
 
 class WebServerConfig(BaseConfig):  # type: ignore[misc]
