@@ -37,8 +37,8 @@ class WebServer:
     Configuration for the web server (like service configuration directory and whether
     to generate new web settings) is determined in the following order of precedence:
     1. Values provided directly to the constructor.
-    2. Environment variable settings (via configuration classes like `ServiceConfig` and
-       `WebServerConfig`).
+    2. Environment variable settings (via configuration classes like
+      `pydase.config.ServiceConfig` and `pydase.config.WebServerConfig`).
     3. Default values defined in the configuration classes.
 
     Args:
@@ -52,11 +52,12 @@ class WebServer:
           frontend. If None, no custom styles are applied. Defaults to None.
         enable_cors (bool, optional): Flag to enable or disable CORS policy. When True,
           CORS is enabled, allowing cross-origin requests. Defaults to True.
-        service_config_dir (Path | None, optional): Path to the configuration
-          directory where the web settings will be stored. Defaults to None.
+        config_dir (Path | None, optional): Path to the configuration
+          directory where the web settings will be stored. Defaults to
+          `pydase.config.ServiceConfig().config_dir`.
         generate_new_web_settings (bool | None, optional): Flag to enable or disable
           generation of new web settings if the configuration file is missing. Defaults
-          to None.
+          to `pydase.config.WebServerConfig().generate_new_web_settings`.
         **kwargs (Any): Additional unused keyword arguments.
     """
 
@@ -67,8 +68,8 @@ class WebServer:
         port: int,
         css: str | Path | None = None,
         enable_cors: bool = True,
-        service_config_dir: Path | None = None,
-        generate_new_web_settings: bool | None = None,
+        config_dir: Path = ServiceConfig().config_dir,
+        generate_new_web_settings: bool = WebServerConfig().generate_new_web_settings,
         **kwargs: Any,
     ) -> None:
         self.observer = data_service_observer
@@ -78,16 +79,8 @@ class WebServer:
         self.host = host
         self.css = css
         self.enable_cors = enable_cors
-        self._service_config_dir = (
-            service_config_dir
-            if service_config_dir is not None
-            else ServiceConfig().service_config_dir
-        )
-        self._generate_new_web_settings = (
-            generate_new_web_settings
-            if generate_new_web_settings is not None
-            else WebServerConfig().generate_new_web_settings
-        )
+        self._service_config_dir = config_dir
+        self._generate_new_web_settings = generate_new_web_settings
         self._loop: asyncio.AbstractEventLoop
         self._initialise_configuration()
 
