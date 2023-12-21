@@ -341,7 +341,7 @@ def get_next_level_dict_by_key(
 
 
 def generate_serialized_data_paths(
-    data: dict[str, Any], parent_path: str = ""
+    data: dict[str, dict[str, Any]], parent_path: str = ""
 ) -> list[str]:
     """
     Generate a list of access paths for all attributes in a dictionary representing
