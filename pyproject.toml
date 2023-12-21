@@ -31,6 +31,7 @@ matplotlib = "^3.7.2"
 pyright = "^1.1.323"
 pytest-mock = "^3.11.1"
 ruff = "^0.1.5"
+pytest-asyncio = "^0.23.2"
 
 [tool.poetry.group.docs]
 optional = true
