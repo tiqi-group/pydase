@@ -12,6 +12,7 @@ from rpyc import ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
+from pydase.config import ServiceConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server import WebServer
@@ -85,9 +86,11 @@ class Server:
           The host address for the server. Default is '0.0.0.0', which means all
           available network interfaces.
         rpc_port: int
-          The port number for the RPC server. Default is 18871.
+          The port number for the RPC server. Default is
+          `pydase.config.ServiceConfig().rpc_port`.
         web_port: int
-          The port number for the web server. Default is 8001.
+          The port number for the web server. Default is
+          `pydase.config.ServiceConfig().web_port`.
         enable_rpc: bool
           Whether to enable the RPC server. Default is True.
         enable_web: bool
@@ -151,8 +154,8 @@ class Server:
         self,
         service: DataService,
         host: str = "0.0.0.0",
-        rpc_port: int = 18871,
-        web_port: int = 8001,
+        rpc_port: int = ServiceConfig().rpc_port,
+        web_port: int = ServiceConfig().web_port,
         enable_rpc: bool = True,
         enable_web: bool = True,
         filename: str | Path | None = None,
