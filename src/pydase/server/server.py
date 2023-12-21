@@ -184,23 +184,8 @@ class Server:
         Initializes the asyncio event loop and starts the server.
 
         This method should be called to start the server after it's been instantiated.
-
-        Raises
-        ------
-        Exception
-            If there's an error while running the server, the error will be propagated
-            after the server is shut down.
         """
-        try:
-            self._loop = asyncio.get_running_loop()
-        except RuntimeError:
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-        try:
-            self._loop.run_until_complete(self.serve())
-        except Exception:
-            self._loop.run_until_complete(self.shutdown())
-            raise
+        asyncio.run(self.serve())
 
     async def serve(self) -> None:
         process_id = os.getpid()
