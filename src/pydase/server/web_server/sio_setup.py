@@ -156,8 +156,8 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     def set_attribute(sid: str, data: UpdateDict) -> Any:
         logger.debug("Received frontend update: %s", data)
-        path_list = [*data["parent_path"].split("."), data["name"]]
-        path_list.remove("DataService")  # always at the start, does not do anything
+        parent_path = data["parent_path"].split(".")
+        path_list = [element for element in parent_path if element] + [data["name"]]
         path = ".".join(path_list)
         return state_manager.set_service_attribute_value_by_path(
             path=path, value=data["value"]
@@ -166,8 +166,8 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     def run_method(sid: str, data: RunMethodDict) -> Any:
         logger.debug("Running method: %s", data)
-        path_list = [*data["parent_path"].split("."), data["name"]]
-        path_list.remove("DataService")  # always at the start, does not do anything
+        parent_path = data["parent_path"].split(".")
+        path_list = [element for element in parent_path if element] + [data["name"]]
         method = get_object_attr_from_path_list(state_manager.service, path_list)
         return process_callable_attribute(method, data["kwargs"])
 
@@ -179,7 +179,6 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
             data["config_option"],
             data["value"],
         )
-        path_list.pop(0)  # remove first entry (specifies root object, not needed)
 
 
 def setup_logging_handler(sio: socketio.AsyncServer) -> None:
