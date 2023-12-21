@@ -1,6 +1,7 @@
 import logging
 
 import pydase
+import pytest
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 
@@ -34,7 +35,8 @@ def test_nested_attributes_cache_callback() -> None:
     )
 
 
-def test_task_status_update() -> None:
+@pytest.mark.asyncio
+async def test_task_status_update() -> None:
     class ServiceClass(pydase.DataService):
         name = "World"
 

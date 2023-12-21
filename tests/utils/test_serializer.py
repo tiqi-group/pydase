@@ -125,7 +125,8 @@ def test_ColouredEnum_serialize() -> None:
     }
 
 
-def test_method_serialization() -> None:
+@pytest.mark.asyncio
+async def test_method_serialization() -> None:
     class ClassWithMethod(pydase.DataService):
         def some_method(self) -> str:
             return "some method"
