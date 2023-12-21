@@ -34,11 +34,11 @@ class WebServer:
     files directory. It also initializes web server settings based on configuration
     files or generates default settings if necessary.
 
-    Configuration for the web server (like service settings directory and whether to
-    generate new web settings) is determined in the following order of precedence:
+    Configuration for the web server (like service configuration directory and whether
+    to generate new web settings) is determined in the following order of precedence:
     1. Values provided directly to the constructor.
-    2. Environment variable settings (via configuration classes like ServiceConfig and
-       WebServerConfig).
+    2. Environment variable settings (via configuration classes like `ServiceConfig` and
+       `WebServerConfig`).
     3. Default values defined in the configuration classes.
 
     Args:
@@ -52,7 +52,7 @@ class WebServer:
           frontend. If None, no custom styles are applied. Defaults to None.
         enable_cors (bool, optional): Flag to enable or disable CORS policy. When True,
           CORS is enabled, allowing cross-origin requests. Defaults to True.
-        service_settings_dir (Path | None, optional): Path to the configuration
+        service_config_dir (Path | None, optional): Path to the configuration
           directory where the web settings will be stored. Defaults to None.
         generate_new_web_settings (bool | None, optional): Flag to enable or disable
           generation of new web settings if the configuration file is missing. Defaults
@@ -67,7 +67,7 @@ class WebServer:
         port: int,
         css: str | Path | None = None,
         enable_cors: bool = True,
-        service_settings_dir: Path | None = None,
+        service_config_dir: Path | None = None,
         generate_new_web_settings: bool | None = None,
         **kwargs: Any,
     ) -> None:
@@ -79,8 +79,8 @@ class WebServer:
         self.css = css
         self.enable_cors = enable_cors
         self._service_config_dir = (
-            service_settings_dir
-            if service_settings_dir is not None
+            service_config_dir
+            if service_config_dir is not None
             else ServiceConfig().service_config_dir
         )
         self._generate_new_web_settings = (
