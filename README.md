@@ -21,12 +21,16 @@
     - [`NumberSlider`](#numberslider)
     - [`ColouredEnum`](#colouredenum)
     - [Extending with New Components](#extending-with-new-components)
-- [Customizing Web Interface Style](#customizing-web-interface-style)
 - [Understanding Service Persistence](#understanding-service-persistence)
   - [Controlling Property State Loading with `@load_state`](#controlling-property-state-loading-with-load_state)
 - [Understanding Tasks in pydase](#understanding-tasks-in-pydase)
 - [Understanding Units in pydase](#understanding-units-in-pydase)
-- [Changing the Log Level](#changing-the-log-level)
+- [Configuring pydase via Environment Variables](#configuring-pydase-via-environment-variables)
+- [Customizing the Web Interface](#customizing-the-web-interface)
+  - [Style (CSS)](#style-css)
+  - [Tailoring Frontend Component Layout](#tailoring-frontend-component-layout)
+- [Logging in pydase](#logging-in-pydase)
+  - [Changing the Log Level](#changing-the-log-level)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -497,31 +501,6 @@ Users can also extend the library by creating custom components. This involves d
 
 <!-- Component User Guide End -->
 
-## Customizing Web Interface Style
-
-`pydase` allows you to enhance the user experience by customizing the web interface's appearance. You can apply your own styles globally across the web interface by passing a custom CSS file to the server during initialization.
-
-Here's how you can use this feature:
-
-1. Prepare your custom CSS file with the desired styles.
-
-2. When initializing your server, use the `css` parameter of the `Server` class to specify the path to your custom CSS file.
-
-```python
-from pydase import Server, DataService
-
-class Device(DataService):
-    # ... your service definition ...
-
-if __name__ == "__main__":
-    service = MyService()
-    server = Server(service, css="path/to/your/custom.css").run()
-```
-
-This will apply the styles defined in `custom.css` to the web interface, allowing you to maintain branding consistency or improve visual accessibility.
-
-Please ensure that the CSS file path is accessible from the server's running location. Relative or absolute paths can be used depending on your setup.
-
 ## Understanding Service Persistence
 
 `pydase` allows you to easily persist the state of your service by saving it to a file. This is especially useful when you want to maintain the service's state across different runs.
@@ -675,6 +654,78 @@ if __name__ == "__main__":
 ```
 
 For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
+
+## Configuring pydase via Environment Variables
+
+Configuring `pydase` through environment variables enhances flexibility, security, and reusability. This approach allows for easy adaptation of services across different environments without code changes, promoting scalability and maintainability. With that, it simplifies deployment processes and facilitates centralized configuration management. Moreover, environment variables enable separation of configuration from code, aiding in secure and collaborative development.
+
+`pydase` offers various configurable options:
+
+- **`ENVIRONMENT`**: Sets the operation mode to either "development" or "production". Affects logging behaviour (see [logging section](#logging-in-pydase)).
+- **`SERVICE_CONFIG_DIR`**: Specifies the directory for service configuration files, like `web_settings.json`. This directory can also be used to hold user-defined configuration files. Default is the "config" folder in the service root folder. The variable can be accessed through:
+
+    ```python
+    import pydase.config
+    pydase.config.ServiceConfig().config_dir
+    ```
+
+- **`SERVICE_WEB_PORT`**: Defines the port number for the web server. This has to be different for each services running on the same host. Default is 8001.
+- **`SERVICE_RPC_PORT`**: Defines the port number for the rpc server. This has to be different for each services running on the same host. Default is 18871.
+- **`GENERATE_NEW_WEB_SETTINGS`**: When set to true, generates a new `web_settings.json` file, useful for initializing or resetting web settings.
+
+Some of those settings can also be altered directly in code when initializing the server: 
+
+```python
+from pathlib import Path
+
+from pydase import Server
+from your_service_module import YourService
+
+
+server = Server(
+    YourService(),
+    web_port=8080,
+    rpc_port=18880,
+    config_dir=Path("other_config_dir"),  # note that you need to provide an argument of type pathlib.Path
+    generate_new_web_settings=True
+).run()
+```
+
+## Customizing the Web Interface
+
+### Enhancing the Web Interface Style with Custom CSS
+
+`pydase` allows you to enhance the user experience by customizing the web interface's appearance. You can apply your own styles globally across the web interface by passing a custom CSS file to the server during initialization.
+
+Here's how you can use this feature:
+
+1. Prepare your custom CSS file with the desired styles.
+
+2. When initializing your server, use the `css` parameter of the `Server` class to specify the path to your custom CSS file.
+
+```python
+from pydase import Server, DataService
+
+class MyService(DataService):
+    # ... your service definition ...
+
+if __name__ == "__main__":
+    service = MyService()
+    server = Server(service, css="path/to/your/custom.css").run()
+```
+
+This will apply the styles defined in `custom.css` to the web interface, allowing you to maintain branding consistency or improve visual accessibility.
+
+Please ensure that the CSS file path is accessible from the server's running location. Relative or absolute paths can be used depending on your setup.
+
+### Tailoring Frontend Component Layout
+
+`pydase` enables users to customize the frontend layout via the `web_settings.json` file. Each key in the file corresponds to the full access path of public attributes, properties, and methods of the exposed service, using dot-notation.
+
+- **Custom Display Names**: Modify the `"displayName"` value in the file to change how each component appears in the frontend.
+- **Adjustable Component Order**: The `"index"` values determine the order of components. Alter these values to rearrange the components as desired.
+
+The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_NEW_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
 
 ## Logging in pydase
 
