@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -154,7 +153,6 @@ class TaskManager:
             method (callable): The coroutine to be turned into an asyncio task.
         """
 
-        @wraps(method)
         def start_task(*args: Any, **kwargs: Any) -> None:
             def task_done_callback(task: asyncio.Task[None], name: str) -> None:
                 """Handles tasks that have finished.
