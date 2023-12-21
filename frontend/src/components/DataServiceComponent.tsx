@@ -20,14 +20,14 @@ export const DataServiceComponent = React.memo(
   ({
     name,
     props,
-    parentPath = 'DataService',
+    parentPath = '',
     isInstantUpdate,
     addNotification
   }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
     let fullAccessPath = parentPath;
     if (name) {
-      fullAccessPath = parentPath.concat('.' + name);
+      fullAccessPath = [parentPath, name].filter((element) => element).join('.');
     }
     const id = getIdFromFullAccessPath(fullAccessPath);
 

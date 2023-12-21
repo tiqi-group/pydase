@@ -21,7 +21,8 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   const [hideOutput, setHideOutput] = useState(false);
   // Add a new state variable to hold the list of function calls
   const [functionCalls, setFunctionCalls] = useState([]);
-  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;

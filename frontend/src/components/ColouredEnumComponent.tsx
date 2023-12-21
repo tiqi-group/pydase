@@ -26,7 +26,8 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
     addNotification
   } = props;
   const renderCount = useRef(0);
-  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;

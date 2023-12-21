@@ -19,7 +19,8 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const { name, parentPath, value, readOnly, docString, mapping, addNotification } =
     props;
   const buttonName = mapping ? (value ? mapping[0] : mapping[1]) : name;
-  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   const renderCount = useRef(0);
 

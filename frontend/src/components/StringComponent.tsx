@@ -24,7 +24,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {

@@ -34,7 +34,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     isInstantUpdate,
     addNotification
   } = props;
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {

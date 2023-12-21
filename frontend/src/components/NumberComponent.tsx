@@ -146,7 +146,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const [cursorPosition, setCursorPosition] = useState(null);
   // Create a state for the input string
   const [inputString, setInputString] = useState(props.value.toString());
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {

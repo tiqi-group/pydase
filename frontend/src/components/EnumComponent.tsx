@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
@@ -24,6 +25,8 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   } = props;
 
   const renderCount = useRef(0);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;
@@ -38,7 +41,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   };
 
   return (
-    <div className={'enumComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'enumComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}

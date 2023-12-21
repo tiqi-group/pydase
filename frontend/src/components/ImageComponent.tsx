@@ -20,7 +20,8 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);
-  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;
