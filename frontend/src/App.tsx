@@ -13,6 +13,7 @@ import {
 } from './components/NotificationsComponent';
 import { ConnectionToast } from './components/ConnectionToast';
 import { SerializedValue, setNestedValueByPath, State } from './utils/stateUtils';
+import { WebSettingsContext, WebSetting } from './WebSettings';
 
 type Action =
   | { type: 'SET_DATA'; data: State }
@@ -42,6 +43,7 @@ const reducer = (state: State, action: Action): State => {
 };
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
+  const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
   const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
@@ -68,10 +70,9 @@ const App = () => {
       fetch(`http://${hostname}:${port}/service-properties`)
         .then((response) => response.json())
         .then((data: State) => dispatch({ type: 'SET_DATA', data }));
-      fetch(`http://${hostname}:${port}/web-settings`).then((response) =>
-        response.json()
-      );
-      // .then((data: State) => dispatch({ type: 'SET_DATA', data }));
+      fetch(`http://${hostname}:${port}/web-settings`)
+        .then((response) => response.json())
+        .then((data: Record<string, WebSetting>) => setWebSettings(data));
       setConnectionStatus('connected');
     });
     socket.on('disconnect', () => {
@@ -182,12 +183,14 @@ const App = () => {
       </Offcanvas>
 
       <div className="App navbarOffset">
-        <DataServiceComponent
-          name={''}
-          props={state as DataServiceJSON}
-          isInstantUpdate={isInstantUpdate}
-          addNotification={addNotification}
-        />
+        <WebSettingsContext.Provider value={webSettings}>
+          <DataServiceComponent
+            name={''}
+            props={state as DataServiceJSON}
+            isInstantUpdate={isInstantUpdate}
+            addNotification={addNotification}
+          />
+        </WebSettingsContext.Provider>
       </div>
       <ConnectionToast connectionStatus={connectionStatus} />
     </>
