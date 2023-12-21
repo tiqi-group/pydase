@@ -363,9 +363,6 @@ def generate_serialized_data_paths(
 
     paths: list[str] = []
     for key, value in data.items():
-        if value["type"] == "method":
-            # ignoring methods
-            continue
         new_path = f"{parent_path}.{key}" if parent_path else key
         paths.append(new_path)
         if serialized_dict_is_nested_object(value):

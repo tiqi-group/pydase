@@ -276,5 +276,8 @@ class StateManager:
             self.cache, full_access_path
         )
 
+        if cached_serialization_dict["value"] == "method":
+            return False
+
         # nested objects cannot be loaded
         return not serialized_dict_is_nested_object(cached_serialization_dict)
