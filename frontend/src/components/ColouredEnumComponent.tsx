@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
@@ -28,6 +29,12 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
   const renderCount = useRef(0);
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -49,7 +56,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
       <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{name}</InputGroup.Text>
+          <InputGroup.Text>{displayName}</InputGroup.Text>
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
@@ -36,6 +37,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   } = props;
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -101,7 +108,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       <DocStringComponent docString={docString} />
       <Row>
         <Col xs="auto" xl="auto">
-          <InputGroup.Text>{name}</InputGroup.Text>
+          <InputGroup.Text>{displayName}</InputGroup.Text>
         </Col>
         <Col xs="5" xl>
           <Slider

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -27,6 +28,12 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const renderCount = useRef(0);
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -48,7 +55,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{name}</InputGroup.Text>
+          <InputGroup.Text>{displayName}</InputGroup.Text>
           <Form.Select
             aria-label="Default select example"
             value={value}

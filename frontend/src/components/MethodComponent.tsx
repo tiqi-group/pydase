@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { runMethod } from '../socket';
 import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
@@ -23,6 +24,12 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   const [functionCalls, setFunctionCalls] = useState([]);
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -81,7 +88,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
         <div>Render count: {renderCount.current}</div>
       )}
       <h5 onClick={() => setHideOutput(!hideOutput)} style={{ cursor: 'pointer' }}>
-        Function: {name}
+        Function: {displayName}
         <DocStringComponent docString={docString} />
       </h5>
       <Form onSubmit={execute}>
