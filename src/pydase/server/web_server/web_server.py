@@ -130,7 +130,7 @@ class WebServer:
 
     def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
         return {
-            path: {"display_name": path.split(".")[-1], "index": i}
+            path: {"displayName": path.split(".")[-1], "index": i}
             for i, path in enumerate(
                 generate_serialized_data_paths(self.state_manager.cache)
             )
