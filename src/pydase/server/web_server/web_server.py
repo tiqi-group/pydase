@@ -106,7 +106,6 @@ class WebServer:
     def _initialise_configuration(self) -> None:
         logger.debug("Initialising web server configuration...")
 
-        self.web_settings = {}
         file_path = self._service_config_dir / "web_settings.json"
 
         if self._generate_new_web_settings:
@@ -118,15 +117,6 @@ class WebServer:
             file_path.write_text(
                 json.dumps(self._generated_web_settings_dict(), indent=4)
             )
-
-        # File exists, read and return its content
-        if file_path.exists():
-            logger.debug(
-                "Reading configuration from file '%s' ...", file_path.absolute()
-            )
-
-            with file_path.open("r", encoding="utf-8") as file:
-                self.web_settings = json.load(file)
 
     def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
         return {
@@ -167,7 +157,19 @@ class WebServer:
 
         @app.get("/web-settings")
         def web_settings() -> dict[str, Any]:
-            return self.web_settings
+            file_path = self._service_config_dir / "web_settings.json"
+            web_settings = {}
+
+            # File exists, read its content
+            if file_path.exists():
+                logger.debug(
+                    "Reading configuration from file '%s' ...", file_path.absolute()
+                )
+
+                with file_path.open("r", encoding="utf-8") as file:
+                    web_settings = json.load(file)
+
+            return web_settings
 
         # exposing custom.css file provided by user
         if self.css is not None:
