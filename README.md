@@ -27,7 +27,7 @@
 - [Understanding Units in pydase](#understanding-units-in-pydase)
 - [Configuring pydase via Environment Variables](#configuring-pydase-via-environment-variables)
 - [Customizing the Web Interface](#customizing-the-web-interface)
-  - [Style (CSS)](#style-css)
+  - [Enhancing the Web Interface Style with Custom CSS](#enhancing-the-web-interface-style-with-custom-css)
   - [Tailoring Frontend Component Layout](#tailoring-frontend-component-layout)
 - [Logging in pydase](#logging-in-pydase)
   - [Changing the Log Level](#changing-the-log-level)
@@ -662,7 +662,7 @@ Configuring `pydase` through environment variables enhances flexibility, securit
 `pydase` offers various configurable options:
 
 - **`ENVIRONMENT`**: Sets the operation mode to either "development" or "production". Affects logging behaviour (see [logging section](#logging-in-pydase)).
-- **`SERVICE_CONFIG_DIR`**: Specifies the directory for service configuration files, like `web_settings.json`. This directory can also be used to hold user-defined configuration files. Default is the "config" folder in the service root folder. The variable can be accessed through:
+- **`SERVICE_CONFIG_DIR`**: Specifies the directory for service configuration files, like `web_settings.json`. This directory can also be used to hold user-defined configuration files. Default is the `config` folder in the service root folder. The variable can be accessed through:
 
     ```python
     import pydase.config
@@ -671,12 +671,12 @@ Configuring `pydase` through environment variables enhances flexibility, securit
 
 - **`SERVICE_WEB_PORT`**: Defines the port number for the web server. This has to be different for each services running on the same host. Default is 8001.
 - **`SERVICE_RPC_PORT`**: Defines the port number for the rpc server. This has to be different for each services running on the same host. Default is 18871.
-- **`GENERATE_NEW_WEB_SETTINGS`**: When set to true, generates a new `web_settings.json` file, useful for initializing or resetting web settings.
+- **`GENERATE_WEB_SETTINGS`**: When set to true, generates / updates the `web_settings.json` file. If the file already exists, only new entries are appended.
 
 Some of those settings can also be altered directly in code when initializing the server: 
 
 ```python
-from pathlib import Path
+import pathlib
 
 from pydase import Server
 from your_service_module import YourService
@@ -686,8 +686,8 @@ server = Server(
     YourService(),
     web_port=8080,
     rpc_port=18880,
-    config_dir=Path("other_config_dir"),  # note that you need to provide an argument of type pathlib.Path
-    generate_new_web_settings=True
+    config_dir=pathlib.Path("other_config_dir"),  # note that you need to provide an argument of type pathlib.Path
+    generate_web_settings=True
 ).run()
 ```
 
@@ -723,9 +723,9 @@ Please ensure that the CSS file path is accessible from the server's running loc
 `pydase` enables users to customize the frontend layout via the `web_settings.json` file. Each key in the file corresponds to the full access path of public attributes, properties, and methods of the exposed service, using dot-notation.
 
 - **Custom Display Names**: Modify the `"displayName"` value in the file to change how each component appears in the frontend.
-- **Adjustable Component Order**: The `"index"` values determine the order of components. Alter these values to rearrange the components as desired.
+<!-- - **Adjustable Component Order**: The `"index"` values determine the order of components. Alter these values to rearrange the components as desired. -->
 
-The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_NEW_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
+The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
 
 ## Logging in pydase
 
