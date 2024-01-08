@@ -111,11 +111,30 @@ class WebServer:
                 json.dumps(self._generated_web_settings_dict(), indent=4)
             )
 
+    def _get_current_web_settings(self) -> dict[str, dict[str, Any]]:
+        file_path = self._service_config_dir / "web_settings.json"
+        web_settings = {}
+
+        # File exists, read its content
+        if file_path.exists():
+            logger.debug(
+                "Reading configuration from file '%s' ...", file_path.absolute()
+            )
+
+            with file_path.open("r", encoding="utf-8") as file:
+                web_settings = json.load(file)
+
+        return web_settings
+
     def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
-        return {
-            path: {"displayName": path.split(".")[-1]}
-            for path in generate_serialized_data_paths(self.state_manager.cache)
-        }
+        current_web_settings = self._get_current_web_settings()
+        for path in generate_serialized_data_paths(self.state_manager.cache):
+            if path in current_web_settings:
+                continue
+
+            current_web_settings[path] = {"displayName": path.split(".")[-1]}
+
+        return current_web_settings
 
     def _setup_socketio(self) -> None:
         self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
@@ -148,19 +167,7 @@ class WebServer:
 
         @app.get("/web-settings")
         def web_settings() -> dict[str, Any]:
-            file_path = self._service_config_dir / "web_settings.json"
-            web_settings = {}
-
-            # File exists, read its content
-            if file_path.exists():
-                logger.debug(
-                    "Reading configuration from file '%s' ...", file_path.absolute()
-                )
-
-                with file_path.open("r", encoding="utf-8") as file:
-                    web_settings = json.load(file)
-
-            return web_settings
+            return self._get_current_web_settings()
 
         # exposing custom.css file provided by user
         if self.css is not None:
