@@ -62,31 +62,6 @@ class RunMethodDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-class UpdateWebSettingsDict(TypedDict):
-    """
-    A TypedDict subclass representing a dictionary used for updating attributes in a
-    DataService.
-
-    Attributes:
-    ----------
-    access_path : str
-        The access path for the component object, e.g. 'attr1.list_attr[0].attr2'.
-        This does not have to be an attribute but can also be a property or a method.
-
-    config_option : str
-        The web setting to be changed, e.g. 'display_name' (or 'precision' for
-        NumberComponents).
-
-    value : Any
-        The new value to be assigned to the attribute. The type of this value should
-        match the type of the attribute to be updated.
-    """
-
-    access_path: str
-    config_option: str
-    value: Any
-
-
 def setup_sio_server(
     observer: DataServiceObserver,
     enable_cors: bool,
@@ -167,15 +142,6 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
         path_list = [element for element in parent_path if element] + [data["name"]]
         method = get_object_attr_from_path_list(state_manager.service, path_list)
         return process_callable_attribute(method, data["kwargs"])
-
-    @sio.event
-    def web_settings(sid: str, data: UpdateWebSettingsDict) -> Any:
-        logger.debug("Received web settings update: %s", data)
-        path_list, config_option, value = (
-            data["access_path"].split("."),
-            data["config_option"],
-            data["value"],
-        )
 
 
 def setup_logging_handler(sio: socketio.AsyncServer) -> None:
