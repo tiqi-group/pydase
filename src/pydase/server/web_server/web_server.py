@@ -113,10 +113,8 @@ class WebServer:
 
     def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
         return {
-            path: {"displayName": path.split(".")[-1], "index": i}
-            for i, path in enumerate(
-                generate_serialized_data_paths(self.state_manager.cache)
-            )
+            path: {"displayName": path.split(".")[-1]}
+            for path in generate_serialized_data_paths(self.state_manager.cache)
         }
 
     def _setup_socketio(self) -> None:
