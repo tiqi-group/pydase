@@ -107,11 +107,9 @@ class WebServer:
             file_path.parent.mkdir(
                 parents=True, exist_ok=True
             )  # Ensure directory exists
-            file_path.write_text(
-                json.dumps(self._generated_web_settings_dict(), indent=4)
-            )
+            file_path.write_text(json.dumps(self.web_settings, indent=4))
 
-    def _get_current_web_settings(self) -> dict[str, dict[str, Any]]:
+    def _get_web_settings_from_file(self) -> dict[str, dict[str, Any]]:
         file_path = self._service_config_dir / "web_settings.json"
         web_settings = {}
 
@@ -126,8 +124,9 @@ class WebServer:
 
         return web_settings
 
-    def _generated_web_settings_dict(self) -> dict[str, dict[str, Any]]:
-        current_web_settings = self._get_current_web_settings()
+    @property
+    def web_settings(self) -> dict[str, dict[str, Any]]:
+        current_web_settings = self._get_web_settings_from_file()
         for path in generate_serialized_data_paths(self.state_manager.cache):
             if path in current_web_settings:
                 continue
@@ -167,7 +166,7 @@ class WebServer:
 
         @app.get("/web-settings")
         def web_settings() -> dict[str, Any]:
-            return self._get_current_web_settings()
+            return self.web_settings
 
         # exposing custom.css file provided by user
         if self.css is not None:
