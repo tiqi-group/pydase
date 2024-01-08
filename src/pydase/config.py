@@ -19,6 +19,6 @@ class ServiceConfig(BaseConfig):  # type: ignore[misc]
 
 
 class WebServerConfig(BaseConfig):  # type: ignore[misc]
-    generate_new_web_settings: bool = False
+    generate_web_settings: bool = False
 
-    CONFIG_SOURCES = EnvSource(allow=["GENERATE_NEW_WEB_SETTINGS"])
+    CONFIG_SOURCES = EnvSource(allow=["GENERATE_WEB_SETTINGS"])

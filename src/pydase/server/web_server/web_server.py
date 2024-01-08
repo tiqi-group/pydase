@@ -69,7 +69,7 @@ class WebServer:
         css: str | Path | None = None,
         enable_cors: bool = True,
         config_dir: Path = ServiceConfig().config_dir,
-        generate_new_web_settings: bool = WebServerConfig().generate_new_web_settings,
+        generate_web_settings: bool = WebServerConfig().generate_web_settings,
         **kwargs: Any,
     ) -> None:
         self.observer = data_service_observer
@@ -80,7 +80,7 @@ class WebServer:
         self.css = css
         self.enable_cors = enable_cors
         self._service_config_dir = config_dir
-        self._generate_new_web_settings = generate_new_web_settings
+        self._generate_web_settings = generate_web_settings
         self._loop: asyncio.AbstractEventLoop
         self._initialise_configuration()
 
@@ -101,7 +101,7 @@ class WebServer:
 
         file_path = self._service_config_dir / "web_settings.json"
 
-        if self._generate_new_web_settings:
+        if self._generate_web_settings:
             # File does not exist, create it with default content
             logger.debug("Generating web settings file...")
             file_path.parent.mkdir(
@@ -119,8 +119,7 @@ class WebServer:
                 "Reading configuration from file '%s' ...", file_path.absolute()
             )
 
-            with file_path.open("r", encoding="utf-8") as file:
-                web_settings = json.load(file)
+            web_settings = json.loads(file_path.read_text())
 
         return web_settings
 

@@ -38,10 +38,14 @@ def test_web_settings() -> None:
             observer,
             host="0.0.0.0",
             port=8001,
-            generate_new_web_settings=True,
+            generate_web_settings=True,
             config_dir=Path(tmp),
         )
         new_web_settings = server.web_settings
 
         # existing entries are not overwritten, new entries are appended
         assert new_web_settings == {**web_settings, "added": {"displayName": "added"}}
+        assert json.loads(web_settings_file.read_text()) == {
+            **web_settings,
+            "added": {"displayName": "added"},
+        }
