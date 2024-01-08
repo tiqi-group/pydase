@@ -70,15 +70,12 @@ class UpdateWebSettingsDict(TypedDict):
     Attributes:
     ----------
     access_path : str
-        The access path for the component object. This does not have to be an attribute
-        but can also
-        For example, for an
-        attribute access path 'attr1.list_attr[0].attr2', 'attr1.list_attr[0]' would be
-        the parent_path.
+        The access path for the component object, e.g. 'attr1.list_attr[0].attr2'.
+        This does not have to be an attribute but can also be a property or a method.
 
     config_option : str
-        The web setting to be changed, e.g. 'display_name' or 'precision' for
-        NumberComponents.
+        The web setting to be changed, e.g. 'display_name' (or 'precision' for
+        NumberComponents).
 
     value : Any
         The new value to be assigned to the attribute. The type of this value should
