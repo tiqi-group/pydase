@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-from functools import wraps
 from typing import TYPE_CHECKING, Any, TypedDict
 
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -78,7 +77,6 @@ class TaskManager:
 
     def __init__(self, service: DataService) -> None:
         self.service = service
-        self._loop = asyncio.get_event_loop()
 
         self.tasks: dict[str, TaskDict] = {}
         """A dictionary to keep track of running tasks. The keys are the names of the
@@ -87,6 +85,10 @@ class TaskManager:
         """
 
         self._set_start_and_stop_for_async_methods()
+
+    @property
+    def _loop(self) -> asyncio.AbstractEventLoop:
+        return asyncio.get_running_loop()
 
     def _set_start_and_stop_for_async_methods(self) -> None:
         # inspect the methods of the class
@@ -154,7 +156,6 @@ class TaskManager:
             method (callable): The coroutine to be turned into an asyncio task.
         """
 
-        @wraps(method)
         def start_task(*args: Any, **kwargs: Any) -> None:
             def task_done_callback(task: asyncio.Task[None], name: str) -> None:
                 """Handles tasks that have finished.

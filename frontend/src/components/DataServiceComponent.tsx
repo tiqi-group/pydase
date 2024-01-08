@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import React from 'react';
 import { Card, Collapse } from 'react-bootstrap';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { Attribute, GenericComponent } from './GenericComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
+import { WebSettingsContext } from '../WebSettings';
 
 type DataServiceProps = {
   name: string;
@@ -20,16 +21,23 @@ export const DataServiceComponent = React.memo(
   ({
     name,
     props,
-    parentPath = 'DataService',
+    parentPath = '',
     isInstantUpdate,
     addNotification
   }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
     let fullAccessPath = parentPath;
     if (name) {
-      fullAccessPath = parentPath.concat('.' + name);
+      fullAccessPath = [parentPath, name].filter((element) => element).join('.');
     }
     const id = getIdFromFullAccessPath(fullAccessPath);
+
+    const webSettings = useContext(WebSettingsContext);
+    let displayName = fullAccessPath;
+
+    if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+      displayName = webSettings[fullAccessPath].displayName;
+    }
 
     return (
       <div className="dataServiceComponent" id={id}>
@@ -38,7 +46,7 @@ export const DataServiceComponent = React.memo(
             onClick={() => setOpen(!open)}
             style={{ cursor: 'pointer' }} // Change cursor style on hover
           >
-            {fullAccessPath} {open ? <ChevronDown /> : <ChevronRight />}
+            {displayName} {open ? <ChevronDown /> : <ChevronRight />}
           </Card.Header>
           <Collapse in={open}>
             <Card.Body>

@@ -186,7 +186,6 @@ export const GenericComponent = React.memo(
         />
       );
     } else if (attribute.type === 'ColouredEnum') {
-      console.log(attribute);
       return (
         <ColouredEnumComponent
           name={name}

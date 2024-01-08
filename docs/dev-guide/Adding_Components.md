@@ -111,6 +111,7 @@ import { setAttribute, runMethod } from '../socket';  // use this when your comp
                                                       // or runs a method, respectively
 import { DocStringComponent } from './DocStringComponent';
 import React, { useEffect, useRef, useState } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
@@ -119,7 +120,7 @@ import { LevelName } from './NotificationsComponent';
 
 interface ImageComponentProps {
   name: string;
-  parentPath: string;
+  parentPath?: string;
   readOnly: boolean;
   docString: string;
   addNotification: (message: string, levelname?: LevelName) => void;
@@ -133,8 +134,16 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);  // add this if you want to expand/collapse your component
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+
+  // Web settings contain the user-defined display name of the components (and possibly more later)
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -156,7 +165,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
           onClick={() => setOpen(!open)}
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
-          {name} {open ? <ChevronDown /> : <ChevronRight />}
+          {displayName} {open ? <ChevronDown /> : <ChevronRight />}
         </Card.Header>
         <Collapse in={open}>
           <Card.Body>
@@ -206,6 +215,7 @@ React components in the frontend often need to send updates to the backend, part
     export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
       // ... 
       const { name, parentPath, value } = props;
+      let displayName = ...  // to access the user-defined display name
 
       const setChecked = (checked: boolean) => {
         setAttribute(name, parentPath, checked);
@@ -217,7 +227,7 @@ React components in the frontend often need to send updates to the backend, part
           value={parentPath}
           // ... other props
           onChange={(e) => setChecked(e.currentTarget.checked)}>
-          <p>{name}</p>
+          {displayName}
         </ToggleButton>
       );
     });

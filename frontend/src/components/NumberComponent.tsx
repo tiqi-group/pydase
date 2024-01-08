@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { Form, InputGroup } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
@@ -146,8 +147,14 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const [cursorPosition, setCursorPosition] = useState(null);
   // Create a state for the input string
   const [inputString, setInputString] = useState(props.value.toString());
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -309,7 +316,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       <DocStringComponent docString={docString} />
       <div className="d-flex">
         <InputGroup>
-          {showName && <InputGroup.Text>{name}</InputGroup.Text>}
+          {showName && <InputGroup.Text>{displayName}</InputGroup.Text>}
           <Form.Control
             type="text"
             value={inputString}

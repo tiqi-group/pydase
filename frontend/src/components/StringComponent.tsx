@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
 import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
+import { WebSettingsContext } from '../WebSettings';
 
 // TODO: add button functionality
 
@@ -24,8 +25,14 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
-  const fullAccessPath = parentPath.concat('.' + name);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -65,7 +72,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
       )}
       <DocStringComponent docString={docString} />
       <InputGroup>
-        <InputGroup.Text>{name}</InputGroup.Text>
+        <InputGroup.Text>{displayName}</InputGroup.Text>
         <Form.Control
           type="text"
           value={inputString}

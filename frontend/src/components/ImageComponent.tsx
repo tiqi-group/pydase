@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
@@ -20,7 +21,14 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);
-  const id = getIdFromFullAccessPath(parentPath.concat('.' + name));
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -40,7 +48,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
           onClick={() => setOpen(!open)}
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
-          {name} {open ? <ChevronDown /> : <ChevronRight />}
+          {displayName} {open ? <ChevronDown /> : <ChevronRight />}
         </Card.Header>
         <Collapse in={open}>
           <Card.Body>

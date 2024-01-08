@@ -3,9 +3,9 @@ from pathlib import Path
 from typing import Any
 
 import pydase
+import pydase.components
 import pydase.units as u
 import pytest
-from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import (
     StateManager,
@@ -19,10 +19,51 @@ class SubService(pydase.DataService):
     name = "SubService"
 
 
-class State(ColouredEnum):
+class State(pydase.components.ColouredEnum):
     RUNNING = "#0000FF80"
     COMPLETED = "hsl(120, 100%, 50%)"
     FAILED = "hsla(0, 100%, 50%, 0.7)"
+
+
+class MySlider(pydase.components.NumberSlider):
+    @property
+    def min(self) -> float:
+        return self._min
+
+    @min.setter
+    @load_state
+    def min(self, value: float) -> None:
+        self._min = value
+
+    @property
+    def max(self) -> float:
+        return self._max
+
+    @max.setter
+    @load_state
+    def max(self, value: float) -> None:
+        self._max = value
+
+    @property
+    def step_size(self) -> float:
+        return self._step_size
+
+    @step_size.setter
+    @load_state
+    def step_size(self, value: float) -> None:
+        self._step_size = value
+
+    @property
+    def value(self) -> float:
+        return self._value
+
+    @value.setter
+    @load_state
+    def value(self, value: float) -> None:
+        if value < self._min or value > self._max:
+            raise ValueError("Value is either below allowed min or above max value.")
+
+        self._value = value
 
 
 class Service(pydase.DataService):
@@ -35,6 +76,7 @@ class Service(pydase.DataService):
         self._property_attr = 1337.0
         self._name = "Service"
         self.state = State.RUNNING
+        self.my_slider = MySlider()
 
     @property
     def name(self) -> str:
@@ -58,6 +100,37 @@ LOAD_STATE = {
             {"type": "float", "value": 1.4, "readonly": False, "doc": None},
             {"type": "float", "value": 2.0, "readonly": False, "doc": None},
         ],
+        "readonly": False,
+        "doc": None,
+    },
+    "my_slider": {
+        "type": "NumberSlider",
+        "value": {
+            "max": {
+                "type": "float",
+                "value": 101.0,
+                "readonly": False,
+                "doc": "The min property.",
+            },
+            "min": {
+                "type": "float",
+                "value": 1.0,
+                "readonly": False,
+                "doc": "The min property.",
+            },
+            "step_size": {
+                "type": "float",
+                "value": 2.0,
+                "readonly": False,
+                "doc": "The min property.",
+            },
+            "value": {
+                "type": "float",
+                "value": 1.0,
+                "readonly": False,
+                "doc": "The value property.",
+            },
+        },
         "readonly": False,
         "doc": None,
     },
@@ -153,6 +226,10 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     assert service.name == "Service"  # has not changed as readonly
     assert service.some_float == 1.0  # has not changed due to different type
     assert service.subservice.name == "SubService"  # didn't change
+    assert service.my_slider.value == 1.0  # changed
+    assert service.my_slider.min == 1.0  # changed
+    assert service.my_slider.max == 101.0  # changed
+    assert service.my_slider.step_size == 2.0  # changed
 
     assert "'some_unit' changed to '12.0 A'" in caplog.text
     assert (
@@ -168,6 +245,10 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture) -> None:
         "Ignoring value from JSON file..." in caplog.text
     )
     assert "Value of attribute 'subservice.name' has not changed..." in caplog.text
+    assert "'my_slider.value' changed to '1.0'" in caplog.text
+    assert "'my_slider.min' changed to '1.0'" in caplog.text
+    assert "'my_slider.max' changed to '101.0'" in caplog.text
+    assert "'my_slider.step_size' changed to '2.0'" in caplog.text
 
 
 def test_filename_warning(tmp_path: Path, caplog: LogCaptureFixture) -> None:

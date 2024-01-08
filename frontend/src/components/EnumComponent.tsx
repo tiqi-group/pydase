@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
+import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { setAttribute } from '../socket';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
@@ -24,6 +26,14 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   } = props;
 
   const renderCount = useRef(0);
+  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const id = getIdFromFullAccessPath(fullAccessPath);
+  const webSettings = useContext(WebSettingsContext);
+  let displayName = name;
+
+  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+    displayName = webSettings[fullAccessPath].displayName;
+  }
 
   useEffect(() => {
     renderCount.current++;
@@ -38,14 +48,14 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   };
 
   return (
-    <div className={'enumComponent'} id={parentPath.concat('.' + name)}>
+    <div className={'enumComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{name}</InputGroup.Text>
+          <InputGroup.Text>{displayName}</InputGroup.Text>
           <Form.Select
             aria-label="Default select example"
             value={value}

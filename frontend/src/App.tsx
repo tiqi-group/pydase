@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
 import {
@@ -13,6 +13,7 @@ import {
 } from './components/NotificationsComponent';
 import { ConnectionToast } from './components/ConnectionToast';
 import { SerializedValue, setNestedValueByPath, State } from './utils/stateUtils';
+import { WebSettingsContext, WebSetting } from './WebSettings';
 
 type Action =
   | { type: 'SET_DATA'; data: State }
@@ -42,17 +43,12 @@ const reducer = (state: State, action: Action): State => {
 };
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
-  const stateRef = useRef(state); // Declare a reference to hold the current state
+  const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
   const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
-
-  // Keep the state reference up to date
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
 
   useEffect(() => {
     // Allow the user to add a custom css file
@@ -74,6 +70,9 @@ const App = () => {
       fetch(`http://${hostname}:${port}/service-properties`)
         .then((response) => response.json())
         .then((data: State) => dispatch({ type: 'SET_DATA', data }));
+      fetch(`http://${hostname}:${port}/web-settings`)
+        .then((response) => response.json())
+        .then((data: Record<string, WebSetting>) => setWebSettings(data));
       setConnectionStatus('connected');
     });
     socket.on('disconnect', () => {
@@ -184,12 +183,14 @@ const App = () => {
       </Offcanvas>
 
       <div className="App navbarOffset">
-        <DataServiceComponent
-          name={''}
-          props={state as DataServiceJSON}
-          isInstantUpdate={isInstantUpdate}
-          addNotification={addNotification}
-        />
+        <WebSettingsContext.Provider value={webSettings}>
+          <DataServiceComponent
+            name={''}
+            props={state as DataServiceJSON}
+            isInstantUpdate={isInstantUpdate}
+            addNotification={addNotification}
+          />
+        </WebSettingsContext.Provider>
       </div>
       <ConnectionToast connectionStatus={connectionStatus} />
     </>
