@@ -67,7 +67,7 @@ class Serializer:
     def _serialize_enum(obj: Enum) -> dict[str, Any]:
         value = obj.name
         readonly = False
-        doc = get_attribute_doc(obj)
+        doc = obj.__doc__
         if type(obj).__base__.__name__ == "ColouredEnum":
             obj_type = "ColouredEnum"
         else:
