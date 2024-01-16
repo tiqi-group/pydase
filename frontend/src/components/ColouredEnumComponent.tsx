@@ -49,7 +49,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
   };
 
   return (
-    <div className={'enumComponent'} id={id}>
+    <div className={'component enumComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}

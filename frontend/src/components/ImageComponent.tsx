@@ -39,7 +39,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   }, [props.value]);
 
   return (
-    <div className={'imageComponent'} id={id}>
+    <div className="component imageComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}

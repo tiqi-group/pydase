@@ -40,8 +40,8 @@ export const DataServiceComponent = React.memo(
     }
 
     return (
-      <div className="dataServiceComponent" id={id}>
-        <Card className="mb-3">
+      <div className="component dataServiceComponent" id={id}>
+        <Card>
           <Card.Header
             onClick={() => setOpen(!open)}
             style={{ cursor: 'pointer' }} // Change cursor style on hover

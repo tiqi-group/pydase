@@ -5,11 +5,6 @@ body {
 input.instantUpdate {
   background-color: rgba(255, 0, 0, 0.1);
 }
-
-.numberComponentButton {
-  padding: 0.15em 6px !important;
-  font-size: 0.7rem !important;
-}
 .navbarOffset {
   padding-top: 60px !important;
 }
@@ -28,38 +23,30 @@ input.instantUpdate {
 .criticalToast {
   background-color: rgba(216, 41, 18, 0.678) !important;
 }
-.buttonComponent {
+.component {
+  position: relative;
   float: left !important;
-  margin-right: 10px !important;
-}
-.stringComponent {
-  float: left !important;
-  margin-right: 10px !important;
-}
-.numberComponent {
-  float: left !important;
-  margin-right: 10px !important;
-  width: 270px !important;
+  padding: 5px !important;
+  z-index: 1;
 }
 .dataServiceComponent {
-  position: relative;
-  z-index: 1;
+  width: 100%;
 }
 .deviceConnectionComponent {
   position: relative;
+  float: left !important;
+  width: 100%;
   z-index: 1;
 }
 .overlayContent {
   position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(128, 128, 128, 0.5);
+  inset: 5px; /* (see https://developer.mozilla.org/en-US/docs/Web/CSS/inset) */
+  background: rgba(155, 155, 155, 0.75);
   z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column; /* Stack children vertically */
   border-radius: var(--bs-card-inner-border-radius);
+  border: var(--bs-border-width) solid var(--bs-border-color-translucent)
 }

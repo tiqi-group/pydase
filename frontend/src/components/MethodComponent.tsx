@@ -83,7 +83,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
   });
 
   return (
-    <div className="align-items-center methodComponent" id={id}>
+    <div className="component methodComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}

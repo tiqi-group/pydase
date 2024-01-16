@@ -309,7 +309,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   };
 
   return (
-    <div className="numberComponent" id={id}>
+    <div className="component numberComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
