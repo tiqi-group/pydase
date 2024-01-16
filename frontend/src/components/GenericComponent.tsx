@@ -27,7 +27,7 @@ type AttributeType =
   | 'ColouredEnum';
 
 type ValueType = boolean | string | number | object;
-export interface Attribute {
+export type Attribute = {
   type: AttributeType;
   value?: ValueType | ValueType[];
   readonly: boolean;
@@ -35,7 +35,7 @@ export interface Attribute {
   parameters?: Record<string, string>;
   async?: boolean;
   enum?: Record<string, string>;
-}
+};
 type GenericComponentProps = {
   attribute: Attribute;
   name: string;

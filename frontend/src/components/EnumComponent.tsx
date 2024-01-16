@@ -6,14 +6,14 @@ import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
-interface EnumComponentProps {
+type EnumComponentProps = {
   name: string;
   parentPath: string;
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const {

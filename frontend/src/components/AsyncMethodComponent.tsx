@@ -6,7 +6,7 @@ import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 import { WebSettingsContext } from '../WebSettings';
 
-interface AsyncMethodProps {
+type AsyncMethodProps = {
   name: string;
   parentPath: string;
   parameters: Record<string, string>;
@@ -14,7 +14,7 @@ interface AsyncMethodProps {
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const { name, parentPath, docString, value: runningTask, addNotification } = props;

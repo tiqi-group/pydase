@@ -4,14 +4,14 @@ import { Attribute, GenericComponent } from './GenericComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ListComponentProps {
+type ListComponentProps = {
   name: string;
   parentPath?: string;
   value: Attribute[];
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
   const { name, parentPath, value, docString, isInstantUpdate, addNotification } =

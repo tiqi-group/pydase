@@ -6,14 +6,14 @@ import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface MethodProps {
+type MethodProps = {
   name: string;
   parentPath: string;
   parameters: Record<string, string>;
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const MethodComponent = React.memo((props: MethodProps) => {
   const { name, parentPath, docString, addNotification } = props;

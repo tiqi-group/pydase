@@ -6,7 +6,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ColouredEnumComponentProps {
+type ColouredEnumComponentProps = {
   name: string;
   parentPath: string;
   value: string;
@@ -14,7 +14,7 @@ interface ColouredEnumComponentProps {
   readOnly: boolean;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
   const {

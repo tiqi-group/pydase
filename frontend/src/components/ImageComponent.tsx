@@ -6,7 +6,7 @@ import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ImageComponentProps {
+type ImageComponentProps = {
   name: string;
   parentPath: string;
   value: string;
@@ -14,7 +14,7 @@ interface ImageComponentProps {
   docString: string;
   format: string;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
   const { name, parentPath, value, docString, format, addNotification } = props;

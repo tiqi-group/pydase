@@ -8,7 +8,7 @@ import { NumberComponent, NumberObject } from './NumberComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface SliderComponentProps {
+type SliderComponentProps = {
   name: string;
   min: NumberObject;
   max: NumberObject;
@@ -19,7 +19,7 @@ interface SliderComponentProps {
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRef(0);

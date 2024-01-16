@@ -6,7 +6,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ButtonComponentProps {
+type ButtonComponentProps = {
   name: string;
   parentPath?: string;
   value: boolean;
@@ -14,7 +14,7 @@ interface ButtonComponentProps {
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const { name, parentPath, value, readOnly, docString, addNotification } = props;

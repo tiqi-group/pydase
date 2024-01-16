@@ -32,7 +32,7 @@ export type FloatObject = {
 };
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
-interface NumberComponentProps {
+type NumberComponentProps = {
   name: string;
   type: 'float' | 'int';
   parentPath?: string;
@@ -43,7 +43,7 @@ interface NumberComponentProps {
   unit?: string;
   showName?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
 // selectionEnd
