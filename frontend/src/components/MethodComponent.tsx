@@ -89,12 +89,12 @@ export const MethodComponent = React.memo((props: MethodProps) => {
       )}
       <h5 onClick={() => setHideOutput(!hideOutput)} style={{ cursor: 'pointer' }}>
         Function: {displayName}
-        <DocStringComponent docString={docString} />
       </h5>
       <Form onSubmit={execute}>
         {args}
         <Button variant="primary" type="submit">
           Execute
+          <DocStringComponent docString={docString} />
         </Button>
       </Form>
 

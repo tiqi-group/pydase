@@ -70,9 +70,11 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <InputGroup>
-        <InputGroup.Text>{displayName}</InputGroup.Text>
+        <InputGroup.Text>
+          {displayName}
+          <DocStringComponent docString={docString} />
+        </InputGroup.Text>
         <Form.Control
           type="text"
           value={inputString}

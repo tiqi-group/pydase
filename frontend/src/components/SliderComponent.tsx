@@ -105,10 +105,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         <div>Render count: {renderCount.current}</div>
       )}
 
-      <DocStringComponent docString={docString} />
       <Row>
         <Col xs="auto" xl="auto">
-          <InputGroup.Text>{displayName}</InputGroup.Text>
+          <InputGroup.Text>
+            {displayName}
+            <DocStringComponent docString={docString} />
+          </InputGroup.Text>
         </Col>
         <Col xs="5" xl>
           <Slider

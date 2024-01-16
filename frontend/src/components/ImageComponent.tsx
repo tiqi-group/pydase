@@ -48,14 +48,15 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
           onClick={() => setOpen(!open)}
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
-          {displayName} {open ? <ChevronDown /> : <ChevronRight />}
+          {displayName}
+          <DocStringComponent docString={docString} />
+          {open ? <ChevronDown /> : <ChevronRight />}
         </Card.Header>
         <Collapse in={open}>
           <Card.Body>
             {process.env.NODE_ENV === 'development' && (
               <p>Render count: {renderCount.current}</p>
             )}
-            <DocStringComponent docString={docString} />
             {/* Your component JSX here */}
             {format === '' && value === '' ? (
               <p>No image set in the backend.</p>

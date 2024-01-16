@@ -53,10 +53,12 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{displayName}</InputGroup.Text>
+          <InputGroup.Text>
+            {displayName}
+            <DocStringComponent docString={docString} />
+          </InputGroup.Text>
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control

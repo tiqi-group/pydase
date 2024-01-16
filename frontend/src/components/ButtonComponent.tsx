@@ -48,7 +48,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         <div>Render count: {renderCount.current}</div>
       )}
 
-      <DocStringComponent docString={docString} />
       <ToggleButton
         id={`toggle-check-${id}`}
         type="checkbox"
@@ -58,6 +57,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         {displayName}
+        <DocStringComponent docString={docString} />
       </ToggleButton>
     </div>
   );

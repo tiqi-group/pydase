@@ -313,10 +313,14 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <div className="d-flex">
         <InputGroup>
-          {showName && <InputGroup.Text>{displayName}</InputGroup.Text>}
+          {showName && (
+            <InputGroup.Text>
+              {displayName}
+              <DocStringComponent docString={docString} />
+            </InputGroup.Text>
+          )}
           <Form.Control
             type="text"
             value={inputString}
