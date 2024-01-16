@@ -22,8 +22,8 @@ export const DeviceConnectionComponent = React.memo(
     isInstantUpdate,
     addNotification
   }: DeviceConnectionProps) => {
-    const { available, connect, ...updatedProps } = props;
-    const availableVal = available.value;
+    const { connected, connect, ...updatedProps } = props;
+    const connectedVal = connected.value;
 
     let fullAccessPath = parentPath;
     if (name) {
@@ -40,7 +40,7 @@ export const DeviceConnectionComponent = React.memo(
 
     return (
       <div className="deviceConnectionComponent" id={id}>
-        {!availableVal && (
+        {!connectedVal && (
           <div className="overlayContent">
             <div>{displayName} is currently not available!</div>
             <MethodComponent

@@ -17,13 +17,13 @@ class DeviceConnection(pydase.DataService, ABC):
 
     @property
     @abstractmethod
-    def available(self) -> bool:
-        """Checks if the abstracted device is available."""
+    def connected(self) -> bool:
+        """Checks if the abstracted device is connected."""
         ...
 
     async def _handle_connection(self) -> None:
-        """Tries reconnecting to the device if it is not available."""
+        """Tries reconnecting to the device if it is not connected."""
         while True:
-            if not self.available:
+            if not self.connected:
                 self.connect()
             await asyncio.sleep(self._handle_connection_wait_time)
