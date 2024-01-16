@@ -118,7 +118,7 @@ import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ImageComponentProps {
+type ImageComponentProps = {
   name: string;
   parentPath?: string;
   readOnly: boolean;
@@ -165,14 +165,15 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
           onClick={() => setOpen(!open)}
           style={{ cursor: 'pointer' }} // Change cursor style on hover
         >
-          {displayName} {open ? <ChevronDown /> : <ChevronRight />}
+          {displayName}
+          <DocStringComponent docString={docString} />
+          {open ? <ChevronDown /> : <ChevronRight />}
         </Card.Header>
         <Collapse in={open}>
           <Card.Body>
             {process.env.NODE_ENV === 'development' && (
               <p>Render count: {renderCount.current}</p>
             )}
-            <DocStringComponent docString={docString} />
             {/* Your component TSX here */}
           </Card.Body>
         </Collapse>

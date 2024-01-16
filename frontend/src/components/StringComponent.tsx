@@ -9,7 +9,7 @@ import { WebSettingsContext } from '../WebSettings';
 
 // TODO: add button functionality
 
-interface StringComponentProps {
+type StringComponentProps = {
   name: string;
   parentPath?: string;
   value: string;
@@ -17,7 +17,7 @@ interface StringComponentProps {
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const { name, parentPath, readOnly, docString, isInstantUpdate, addNotification } =
@@ -70,9 +70,11 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <InputGroup>
-        <InputGroup.Text>{displayName}</InputGroup.Text>
+        <InputGroup.Text>
+          {displayName}
+          <DocStringComponent docString={docString} />
+        </InputGroup.Text>
         <Form.Control
           type="text"
           value={inputString}

@@ -6,14 +6,14 @@ import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
-interface EnumComponentProps {
+type EnumComponentProps = {
   name: string;
   parentPath: string;
   value: string;
   docString?: string;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const {
@@ -52,10 +52,12 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{displayName}</InputGroup.Text>
+          <InputGroup.Text>
+            {displayName}
+            <DocStringComponent docString={docString} />
+          </InputGroup.Text>
           <Form.Select
             aria-label="Default select example"
             value={value}

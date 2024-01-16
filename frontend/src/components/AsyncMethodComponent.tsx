@@ -6,7 +6,7 @@ import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 import { WebSettingsContext } from '../WebSettings';
 
-interface AsyncMethodProps {
+type AsyncMethodProps = {
   name: string;
   parentPath: string;
   parameters: Record<string, string>;
@@ -14,7 +14,7 @@ interface AsyncMethodProps {
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const { name, parentPath, docString, value: runningTask, addNotification } = props;
@@ -102,14 +102,12 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <h5>
-        Function: {displayName}
-        <DocStringComponent docString={docString} />
-      </h5>
+      <h5>Function: {displayName}</h5>
       <Form onSubmit={execute} ref={formRef}>
         {args}
         <Button id={`button-${id}`} name={name} value={parentPath} type="submit">
-          {runningTask ? 'Stop' : 'Start'}
+          {runningTask ? 'Stop ' : 'Start '}
+          <DocStringComponent docString={docString} />
         </Button>
       </Form>
     </div>

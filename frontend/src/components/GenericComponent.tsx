@@ -27,7 +27,7 @@ type AttributeType =
   | 'ColouredEnum';
 
 type ValueType = boolean | string | number | object;
-export interface Attribute {
+export type Attribute = {
   type: AttributeType;
   value?: ValueType | ValueType[];
   readonly: boolean;
@@ -35,7 +35,7 @@ export interface Attribute {
   parameters?: Record<string, string>;
   async?: boolean;
   enum?: Record<string, string>;
-}
+};
 type GenericComponentProps = {
   attribute: Attribute;
   name: string;
@@ -95,7 +95,7 @@ export const GenericComponent = React.memo(
         <SliderComponent
           name={name}
           parentPath={parentPath}
-          docString={attribute.doc}
+          docString={attribute.value['value'].doc}
           readOnly={attribute.readonly}
           value={attribute.value['value']}
           min={attribute.value['min']}
@@ -179,7 +179,7 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           value={attribute.value['value']['value'] as string}
           readOnly={attribute.readonly}
-          docString={attribute.doc}
+          docString={attribute.value['value'].doc}
           // Add any other specific props for the ImageComponent here
           format={attribute.value['format']['value'] as string}
           addNotification={addNotification}

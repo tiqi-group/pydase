@@ -6,7 +6,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ButtonComponentProps {
+type ButtonComponentProps = {
   name: string;
   parentPath?: string;
   value: boolean;
@@ -14,7 +14,7 @@ interface ButtonComponentProps {
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const { name, parentPath, value, readOnly, docString, addNotification } = props;
@@ -48,7 +48,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         <div>Render count: {renderCount.current}</div>
       )}
 
-      <DocStringComponent docString={docString} />
       <ToggleButton
         id={`toggle-check-${id}`}
         type="checkbox"
@@ -58,6 +57,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         {displayName}
+        <DocStringComponent docString={docString} />
       </ToggleButton>
     </div>
   );

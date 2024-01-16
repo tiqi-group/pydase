@@ -1,5 +1,6 @@
 import inspect
 import logging
+import sys
 from collections.abc import Callable
 from enum import Enum
 from typing import Any
@@ -67,7 +68,9 @@ class Serializer:
     def _serialize_enum(obj: Enum) -> dict[str, Any]:
         value = obj.name
         readonly = False
-        doc = get_attribute_doc(obj)
+        doc = obj.__doc__
+        if sys.version_info < (3, 11) and doc == "An enumeration.":
+            doc = None
         if type(obj).__base__.__name__ == "ColouredEnum":
             obj_type = "ColouredEnum"
         else:

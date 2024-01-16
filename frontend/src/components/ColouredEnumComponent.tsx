@@ -6,7 +6,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
-interface ColouredEnumComponentProps {
+type ColouredEnumComponentProps = {
   name: string;
   parentPath: string;
   value: string;
@@ -14,7 +14,7 @@ interface ColouredEnumComponentProps {
   readOnly: boolean;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
-}
+};
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
   const {
@@ -53,10 +53,12 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <DocStringComponent docString={docString} />
       <Row>
         <Col className="d-flex align-items-center">
-          <InputGroup.Text>{displayName}</InputGroup.Text>
+          <InputGroup.Text>
+            {displayName}
+            <DocStringComponent docString={docString} />
+          </InputGroup.Text>
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control
