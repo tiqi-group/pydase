@@ -100,6 +100,8 @@ def test_enum_serialize() -> None:
 
 def test_ColouredEnum_serialize() -> None:
     class Status(ColouredEnum):
+        """Status description."""
+
         PENDING = "#FFA500"
         RUNNING = "#0000FF80"
         PAUSED = "rgb(169, 169, 169)"
@@ -121,7 +123,7 @@ def test_ColouredEnum_serialize() -> None:
             "RUNNING": "#0000FF80",
         },
         "readonly": False,
-        "doc": None,
+        "doc": "Status description.",
     }
 
 
