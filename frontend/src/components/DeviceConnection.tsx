@@ -9,7 +9,7 @@ import { MethodComponent } from './MethodComponent';
 type DeviceConnectionProps = {
   name: string;
   props: DataServiceJSON;
-  parentPath?: string;
+  parentPath: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
 };
@@ -18,14 +18,13 @@ export const DeviceConnectionComponent = React.memo(
   ({
     name,
     props,
-    parentPath = '',
+    parentPath,
     isInstantUpdate,
     addNotification
   }: DeviceConnectionProps) => {
     const { available, connect, ...updatedProps } = props;
     const availableVal = available.value;
 
-    console.log(connect);
     let fullAccessPath = parentPath;
     if (name) {
       fullAccessPath = [parentPath, name].filter((element) => element).join('.');
