@@ -8,7 +8,7 @@ input.instantUpdate {
 
 .numberComponentButton {
   padding: 0.15em 6px !important;
-  font-size: 0.70rem !important;
+  font-size: 0.7rem !important;
 }
 .navbarOffset {
   padding-top: 60px !important;
@@ -17,13 +17,15 @@ input.instantUpdate {
   position: fixed !important;
   padding: 5px;
 }
-.debugToast, .infoToast {
+.debugToast,
+.infoToast {
   background-color: rgba(114, 214, 253, 0.5) !important;
 }
 .warningToast {
   background-color: rgba(255, 181, 44, 0.603) !important;
 }
-.errorToast, .criticalToast {
+.errorToast,
+.criticalToast {
   background-color: rgba(216, 41, 18, 0.678) !important;
 }
 .buttonComponent {
@@ -35,8 +37,29 @@ input.instantUpdate {
   margin-right: 10px !important;
 }
 .numberComponent {
-    float: left !important;
-    margin-right: 10px !important;
-    width: 270px !important;
+  float: left !important;
+  margin-right: 10px !important;
+  width: 270px !important;
 }
-
+.dataServiceComponent {
+  position: relative;
+  z-index: 1;
+}
+.deviceConnectionComponent {
+  position: relative;
+  z-index: 1;
+}
+.overlayContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(128, 128, 128, 0.5);
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* Stack children vertically */
+  border-radius: var(--bs-card-inner-border-radius);
+}

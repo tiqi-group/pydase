@@ -8,6 +8,7 @@ import { AsyncMethodComponent } from './AsyncMethodComponent';
 import { StringComponent } from './StringComponent';
 import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
+import { DeviceConnectionComponent } from './DeviceConnection';
 import { ImageComponent } from './ImageComponent';
 import { ColouredEnumComponent } from './ColouredEnumComponent';
 import { LevelName } from './NotificationsComponent';
@@ -21,6 +22,7 @@ type AttributeType =
   | 'list'
   | 'method'
   | 'DataService'
+  | 'DeviceConnection'
   | 'Enum'
   | 'NumberSlider'
   | 'Image'
@@ -154,6 +156,16 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'DataService') {
       return (
         <DataServiceComponent
+          name={name}
+          props={attribute.value as DataServiceJSON}
+          parentPath={parentPath}
+          isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
+        />
+      );
+    } else if (attribute.type === 'DeviceConnection') {
+      return (
+        <DeviceConnectionComponent
           name={name}
           props={attribute.value as DataServiceJSON}
           parentPath={parentPath}
