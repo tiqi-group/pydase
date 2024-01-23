@@ -564,7 +564,7 @@ from pydase import DataService, Server
 class SensorService(DataService):
     def __init__(self):
         self.readout_frequency = 1.0
-        self._autostart_tasks = {"read_sensor_data": ()}  # args passed to the function go there
+        self._autostart_tasks["read_sensor_data"] = ()  # args passed to the function go there
         super().__init__()
 
     def _process_data(self, data: ...) -> None:
