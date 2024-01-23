@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
 import { hostname, port, socket } from './socket';
-import {
-  DataServiceComponent,
-  DataServiceJSON
-} from './components/DataServiceComponent';
 import './App.css';
 import {
   Notifications,
@@ -14,6 +10,7 @@ import {
 import { ConnectionToast } from './components/ConnectionToast';
 import { SerializedValue, setNestedValueByPath, State } from './utils/stateUtils';
 import { WebSettingsContext, WebSetting } from './WebSettings';
+import { Attribute, GenericComponent } from './components/GenericComponent';
 
 type Action =
   | { type: 'SET_DATA'; data: State }
@@ -35,7 +32,10 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_DATA':
       return action.data;
     case 'UPDATE_ATTRIBUTE': {
-      return setNestedValueByPath(state, action.fullAccessPath, action.newValue);
+      return {
+        ...state,
+        value: setNestedValueByPath(state.value, action.fullAccessPath, action.newValue)
+      };
     }
     default:
       throw new Error();
@@ -184,9 +184,10 @@ const App = () => {
 
       <div className="App navbarOffset">
         <WebSettingsContext.Provider value={webSettings}>
-          <DataServiceComponent
-            name={''}
-            props={state as DataServiceJSON}
+          <GenericComponent
+            name=""
+            parentPath=""
+            attribute={state as Attribute}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}
           />
