@@ -26,8 +26,8 @@ class DeviceConnection(pydase.DataService, ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._autostart_tasks = {"_handle_connection": ()}  # type: ignore
-        self._handle_connection_wait_time = 2.0
+        self._autostart_tasks["_handle_connection"] = ()  # type: ignore
+        self._handle_connection_wait_time = 10.0
 
     @abstractmethod
     def connect(self) -> None:
