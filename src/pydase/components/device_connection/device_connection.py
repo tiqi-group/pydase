@@ -15,7 +15,13 @@ class DeviceConnection(pydase.DataService, ABC):
     connection status.
 
     An instance of this class automatically starts a task that periodically checks the
-    device's availability and attempts reconnection if necessary.
+    device's availability and attempts reconnection if necessary. The periodicity can be
+    controlled by setting `self._handle_connection_wait_time`, e.g.
+
+    >>> class MyConnection(pydase.components.DeviceConnection):
+    ...     def __init__(self) -> None:
+    ...         self._handle_connection_wait_time = 20.0  # only check every 20 seconds
+    ...         ...
 
     In the frontend, this class is represented without directly exposing the `connect`
     method and `connected` attribute. Instead, it displays user-defined attributes,
