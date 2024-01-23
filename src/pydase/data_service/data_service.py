@@ -248,7 +248,7 @@ class DataService(rpyc.Service, AbstractDataService):
         Returns:
             dict: The serialized instance.
         """
-        return Serializer.serialize_object(self)["value"]
+        return Serializer.serialize_object(self)
 
     def update_DataService_attribute(  # noqa: N802
         self,

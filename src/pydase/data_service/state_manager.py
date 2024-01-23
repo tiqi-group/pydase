@@ -126,7 +126,7 @@ class StateManager:
 
         if self.filename is not None:
             with open(self.filename, "w") as f:
-                json.dump(self.cache, f, indent=4)
+                json.dump(self.cache["value"], f, indent=4)
         else:
             logger.info(
                 "State manager was not initialised with a filename. Skipping "
@@ -191,7 +191,7 @@ class StateManager:
             value: The new value to set for the attribute.
         """
 
-        current_value_dict = get_nested_dict_by_path(self.cache, path)
+        current_value_dict = get_nested_dict_by_path(self.cache["value"], path)
 
         # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
@@ -234,7 +234,7 @@ class StateManager:
         # Update path to reflect the attribute without list indices
         path = ".".join([*parent_path_list, attr_name])
 
-        attr_cache_type = get_nested_dict_by_path(self.cache, path)["type"]
+        attr_cache_type = get_nested_dict_by_path(self.cache["value"], path)["type"]
 
         # Traverse the object according to the path parts
         target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
@@ -273,7 +273,7 @@ class StateManager:
             return has_decorator
 
         cached_serialization_dict = get_nested_dict_by_path(
-            self.cache, full_access_path
+            self.cache["value"], full_access_path
         )
 
         if cached_serialization_dict["value"] == "method":
