@@ -17,6 +17,7 @@
   - [Method Components](#method-components)
   - [DataService Instances (Nested Classes)](#dataservice-instances-nested-classes)
   - [Custom Components (`pydase.components`)](#custom-components-pydasecomponents)
+    - [`DeviceConnection`](#deviceconnection)
     - [`Image`](#image)
     - [`NumberSlider`](#numberslider)
     - [`ColouredEnum`](#colouredenum)
@@ -248,6 +249,38 @@ The custom components in `pydase` have two main parts:
 - A **Frontend React Component** that renders and manages user interaction in the browser.
 
 Below are the components available in the `pydase.components` module, accompanied by their Python usage:
+
+#### `DeviceConnection`
+
+The `DeviceConnection` component is an abstract base class for managing connections to devices within the `pydase` framework. It requires implementers to define both a `connect()` method for establishing connections and a `connected` property to check the current connection status.
+
+Instances of this class automatically start a task that checks the device's availability periodically and attempts reconnection if needed. This makes it ideal for applications requiring consistent device connectivity.
+
+The frontend representation of this component displays user-defined attributes, methods, and properties while hiding the direct implementation details of `connect` and `connected`. When a device is not connected, an overlay is presented in the frontend, allowing manual triggering of the `connect()` method. This overlay disappears once the connection is re-established, ensuring a seamless user experience.
+
+```python
+import pydase.components
+
+
+class MyDevice(pydase.components.DeviceConnection):
+    def __init__(self) -> None:
+        super().__init__()
+        # Initialization code here
+
+    def connect(self) -> None:
+        # Code to establish connection
+
+    @property
+    def connected(self) -> bool:
+        # Code to check connection status
+
+    @property
+    def current_voltage(self) -> float:
+        if self.connected:
+            ...
+```
+
+By default, the component checks the device's availability every 10 seconds. This can be changed by setting the protected `_handle_connection_wait_time` attribute of the class instance.
 
 #### `Image`
 
