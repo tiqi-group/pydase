@@ -42,7 +42,9 @@ export const DeviceConnectionComponent = React.memo(
       <div className="deviceConnectionComponent" id={id}>
         {!connectedVal && (
           <div className="overlayContent">
-            <div>{displayName} is currently not available!</div>
+            <div>
+              {displayName != '' ? displayName : 'Device'} is currently not available!
+            </div>
             <MethodComponent
               name="connect"
               parentPath={fullAccessPath}
