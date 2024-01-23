@@ -91,7 +91,7 @@ class Service(pydase.DataService):
         self._property_attr = value
 
 
-CURRENT_STATE = Service().serialize()
+CURRENT_STATE = Service().serialize()["value"]
 
 LOAD_STATE = {
     "list_attr": {

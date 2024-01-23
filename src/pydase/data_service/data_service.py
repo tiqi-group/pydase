@@ -196,7 +196,7 @@ class DataService(rpyc.Service, AbstractDataService):
         )
 
         # Traverse the serialized representation and set the attributes of the class
-        serialized_class = self.serialize()
+        serialized_class = self.serialize()["value"]
         for path in generate_serialized_data_paths(json_dict):
             nested_json_dict = get_nested_dict_by_path(json_dict, path)
             value = nested_json_dict["value"]

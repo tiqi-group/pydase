@@ -323,7 +323,7 @@ def test_derived_data_service_serialization() -> None:
 
 
 @pytest.fixture
-def setup_dict():
+def setup_dict() -> dict[str, Any]:
     class MySubclass(pydase.DataService):
         attr3 = 1.0
         list_attr = [1.0, 1]
@@ -333,30 +333,32 @@ def setup_dict():
         attr2 = MySubclass()
         attr_list = [0, 1, MySubclass()]
 
-    return ServiceClass().serialize()
+    return ServiceClass().serialize()["value"]
 
 
-def test_update_attribute(setup_dict):
+def test_update_attribute(setup_dict) -> None:
     set_nested_value_by_path(setup_dict, "attr1", 15)
     assert setup_dict["attr1"]["value"] == 15
 
 
-def test_update_nested_attribute(setup_dict):
+def test_update_nested_attribute(setup_dict) -> None:
     set_nested_value_by_path(setup_dict, "attr2.attr3", 25.0)
     assert setup_dict["attr2"]["value"]["attr3"]["value"] == 25.0
 
 
-def test_update_list_entry(setup_dict):
+def test_update_list_entry(setup_dict) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[1]", 20)
     assert setup_dict["attr_list"]["value"][1]["value"] == 20
 
 
-def test_update_list_append(setup_dict):
+def test_update_list_append(setup_dict) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
     assert setup_dict["attr_list"]["value"][3]["value"] == 20
 
 
-def test_update_invalid_list_index(setup_dict, caplog: pytest.LogCaptureFixture):
+def test_update_invalid_list_index(
+    setup_dict, caplog: pytest.LogCaptureFixture
+) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[10]", 30)
     assert (
         "Error occured trying to change 'attr_list[10]': list index "
