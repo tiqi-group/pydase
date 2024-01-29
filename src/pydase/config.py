@@ -15,7 +15,7 @@ class ServiceConfig(BaseConfig):  # type: ignore[misc]
     web_port: int = 8001
     rpc_port: int = 18871
 
-    CONFIG_SOURCES = EnvSource(prefix="SERVICE_")
+    CONFIG_SOURCES = EnvSource(allow_all=True, prefix="SERVICE_")
 
 
 class WebServerConfig(BaseConfig):  # type: ignore[misc]
