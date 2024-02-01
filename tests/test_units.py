@@ -1,9 +1,10 @@
 from typing import Any
 
+import pydase
 import pydase.units as u
 from pydase.data_service.data_service import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
-from pydase.data_service.state_manager import StateManager
+from pydase.data_service.state_manager import StateManager, load_state
 from pytest import LogCaptureFixture
 
 
@@ -99,7 +100,10 @@ def test_autoconvert_offset_to_baseunit() -> None:
 def test_loading_from_json(caplog: LogCaptureFixture) -> None:
     """This function tests if the quantity read from the json description is actually
     passed as a quantity to the property setter."""
-    JSON_DICT = {
+    import json
+    import tempfile
+
+    serialization_dict = {
         "some_unit": {
             "type": "Quantity",
             "value": {"magnitude": 10.0, "unit": "A"},
@@ -118,14 +122,17 @@ def test_loading_from_json(caplog: LogCaptureFixture) -> None:
             return self._unit
 
         @some_unit.setter
+        @load_state
         def some_unit(self, value: u.Quantity) -> None:
             assert isinstance(value, u.Quantity)
             self._unit = value
 
     service_instance = ServiceClass()
-    state_manager = StateManager(service_instance)
-    DataServiceObserver(state_manager)
 
-    service_instance.load_DataService_from_JSON(JSON_DICT)
+    fp = tempfile.NamedTemporaryFile("w+")
+    json.dump(serialization_dict, fp)
+    fp.seek(0)
+
+    pydase.Server(service_instance, filename=fp.name)
 
     assert "'some_unit' changed to '10.0 A'" in caplog.text
