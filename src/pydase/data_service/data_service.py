@@ -43,7 +43,6 @@ class DataService(rpyc.Service, AbstractDataService):
             self._autostart_tasks = {}
 
         self.__check_instance_classes()
-        self._initialised = True
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         # Check and warn for unexpected type changes in attributes
