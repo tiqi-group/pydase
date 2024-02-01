@@ -6,7 +6,12 @@ export interface SerializedValue {
   async?: boolean;
   parameters?: unknown;
 }
-export type State = Record<string, SerializedValue> | null;
+export type State = {
+  type: string;
+  value: Record<string, SerializedValue> | null;
+  readonly: boolean;
+  doc: string | null;
+};
 
 export function setNestedValueByPath(
   serializationDict: Record<string, SerializedValue>,

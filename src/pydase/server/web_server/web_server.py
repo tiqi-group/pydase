@@ -126,7 +126,7 @@ class WebServer:
     @property
     def web_settings(self) -> dict[str, dict[str, Any]]:
         current_web_settings = self._get_web_settings_from_file()
-        for path in generate_serialized_data_paths(self.state_manager.cache):
+        for path in generate_serialized_data_paths(self.state_manager.cache["value"]):
             if path in current_web_settings:
                 continue
 
