@@ -5,7 +5,6 @@ from typing import Any
 import pydase
 import pydase.components
 import pydase.units as u
-import pytest
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import (
     StateManager,
@@ -249,16 +248,6 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture) -> None:
     assert "'my_slider.min' changed to '1.0'" in caplog.text
     assert "'my_slider.max' changed to '101.0'" in caplog.text
     assert "'my_slider.step_size' changed to '2.0'" in caplog.text
-
-
-def test_filename_warning(tmp_path: Path, caplog: LogCaptureFixture) -> None:
-    file = tmp_path / "test_state.json"
-
-    with pytest.warns(DeprecationWarning):
-        service = Service(filename=str(file))
-        StateManager(service=service, filename=str(file))
-
-    assert f"Overwriting filename {str(file)!r} with {str(file)!r}." in caplog.text
 
 
 def test_filename_error(caplog: LogCaptureFixture) -> None:
