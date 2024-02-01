@@ -177,8 +177,6 @@ class Server:
         self.servers: dict[str, asyncio.Future[Any]] = {}
         self.executor: ThreadPoolExecutor | None = None
         self._state_manager = StateManager(self._service, filename)
-        if getattr(self._service, "_filename", None) is not None:
-            self._service._state_manager = self._state_manager
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
 
