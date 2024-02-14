@@ -252,27 +252,33 @@ Below are the components available in the `pydase.components` module, accompanie
 
 #### `DeviceConnection`
 
-The `DeviceConnection` component is an abstract base class for managing connections to devices within the `pydase` framework. It requires implementers to define both a `connect()` method for establishing connections and a `connected` property to check the current connection status.
+The `DeviceConnection` component is a base class for managing connections to devices within the `pydase` framework.
+This class serves as the foundation for subclasses that manage connections to specific devices.
+It implements automatic reconnection logic that periodically checks the device's availability and attempts to reconnect if the connection is lost.
 
-Instances of this class automatically start a task that checks the device's availability periodically and attempts reconnection if needed. This makes it ideal for applications requiring consistent device connectivity.
+In the frontend, this class is represented without directly exposing the `connect` method and `connected` attribute.
+Instead, user-defined attributes, methods, and properties are displayed.
+When `self.connected` is `False`, the frontend component shows an overlay that allows manual triggering of the `connect()` method.
+This overlay disappears once the connection is successfully re-established.
 
-The frontend representation of this component displays user-defined attributes, methods, and properties while hiding the direct implementation details of `connect` and `connected`. When a device is not connected, an overlay is presented in the frontend, allowing manual triggering of the `connect()` method. This overlay disappears once the connection is re-established, ensuring a seamless user experience.
+Users should primarily override the `connect` method to establish a connection
+to the device. This method should update the `self._connected` attribute to reflect
+the connection status:
 
 ```python
 import pydase.components
 
 
-class MyDevice(pydase.components.DeviceConnection):
+class MyDeviceConnection(pydase.components.DeviceConnection):
     def __init__(self) -> None:
         super().__init__()
         # Initialization code here
 
     def connect(self) -> None:
-        # Code to establish connection
-
-    @property
-    def connected(self) -> bool:
-        # Code to check connection status
+        # Implementation to connect to the device
+        # Update self._connected to `True` if connection is successful,
+        # `False` otherwise
+        ...
 
     @property
     def current_voltage(self) -> float:
@@ -280,7 +286,31 @@ class MyDevice(pydase.components.DeviceConnection):
             ...
 ```
 
-By default, the component checks the device's availability every 10 seconds. This can be changed by setting the protected `_handle_connection_wait_time` attribute of the class instance.
+Optionally, if additional logic is needed to determine the connection status, the `connected` property can also be overridden:
+
+```python
+import pydase.components
+
+
+class MyDeviceConnection(pydase.components.DeviceConnection):
+    def __init__(self) -> None:
+        super().__init__()
+        # Initialization code here
+
+    def connect(self) -> None:
+        # Implementation to connect to the device
+        # Update self._connected to `True` if connection is successful,
+        # `False` otherwise
+        ...
+
+    @property
+    def connected(self) -> bool:
+        # Custom logic to determine connection status
+        # Default:
+        return self._connected
+```
+
+By default, the component checks the device's availability every 10 seconds. This can be changed by setting the protected `_reconnection_wait_time` attribute of the class instance.
 
 #### `Image`
 
