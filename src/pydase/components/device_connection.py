@@ -1,54 +1,77 @@
 import asyncio
-from abc import ABC, abstractmethod
 
 import pydase
 
 
-class DeviceConnection(pydase.DataService, ABC):
+class DeviceConnection(pydase.DataService):
     """
-    Abstract base class for device connection management in the pydase framework.
+    Base class for device connection management within the pydase framework.
 
-    This class forms the foundation for subclasses that manage connections to specific
-    devices. Implementers are required to define the `connect()` method and the
-    `connected` property. The `connect()` method should handle the logic to establish a
-    connection with the device, while the `connected` property should return the current
-    connection status.
+    This class serves as the foundation for subclasses that manage connections to
+    specific devices. It implements automatic reconnection logic that periodically
+    checks the device's availability and attempts to reconnect if the connection is
+    lost. The frequency of these checks is controlled by the `_reconnection_wait_time`
+    attribute.
 
-    An instance of this class automatically starts a task that periodically checks the
-    device's availability and attempts reconnection if necessary. The periodicity can be
-    controlled by setting `self._handle_connection_wait_time`, e.g.
+    Subclassing
+    -----------
+    Users should primarily override the `connect` method to establish a connection
+    to the device. This method should update the `self._connected` attribute to reflect
+    the connection status:
 
-    >>> class MyConnection(pydase.components.DeviceConnection):
-    ...     def __init__(self) -> None:
-    ...         self._handle_connection_wait_time = 20.0  # only check every 20 seconds
+    >>> class MyDeviceConnection(DeviceConnection):
+    ...     def connect(self) -> None:
+    ...         # Implementation to connect to the device
+    ...         # Update self._connected to `True` if connection is successful,
+    ...         # `False` otherwise
     ...         ...
 
+    Optionally, if additional logic is needed to determine the connection status,
+    the `connected` property can also be overridden:
+
+    >>> class MyDeviceConnection(DeviceConnection):
+    ...     @property
+    ...     def connected(self) -> bool:
+    ...         # Custom logic to determine connection status
+    ...         return some_custom_condition
+    ...
+
+    Frontend Representation
+    -----------------------
     In the frontend, this class is represented without directly exposing the `connect`
-    method and `connected` attribute. Instead, it displays user-defined attributes,
-    methods, and properties. When the device connection is not established, the frontend
-    component is overlaid, allowing manual triggering of the `connect()` method. The
-    overlay disappears once the connection is re-established.
+    method and `connected` attribute. Instead, user-defined attributes, methods, and
+    properties are displayed. When `self.connected` is `False`, the frontend component
+    shows an overlay that allows manual triggering of the `connect()` method. This
+    overlay disappears once the connection is successfully re-established.
     """
 
     def __init__(self) -> None:
         super().__init__()
+        self._connected = False
         self._autostart_tasks["_handle_connection"] = ()  # type: ignore
-        self._handle_connection_wait_time = 10.0
+        self._reconnection_wait_time = 10.0
 
-    @abstractmethod
     def connect(self) -> None:
-        """Tries to connect to the abstracted device."""
-        ...
+        """Tries connecting to the device and changes `self._connected` status
+        accordingly. This method is called every `self._reconnection_wait_time` seconds
+        when `self.connected` is False. Users should override this method to implement
+        device-specific connection logic.
+        """
 
     @property
-    @abstractmethod
     def connected(self) -> bool:
-        """Checks if the abstracted device is connected."""
-        ...
+        """Indicates if the device is currently connected or was recently connected.
+        Users may override this property to incorporate custom logic for determining
+        the connection status.
+        """
+        return self._connected
 
     async def _handle_connection(self) -> None:
-        """Tries reconnecting to the device if it is not connected."""
+        """Automatically tries reconnecting to the device if it is not connected.
+        This method leverages the `connect` method and the `connected` property to
+        manage the connection status.
+        """
         while True:
             if not self.connected:
                 self.connect()
-            await asyncio.sleep(self._handle_connection_wait_time)
+            await asyncio.sleep(self._reconnection_wait_time)
