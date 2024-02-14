@@ -252,18 +252,13 @@ Below are the components available in the `pydase.components` module, accompanie
 
 #### `DeviceConnection`
 
-The `DeviceConnection` component is a base class for managing connections to devices within the `pydase` framework.
-This class serves as the foundation for subclasses that manage connections to specific devices.
-It implements automatic reconnection logic that periodically checks the device's availability and attempts to reconnect if the connection is lost.
+The `DeviceConnection` component acts as a base class within the `pydase` framework for managing device connections. It provides a structured approach to handle connections by offering a customizable `connect` method and a `connected` property. This setup facilitates the implementation of automatic reconnection logic, which periodically attempts reconnection whenever the connection is lost.
 
-In the frontend, this class is represented without directly exposing the `connect` method and `connected` attribute.
-Instead, user-defined attributes, methods, and properties are displayed.
-When `self.connected` is `False`, the frontend component shows an overlay that allows manual triggering of the `connect()` method.
-This overlay disappears once the connection is successfully re-established.
+In the frontend, this class abstracts away the direct interaction with the `connect` method and the `connected` property. Instead, it showcases user-defined attributes, methods, and properties. When the `connected` status is `False`, the frontend displays an overlay that prompts manual reconnection through the `connect()` method. Successful reconnection removes the overlay.
 
-Users should primarily override the `connect` method to establish a connection
-to the device. This method should update the `self._connected` attribute to reflect
-the connection status:
+##### Customizing Connection Logic
+
+Users are encouraged to primarily override the `connect` method to tailor the connection process to their specific device. This method should adjust the `self._connected` attribute based on the outcome of the connection attempt:
 
 ```python
 import pydase.components
@@ -272,45 +267,39 @@ import pydase.components
 class MyDeviceConnection(pydase.components.DeviceConnection):
     def __init__(self) -> None:
         super().__init__()
-        # Initialization code here
+        # Add any necessary initialization code here
 
     def connect(self) -> None:
-        # Implementation to connect to the device
-        # Update self._connected to `True` if connection is successful,
-        # `False` otherwise
+        # Implement device-specific connection logic here
+        # Update self._connected to `True` if the connection is successful,
+        # or `False` if unsuccessful
         ...
-
-    @property
-    def current_voltage(self) -> float:
-        if self.connected:
-            ...
 ```
 
-Optionally, if additional logic is needed to determine the connection status, the `connected` property can also be overridden:
+Moreover, if the connection status requires additional logic, users can override the `connected` property:
 
 ```python
 import pydase.components
 
-
 class MyDeviceConnection(pydase.components.DeviceConnection):
     def __init__(self) -> None:
         super().__init__()
-        # Initialization code here
+        # Add any necessary initialization code here
 
     def connect(self) -> None:
-        # Implementation to connect to the device
-        # Update self._connected to `True` if connection is successful,
-        # `False` otherwise
+        # Implement device-specific connection logic here
+        # Ensure self._connected reflects the connection status accurately
         ...
 
     @property
     def connected(self) -> bool:
-        # Custom logic to determine connection status
-        # Default:
+        # Implement custom logic to accurately report connection status
         return self._connected
 ```
 
-By default, the component checks the device's availability every 10 seconds. This can be changed by setting the protected `_reconnection_wait_time` attribute of the class instance.
+##### Reconnection Interval
+
+The automatic reconnection feature checks for device availability at a default interval of every 10 seconds. This interval is adjustable by modifying the `_reconnection_wait_time` attribute on the class instance.
 
 #### `Image`
 
