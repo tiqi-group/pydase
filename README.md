@@ -256,6 +256,8 @@ The `DeviceConnection` component acts as a base class within the `pydase` framew
 
 In the frontend, this class abstracts away the direct interaction with the `connect` method and the `connected` property. Instead, it showcases user-defined attributes, methods, and properties. When the `connected` status is `False`, the frontend displays an overlay that prompts manual reconnection through the `connect()` method. Successful reconnection removes the overlay.
 
+![DeviceConnection Component](docs/images/DeviceConnection_component.png)
+
 ##### Customizing Connection Logic
 
 Users are encouraged to primarily override the `connect` method to tailor the connection process to their specific device. This method should adjust the `self._connected` attribute based on the outcome of the connection attempt:
