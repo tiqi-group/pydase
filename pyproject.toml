@@ -48,6 +48,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 target-version = "py310" # Always generate Python 3.10-compatible code
+extend-exclude = [
+  "docs", "frontend"
+]
+
+[tool.ruff.lint]
 select = [
     "ASYNC", # flake8-async
     "C4",    # flake8-comprehensions
@@ -77,13 +82,8 @@ select = [
     "YTT",   # flake8-2020
     "W",     # pycodestyle warnings
 ]
-
-[tool.ruff.lint]
 ignore = [
     "PERF203",  # try-except-in-loop
-]
-extend-exclude = [
-  "docs", "frontend"
 ]
 
 [tool.ruff.lint.mccabe]
