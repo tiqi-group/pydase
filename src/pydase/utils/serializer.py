@@ -66,12 +66,14 @@ class Serializer:
 
     @staticmethod
     def _serialize_enum(obj: Enum) -> dict[str, Any]:
+        import pydase.components.coloured_enum
+
         value = obj.name
         readonly = False
         doc = obj.__doc__
         if sys.version_info < (3, 11) and doc == "An enumeration.":
             doc = None
-        if type(obj).__base__.__name__ == "ColouredEnum":
+        if isinstance(obj, pydase.components.coloured_enum.ColouredEnum):
             obj_type = "ColouredEnum"
         else:
             obj_type = "Enum"

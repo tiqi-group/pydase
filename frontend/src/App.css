@@ -5,11 +5,6 @@ body {
 input.instantUpdate {
   background-color: rgba(255, 0, 0, 0.1);
 }
-
-.numberComponentButton {
-  padding: 0.15em 6px !important;
-  font-size: 0.70rem !important;
-}
 .navbarOffset {
   padding-top: 60px !important;
 }
@@ -17,26 +12,41 @@ input.instantUpdate {
   position: fixed !important;
   padding: 5px;
 }
-.debugToast, .infoToast {
+.debugToast,
+.infoToast {
   background-color: rgba(114, 214, 253, 0.5) !important;
 }
 .warningToast {
   background-color: rgba(255, 181, 44, 0.603) !important;
 }
-.errorToast, .criticalToast {
+.errorToast,
+.criticalToast {
   background-color: rgba(216, 41, 18, 0.678) !important;
 }
-.buttonComponent {
+.component {
+  position: relative;
   float: left !important;
-  margin-right: 10px !important;
+  padding: 5px !important;
+  z-index: 1;
 }
-.stringComponent {
+.dataServiceComponent {
+  width: 100%;
+}
+.deviceConnectionComponent {
+  position: relative;
   float: left !important;
-  margin-right: 10px !important;
+  width: 100%;
+  z-index: 1;
 }
-.numberComponent {
-    float: left !important;
-    margin-right: 10px !important;
-    width: 270px !important;
+.overlayContent {
+  position: absolute;
+  inset: 5px; /* (see https://developer.mozilla.org/en-US/docs/Web/CSS/inset) */
+  background: rgba(155, 155, 155, 0.75);
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* Stack children vertically */
+  border-radius: var(--bs-border-radius);
+  border: var(--bs-border-width) solid var(--bs-border-color-translucent)
 }
-

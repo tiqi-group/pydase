@@ -17,6 +17,7 @@
   - [Method Components](#method-components)
   - [DataService Instances (Nested Classes)](#dataservice-instances-nested-classes)
   - [Custom Components (`pydase.components`)](#custom-components-pydasecomponents)
+    - [`DeviceConnection`](#deviceconnection)
     - [`Image`](#image)
     - [`NumberSlider`](#numberslider)
     - [`ColouredEnum`](#colouredenum)
@@ -248,6 +249,59 @@ The custom components in `pydase` have two main parts:
 - A **Frontend React Component** that renders and manages user interaction in the browser.
 
 Below are the components available in the `pydase.components` module, accompanied by their Python usage:
+
+#### `DeviceConnection`
+
+The `DeviceConnection` component acts as a base class within the `pydase` framework for managing device connections. It provides a structured approach to handle connections by offering a customizable `connect` method and a `connected` property. This setup facilitates the implementation of automatic reconnection logic, which periodically attempts reconnection whenever the connection is lost.
+
+In the frontend, this class abstracts away the direct interaction with the `connect` method and the `connected` property. Instead, it showcases user-defined attributes, methods, and properties. When the `connected` status is `False`, the frontend displays an overlay that prompts manual reconnection through the `connect()` method. Successful reconnection removes the overlay.
+
+![DeviceConnection Component](docs/images/DeviceConnection_component.png)
+
+##### Customizing Connection Logic
+
+Users are encouraged to primarily override the `connect` method to tailor the connection process to their specific device. This method should adjust the `self._connected` attribute based on the outcome of the connection attempt:
+
+```python
+import pydase.components
+
+
+class MyDeviceConnection(pydase.components.DeviceConnection):
+    def __init__(self) -> None:
+        super().__init__()
+        # Add any necessary initialization code here
+
+    def connect(self) -> None:
+        # Implement device-specific connection logic here
+        # Update self._connected to `True` if the connection is successful,
+        # or `False` if unsuccessful
+        ...
+```
+
+Moreover, if the connection status requires additional logic, users can override the `connected` property:
+
+```python
+import pydase.components
+
+class MyDeviceConnection(pydase.components.DeviceConnection):
+    def __init__(self) -> None:
+        super().__init__()
+        # Add any necessary initialization code here
+
+    def connect(self) -> None:
+        # Implement device-specific connection logic here
+        # Ensure self._connected reflects the connection status accurately
+        ...
+
+    @property
+    def connected(self) -> bool:
+        # Implement custom logic to accurately report connection status
+        return self._connected
+```
+
+##### Reconnection Interval
+
+The automatic reconnection feature checks for device availability at a default interval of every 10 seconds. This interval is adjustable by modifying the `_reconnection_wait_time` attribute on the class instance.
 
 #### `Image`
 
@@ -564,7 +618,7 @@ from pydase import DataService, Server
 class SensorService(DataService):
     def __init__(self):
         self.readout_frequency = 1.0
-        self._autostart_tasks = {"read_sensor_data": ()}  # args passed to the function go there
+        self._autostart_tasks["read_sensor_data"] = ()  # args passed to the function go there
         super().__init__()
 
     def _process_data(self, data: ...) -> None:

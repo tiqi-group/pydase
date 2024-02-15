@@ -43,7 +43,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   };
 
   return (
-    <div className={'buttonComponent'} id={id}>
+    <div className={'component buttonComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}

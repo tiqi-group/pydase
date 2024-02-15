@@ -1,0 +1,32 @@
+import asyncio
+import logging
+
+import pydase
+import pydase.components.device_connection
+from pytest import LogCaptureFixture
+
+from tests.utils.test_serializer import pytest
+
+logger = logging.getLogger(__name__)
+
+
+@pytest.mark.asyncio
+async def test_reconnection(caplog: LogCaptureFixture) -> None:
+    class MyService(pydase.components.device_connection.DeviceConnection):
+        def __init__(
+            self,
+        ) -> None:
+            super().__init__()
+            self._reconnection_wait_time = 0.01
+
+        def connect(self) -> None:
+            self._connected = True
+
+    service_instance = MyService()
+
+    assert service_instance._connected is False
+
+    service_instance._task_manager.start_autostart_tasks()
+
+    await asyncio.sleep(0.01)
+    assert service_instance._connected is True

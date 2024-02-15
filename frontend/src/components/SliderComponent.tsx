@@ -100,7 +100,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const [stepSizeMagnitude, stepSizeReadOnly] = deconstructNumberDict(stepSize);
 
   return (
-    <div className="sliderComponent" id={id}>
+    <div className="component sliderComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
