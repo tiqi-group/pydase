@@ -77,9 +77,9 @@ select = [
     "YTT",   # flake8-2020
     "W",     # pycodestyle warnings
 ]
+
+[tool.ruff.lint]
 ignore = [
-    "E203",     # whitespace-before-punctuation
-    "W292",     # missing-newline-at-end-of-file
     "PERF203",  # try-except-in-loop
 ]
 extend-exclude = [
