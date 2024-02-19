@@ -39,19 +39,16 @@ export const DataServiceComponent = React.memo(
       displayName = webSettings[fullAccessPath].displayName;
     }
 
-    return (
-      <div className="component dataServiceComponent" id={id}>
-        <Card>
-          <Card.Header
-            onClick={() => setOpen(!open)}
-            style={{ cursor: 'pointer' }} // Change cursor style on hover
-          >
-            {displayName} {open ? <ChevronDown /> : <ChevronRight />}
-          </Card.Header>
-          <Collapse in={open}>
-            <Card.Body>
-              {Object.entries(props).map(([key, value]) => {
-                return (
+    if (displayName !== '') {
+      return (
+        <div className="component dataServiceComponent" id={id}>
+          <Card>
+            <Card.Header onClick={() => setOpen(!open)} style={{ cursor: 'pointer' }}>
+              {displayName} {open ? <ChevronDown /> : <ChevronRight />}
+            </Card.Header>
+            <Collapse in={open}>
+              <Card.Body>
+                {Object.entries(props).map(([key, value]) => (
                   <GenericComponent
                     key={key}
                     attribute={value}
@@ -60,12 +57,27 @@ export const DataServiceComponent = React.memo(
                     isInstantUpdate={isInstantUpdate}
                     addNotification={addNotification}
                   />
-                );
-              })}
-            </Card.Body>
-          </Collapse>
-        </Card>
-      </div>
-    );
+                ))}
+              </Card.Body>
+            </Collapse>
+          </Card>
+        </div>
+      );
+    } else {
+      return (
+        <div className="component dataServiceComponent" id={id}>
+          {Object.entries(props).map(([key, value]) => (
+            <GenericComponent
+              key={key}
+              attribute={value}
+              name={key}
+              parentPath={fullAccessPath}
+              isInstantUpdate={isInstantUpdate}
+              addNotification={addNotification}
+            />
+          ))}
+        </div>
+      );
+    }
   }
 );
