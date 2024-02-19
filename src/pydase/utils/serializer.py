@@ -25,6 +25,10 @@ class SerializationValueError(Exception):
     pass
 
 
+class KeywordArgumentError(Exception):
+    pass
+
+
 class Serializer:
     @staticmethod
     def serialize_object(obj: Any) -> dict[str, Any]:
@@ -136,19 +140,55 @@ class Serializer:
 
         # Store parameters and their anotations in a dictionary
         sig = inspect.signature(obj)
-        parameters: dict[str, str | None] = {}
+        parameters: dict[str, dict[str, Any]] = {}
 
         for k, v in sig.parameters.items():
-            annotation = v.annotation
-            if annotation is not inspect._empty:
-                if isinstance(annotation, type):
-                    # Handle regular types
-                    parameters[k] = annotation.__name__
+            default_value = v.default
+            if default_value is None:
+                raise KeywordArgumentError(
+                    f"Default value for keyword {k!r} of function {obj.__name__!r} "
+                    "cannot be 'None'."
+                )
+
+            if default_value is inspect.Parameter.empty:
+                annotation = v.annotation
+                if annotation is not inspect._empty:
+                    if annotation is None:
+                        raise KeywordArgumentError(
+                            f"Type hint of keyword {k!r} of function {obj.__name__!r} "
+                            "cannot be 'None'."
+                        )
+                    if issubclass(annotation, u.Quantity):
+                        raise KeywordArgumentError(
+                            f"Keyword {k!r} of function {obj.__name__!r} needs default "
+                            "argument. Quantity objects have no obvious default value."
+                        )
+
+                    if annotation == str:
+                        default_value = ""
+                    elif annotation == int:
+                        default_value = 0
+                    elif annotation == float:
+                        default_value = 0.0
+                    elif annotation == bool:
+                        default_value = False
+                    elif issubclass(annotation, Enum):
+                        default_value = next(iter(annotation))
+                    else:
+                        raise KeywordArgumentError(
+                            f"Type of keyword {k!r} of function {obj.__name__} should "
+                            "be a simple type (str, int, float, bool, Enum, Quantity)."
+                        )
                 else:
-                    # Union, string annotation, Literal types, ...
-                    parameters[k] = str(annotation)
-            else:
-                parameters[k] = None
+                    logger.warning(
+                        "Keyword %a of function %a has no type hint. "
+                        "Defaulting to float...",
+                        k,
+                        obj.__name__,
+                    )
+                    default_value = 0.0
+
+            parameters[k] = dump(default_value)
 
         return {
             "type": obj_type,
