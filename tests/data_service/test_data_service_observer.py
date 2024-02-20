@@ -94,3 +94,31 @@ def test_protected_or_private_change_logs(caplog: pytest.LogCaptureFixture) -> N
 
     service.subclass._name = "Hello"
     assert "'subclass._name' changed to 'Hello'" not in caplog.text
+
+
+def test_dynamic_list_entry_with_property(caplog: pytest.LogCaptureFixture) -> None:
+    class PropertyClass(pydase.DataService):
+        _name = "Hello"
+
+        @property
+        def name(self) -> str:
+            """The name property."""
+            return self._name
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.list_attr = []
+
+        def toggle_high_voltage(self) -> None:
+            self.list_attr = []
+            self.list_attr.append(PropertyClass())
+            self.list_attr[0]._name = "Hoooo"
+
+    service = MyService()
+    state_manager = StateManager(service)
+    DataServiceObserver(state_manager)
+    service.toggle_high_voltage()
+
+    assert "'list_attr[0].name' changed to 'Hello'" not in caplog.text
+    assert "'list_attr[0].name' changed to 'Hoooo'" in caplog.text
