@@ -23,6 +23,13 @@ class DataServiceObserver(PropertyObserver):
         super().__init__(state_manager.service)
 
     def on_change(self, full_access_path: str, value: Any) -> None:
+        if any(
+            full_access_path.startswith(changing_attribute)
+            and full_access_path != changing_attribute
+            for changing_attribute in self.changing_attributes
+        ):
+            return
+
         cached_value_dict = deepcopy(
             self.state_manager._data_service_cache.get_value_dict_from_cache(
                 full_access_path
