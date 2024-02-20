@@ -148,6 +148,7 @@ class _ObservableList(ObservableObject, list[Any]):
         self._notify_changed(f"[{key}]", value)
 
     def append(self, __object: Any) -> None:
+        self._notify_change_start("")
         self._initialise_new_objects(f"[{len(self)}]", __object)
         super().append(__object)
         self._notify_changed("", self)
