@@ -28,8 +28,8 @@ type AttributeType =
   | 'Image'
   | 'ColouredEnum';
 
-type ValueType = boolean | string | number | object;
-export type Attribute = {
+type ValueType = boolean | string | number | Record<string, unknown>;
+export type SerializedValue = {
   type: AttributeType;
   value?: ValueType | ValueType[];
   readonly: boolean;
@@ -39,7 +39,7 @@ export type Attribute = {
   enum?: Record<string, string>;
 };
 type GenericComponentProps = {
-  attribute: Attribute;
+  attribute: SerializedValue;
   name: string;
   parentPath: string;
   isInstantUpdate: boolean;
@@ -177,7 +177,7 @@ export const GenericComponent = React.memo(
       return (
         <ListComponent
           name={name}
-          value={attribute.value as Attribute[]}
+          value={attribute.value as SerializedValue[]}
           docString={attribute.doc}
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}

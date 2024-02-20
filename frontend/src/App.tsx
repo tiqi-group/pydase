@@ -8,9 +8,9 @@ import {
   LevelName
 } from './components/NotificationsComponent';
 import { ConnectionToast } from './components/ConnectionToast';
-import { SerializedValue, setNestedValueByPath, State } from './utils/stateUtils';
+import { setNestedValueByPath, State } from './utils/stateUtils';
 import { WebSettingsContext, WebSetting } from './WebSettings';
-import { Attribute, GenericComponent } from './components/GenericComponent';
+import { SerializedValue, GenericComponent } from './components/GenericComponent';
 
 type Action =
   | { type: 'SET_DATA'; data: State }
@@ -187,7 +187,7 @@ const App = () => {
           <GenericComponent
             name=""
             parentPath=""
-            attribute={state as Attribute}
+            attribute={state as SerializedValue}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}
           />

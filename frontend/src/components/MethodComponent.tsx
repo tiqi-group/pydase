@@ -5,11 +5,12 @@ import { Button, InputGroup, Form, Collapse } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
+import { GenericComponent, SerializedValue } from './GenericComponent';
 
 type MethodProps = {
   name: string;
   parentPath: string;
-  parameters: Record<string, string>;
+  parameters: Record<string, SerializedValue>;
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
