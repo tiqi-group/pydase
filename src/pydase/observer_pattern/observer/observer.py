@@ -14,10 +14,10 @@ class Observer(ABC):
         self.changing_attributes: list[str] = []
 
     def _notify_changed(self, changed_attribute: str, value: Any) -> None:
+        self.on_change(full_access_path=changed_attribute, value=value)
+
         if changed_attribute in self.changing_attributes:
             self.changing_attributes.remove(changed_attribute)
-
-        self.on_change(full_access_path=changed_attribute, value=value)
 
     def _notify_change_start(self, changing_attribute: str) -> None:
         self.changing_attributes.append(changing_attribute)
