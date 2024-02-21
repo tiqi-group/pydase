@@ -1,25 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import { DocStringComponent } from './DocStringComponent';
-import { Attribute, GenericComponent } from './GenericComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { SerializedValue, GenericComponent } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
 type ListComponentProps = {
   name: string;
   parentPath?: string;
-  value: Attribute[];
+  value: SerializedValue[];
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  id: string;
 };
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
-  const { name, parentPath, value, docString, isInstantUpdate, addNotification } =
+  const { name, parentPath, value, docString, isInstantUpdate, addNotification, id } =
     props;
 
   const renderCount = useRef(0);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
 
   useEffect(() => {
     renderCount.current++;

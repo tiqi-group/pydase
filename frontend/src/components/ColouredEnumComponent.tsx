@@ -1,8 +1,6 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 type ColouredEnumComponentProps = {
@@ -19,35 +17,32 @@ type ColouredEnumComponentProps = {
     prefix?: string,
     callback?: (ack: unknown) => void
   ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
   const {
-    name,
-    parentPath: parentPath,
     value,
     docString,
     enumDict,
     readOnly,
     addNotification,
-    changeCallback = () => {}
+    changeCallback = () => {},
+    displayName,
+    id
   } = props;
   const renderCount = useRef(0);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   useEffect(() => {
     renderCount.current++;
   });
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
 
   return (

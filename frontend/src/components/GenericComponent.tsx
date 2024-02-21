@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ButtonComponent } from './ButtonComponent';
 import { NumberComponent } from './NumberComponent';
 import { SliderComponent } from './SliderComponent';
@@ -12,6 +12,8 @@ import { DeviceConnectionComponent } from './DeviceConnection';
 import { ImageComponent } from './ImageComponent';
 import { ColouredEnumComponent } from './ColouredEnumComponent';
 import { LevelName } from './NotificationsComponent';
+import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { WebSettingsContext } from '../WebSettings';
 import { setAttribute } from '../socket';
 
 type AttributeType =
@@ -35,7 +37,7 @@ export type SerializedValue = {
   value?: ValueType | ValueType[];
   readonly: boolean;
   doc?: string | null;
-  parameters?: Record<string, string>;
+  parameters?: Record<string, SerializedValue>;
   async?: boolean;
   enum?: Record<string, string>;
 };
@@ -55,6 +57,14 @@ export const GenericComponent = React.memo(
     isInstantUpdate,
     addNotification
   }: GenericComponentProps) => {
+    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+    const id = getIdFromFullAccessPath(fullAccessPath);
+    const webSettings = useContext(WebSettingsContext);
+    let displayName = name;
+
+    if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
+      displayName = webSettings[fullAccessPath].displayName;
+    }
 
     function changeCallback(
       value: unknown,
@@ -75,6 +85,8 @@ export const GenericComponent = React.memo(
           value={Boolean(attribute.value)}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'float' || attribute.type === 'int') {
@@ -89,6 +101,8 @@ export const GenericComponent = React.memo(
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'Quantity') {
@@ -104,6 +118,8 @@ export const GenericComponent = React.memo(
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'NumberSlider') {
@@ -120,6 +136,8 @@ export const GenericComponent = React.memo(
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'Enum') {
@@ -132,6 +150,8 @@ export const GenericComponent = React.memo(
           enumDict={attribute.enum}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'method') {
@@ -143,6 +163,8 @@ export const GenericComponent = React.memo(
             docString={attribute.doc}
             parameters={attribute.parameters}
             addNotification={addNotification}
+            displayName={displayName}
+            id={id}
           />
         );
       } else {
@@ -154,6 +176,8 @@ export const GenericComponent = React.memo(
             parameters={attribute.parameters}
             value={attribute.value as Record<string, string>}
             addNotification={addNotification}
+            displayName={displayName}
+            id={id}
           />
         );
       }
@@ -168,6 +192,8 @@ export const GenericComponent = React.memo(
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'DataService') {
@@ -178,6 +204,8 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'DeviceConnection') {
@@ -188,6 +216,8 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'list') {
@@ -199,6 +229,7 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          id={id}
         />
       );
     } else if (attribute.type === 'Image') {
@@ -212,6 +243,8 @@ export const GenericComponent = React.memo(
           // Add any other specific props for the ImageComponent here
           format={attribute.value['format']['value'] as string}
           addNotification={addNotification}
+          displayName={displayName}
+          id={id}
         />
       );
     } else if (attribute.type === 'ColouredEnum') {
@@ -225,6 +258,8 @@ export const GenericComponent = React.memo(
           enumDict={attribute.enum}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
         />
       );
     } else {

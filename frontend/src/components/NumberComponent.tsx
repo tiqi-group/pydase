@@ -1,7 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef } from 'react';
 import '../App.css';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 import { NumberInputField } from './NumberInputField';
 
@@ -39,7 +37,6 @@ type NumberComponentProps = {
   docString: string;
   isInstantUpdate: boolean;
   unit?: string;
-  showName?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   changeCallback?: (
     value: unknown,
@@ -47,37 +44,31 @@ type NumberComponentProps = {
     prefix?: string,
     callback?: (ack: unknown) => void
   ) => void;
+  displayName?: string;
+  id: string;
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const {
-    name,
     value,
-    parentPath,
     readOnly,
     docString,
     isInstantUpdate,
     unit,
     addNotification,
-    changeCallback = () => {}
+    changeCallback = () => {},
+    displayName,
+    id
   } = props;
 
-  // Whether to show the name infront of the component (false if used with a slider)
-  const showName = props.showName !== undefined ? props.showName : true;
-
   const renderCount = useRef(0);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   useEffect(() => {
     // emitting notification
-    let notificationMsg = `${parentPath}.${name} changed to ${props.value}`;
+    let notificationMsg = `${fullAccessPath} changed to ${props.value}`;
     if (unit === undefined) {
       notificationMsg += '.';
     } else {
@@ -94,7 +85,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       <NumberInputField
         name={fullAccessPath}
         value={value}
-        displayName={showName === true ? displayName : null}
+        displayName={displayName}
         unit={unit}
         readOnly={readOnly}
         type={props.type}

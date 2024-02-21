@@ -1,10 +1,8 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { runMethod } from '../socket';
 import { InputGroup, Form, Button } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
-import { WebSettingsContext } from '../WebSettings';
 
 type AsyncMethodProps = {
   name: string;
@@ -14,20 +12,23 @@ type AsyncMethodProps = {
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  displayName: string;
+  id: string;
 };
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
-  const { name, parentPath, docString, value: runningTask, addNotification } = props;
+  const {
+    name,
+    parentPath,
+    docString,
+    value: runningTask,
+    addNotification,
+    displayName,
+    id
+  } = props;
   const renderCount = useRef(0);
   const formRef = useRef(null);
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
 
   useEffect(() => {
     renderCount.current++;
@@ -51,13 +52,13 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     let message: string;
 
     if (runningTask === null) {
-      message = `${parentPath}.${name} task was stopped.`;
+      message = `${fullAccessPath} task was stopped.`;
     } else {
       const runningTaskEntries = Object.entries(runningTask)
         .map(([key, value]) => `${key}: "${value}"`)
         .join(', ');
 
-      message = `${parentPath}.${name} was started with parameters { ${runningTaskEntries} }.`;
+      message = `${fullAccessPath} was started with parameters { ${runningTaskEntries} }.`;
     }
     addNotification(message);
   }, [props.value]);

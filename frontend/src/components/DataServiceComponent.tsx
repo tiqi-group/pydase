@@ -1,11 +1,9 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import React from 'react';
 import { Card, Collapse } from 'react-bootstrap';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
-import { Attribute, GenericComponent } from './GenericComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
+import { SerializedValue, GenericComponent } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
-import { WebSettingsContext } from '../WebSettings';
 
 type DataServiceProps = {
   name: string;
@@ -13,31 +11,24 @@ type DataServiceProps = {
   parentPath?: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  displayName: string;
+  id: string;
 };
 
-export type DataServiceJSON = Record<string, Attribute>;
+export type DataServiceJSON = Record<string, SerializedValue>;
 
 export const DataServiceComponent = React.memo(
   ({
     name,
     props,
-    parentPath = '',
+    parentPath = undefined,
     isInstantUpdate,
-    addNotification
+    addNotification,
+    displayName,
+    id
   }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
-    let fullAccessPath = parentPath;
-    if (name) {
-      fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-    }
-    const id = getIdFromFullAccessPath(fullAccessPath);
-
-    const webSettings = useContext(WebSettingsContext);
-    let displayName = fullAccessPath;
-
-    if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-      displayName = webSettings[fullAccessPath].displayName;
-    }
+    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
     if (displayName !== '') {
       return (
