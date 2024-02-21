@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
@@ -23,16 +23,27 @@ type ColouredEnumComponentProps = {
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
   const {
+    name,
     value,
     docString,
     enumDict,
     readOnly,
     addNotification,
-    changeCallback = () => {},
     displayName,
     id
   } = props;
+  let { changeCallback } = props;
+  if (changeCallback === undefined) {
+    changeCallback = (value: string) => {
+      setEnumValue(() => {
+        return value;
+      });
+    };
+  }
+
   const renderCount = useRef(0);
+  const [enumValue, setEnumValue] = useState(value);
+
   const fullAccessPath = [props.parentPath, props.name]
     .filter((element) => element)
     .join('.');
@@ -42,6 +53,9 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
   });
 
   useEffect(() => {
+    setEnumValue(() => {
+      return props.value;
+    });
     addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
 
@@ -59,16 +73,18 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control
-              value={value}
+              value={enumValue}
+              name={name}
               disabled={true}
-              style={{ backgroundColor: enumDict[value] }}
+              style={{ backgroundColor: enumDict[enumValue] }}
             />
           ) : (
             // Display the Form.Select when readOnly is false
             <Form.Select
               aria-label="coloured-enum-select"
-              value={value}
-              style={{ backgroundColor: enumDict[value] }}
+              value={enumValue}
+              name={name}
+              style={{ backgroundColor: enumDict[enumValue] }}
               onChange={(event) => changeCallback(event.target.value)}>
               {Object.entries(enumDict).map(([key]) => (
                 <option key={key} value={key}>
