@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { WebSettingsContext } from '../WebSettings';
 import { ToggleButton } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
@@ -14,10 +13,24 @@ type ButtonComponentProps = {
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
-  const { name, parentPath, value, readOnly, docString, addNotification } = props;
+  const {
+    name,
+    parentPath,
+    value,
+    readOnly,
+    docString,
+    addNotification,
+    changeCallback = () => {}
+  } = props;
   // const buttonName = props.mapping ? (value ? props.mapping[0] : props.mapping[1]) : name;
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
@@ -39,7 +52,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   }, [props.value]);
 
   const setChecked = (checked: boolean) => {
-    setAttribute(name, parentPath, checked);
+    changeCallback(checked);
   };
 
   return (

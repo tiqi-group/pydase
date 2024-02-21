@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
@@ -13,6 +12,12 @@ type EnumComponentProps = {
   docString?: string;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
@@ -22,7 +27,8 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
     value,
     docString,
     enumDict,
-    addNotification
+    addNotification,
+    changeCallback = () => {}
   } = props;
 
   const renderCount = useRef(0);
@@ -43,10 +49,6 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
     addNotification(`${parentPath}.${name} changed to ${value}.`);
   }, [props.value]);
 
-  const handleValueChange = (newValue: string) => {
-    setAttribute(name, parentPath, newValue);
-  };
-
   return (
     <div className={'component enumComponent'} id={id}>
       {process.env.NODE_ENV === 'development' && (
@@ -61,7 +63,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
           <Form.Select
             aria-label="Default select example"
             value={value}
-            onChange={(event) => handleValueChange(event.target.value)}>
+            onChange={(event) => changeCallback(event.target.value)}>
             {Object.entries(enumDict).map(([key, val]) => (
               <option key={key} value={key}>
                 {key} - {val}

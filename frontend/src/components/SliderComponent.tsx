@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent, NumberObject } from './NumberComponent';
@@ -19,6 +18,12 @@ type SliderComponentProps = {
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
@@ -33,7 +38,8 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     stepSize,
     docString,
     isInstantUpdate,
-    addNotification
+    addNotification,
+    changeCallback = () => {}
   } = props;
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
   const id = getIdFromFullAccessPath(fullAccessPath);
@@ -70,11 +76,11 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    setAttribute(`${name}.value`, parentPath, newNumber);
+    changeCallback(newNumber, `${name}.value`);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
-    setAttribute(`${name}.${valueType}`, parentPath, newValue);
+    changeCallback(newValue, `${name}.${valueType}`);
   };
 
   const deconstructNumberDict = (

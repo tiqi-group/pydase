@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { WebSettingsContext } from '../WebSettings';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
@@ -14,6 +13,12 @@ type ColouredEnumComponentProps = {
   readOnly: boolean;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
@@ -24,7 +29,8 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
     docString,
     enumDict,
     readOnly,
-    addNotification
+    addNotification,
+    changeCallback = () => {}
   } = props;
   const renderCount = useRef(0);
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
@@ -43,10 +49,6 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
   useEffect(() => {
     addNotification(`${parentPath}.${name} changed to ${value}.`);
   }, [props.value]);
-
-  const handleValueChange = (newValue: string) => {
-    setAttribute(name, parentPath, newValue);
-  };
 
   return (
     <div className={'component enumComponent'} id={id}>
@@ -72,7 +74,7 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
               aria-label="coloured-enum-select"
               value={value}
               style={{ backgroundColor: enumDict[value] }}
-              onChange={(event) => handleValueChange(event.target.value)}>
+              onChange={(event) => changeCallback(event.target.value)}>
               {Object.entries(enumDict).map(([key]) => (
                 <option key={key} value={key}>
                   {key}

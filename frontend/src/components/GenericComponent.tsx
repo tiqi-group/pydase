@@ -12,6 +12,7 @@ import { DeviceConnectionComponent } from './DeviceConnection';
 import { ImageComponent } from './ImageComponent';
 import { ColouredEnumComponent } from './ColouredEnumComponent';
 import { LevelName } from './NotificationsComponent';
+import { setAttribute } from '../socket';
 
 type AttributeType =
   | 'str'
@@ -54,6 +55,16 @@ export const GenericComponent = React.memo(
     isInstantUpdate,
     addNotification
   }: GenericComponentProps) => {
+
+    function changeCallback(
+      value: unknown,
+      attributeName: string = name,
+      prefix: string = parentPath,
+      callback: (ack: unknown) => void = undefined
+    ) {
+      setAttribute(attributeName, prefix, value, callback);
+    }
+
     if (attribute.type === 'bool') {
       return (
         <ButtonComponent
@@ -63,6 +74,7 @@ export const GenericComponent = React.memo(
           readOnly={attribute.readonly}
           value={Boolean(attribute.value)}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'float' || attribute.type === 'int') {
@@ -76,6 +88,7 @@ export const GenericComponent = React.memo(
           value={Number(attribute.value)}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'Quantity') {
@@ -90,6 +103,7 @@ export const GenericComponent = React.memo(
           unit={attribute.value['unit']}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'NumberSlider') {
@@ -105,6 +119,7 @@ export const GenericComponent = React.memo(
           stepSize={attribute.value['step_size']}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'Enum') {
@@ -116,6 +131,7 @@ export const GenericComponent = React.memo(
           value={String(attribute.value)}
           enumDict={attribute.enum}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'method') {
@@ -151,6 +167,7 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else if (attribute.type === 'DataService') {
@@ -207,6 +224,7 @@ export const GenericComponent = React.memo(
           readOnly={attribute.readonly}
           enumDict={attribute.enum}
           addNotification={addNotification}
+          changeCallback={changeCallback}
         />
       );
     } else {

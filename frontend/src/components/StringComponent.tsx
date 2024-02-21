@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
@@ -17,11 +16,24 @@ type StringComponentProps = {
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
-  const { name, parentPath, readOnly, docString, isInstantUpdate, addNotification } =
-    props;
+  const {
+    name,
+    parentPath,
+    readOnly,
+    docString,
+    isInstantUpdate,
+    addNotification,
+    changeCallback = () => {}
+  } = props;
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
@@ -49,19 +61,19 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleChange = (event) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
-      setAttribute(name, parentPath, event.target.value);
+      changeCallback(event.target.value);
     }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      setAttribute(name, parentPath, inputString);
+      changeCallback(inputString);
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      setAttribute(name, parentPath, inputString);
+      changeCallback(inputString);
     }
   };
 

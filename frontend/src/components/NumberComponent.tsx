@@ -4,7 +4,6 @@ import '../App.css';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 import { NumberInputField } from './NumberInputField';
-import { setAttribute } from '../socket';
 
 // TODO: add button functionality
 
@@ -42,6 +41,12 @@ type NumberComponentProps = {
   unit?: string;
   showName?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
 };
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
@@ -53,12 +58,10 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     docString,
     isInstantUpdate,
     unit,
-    addNotification
+    addNotification,
+    changeCallback = () => {}
   } = props;
 
-  function changeCallback(value: number) {
-    setAttribute(name, parentPath, value);
-  }
   // Whether to show the name infront of the component (false if used with a slider)
   const showName = props.showName !== undefined ? props.showName : true;
 
