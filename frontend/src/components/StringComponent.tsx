@@ -64,6 +64,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
       changeCallback(inputString);
+      event.preventDefault();
     }
   };
 
