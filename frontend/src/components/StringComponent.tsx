@@ -26,6 +26,7 @@ type StringComponentProps = {
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const {
+    name,
     readOnly,
     docString,
     isInstantUpdate,
@@ -84,6 +85,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         </InputGroup.Text>
         <Form.Control
           type="text"
+          name={name}
           value={inputString}
           disabled={readOnly}
           onChange={handleChange}
