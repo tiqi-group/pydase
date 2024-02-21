@@ -105,7 +105,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       <h5>Function: {displayName}</h5>
       <Form onSubmit={execute} ref={formRef}>
         {args}
-        <Button id={`button-${id}`} name={name} value={parentPath} type="submit">
+        <Button id={`button-${id}`} type="submit">
           {runningTask ? 'Stop ' : 'Start '}
           <DocStringComponent docString={docString} />
         </Button>
