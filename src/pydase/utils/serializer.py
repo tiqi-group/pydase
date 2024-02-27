@@ -7,6 +7,7 @@ from typing import Any, TypedDict
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
+from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.helpers import (
     function_has_arguments,
     get_attribute_doc,
@@ -244,8 +245,7 @@ class Serializer:
 
             # If there's a running task for this method
             if key in obj._task_manager.tasks:
-                task_info = obj._task_manager.tasks[key]
-                value[key]["value"] = task_info["kwargs"]
+                value[key]["value"] = TaskStatus.RUNNING.name
 
             # If the DataService attribute is a property
             if isinstance(getattr(obj.__class__, key, None), property):
