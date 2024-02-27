@@ -53,7 +53,7 @@
 
 <!--installation-start-->
 
-Install pydase using [`poetry`](https://python-poetry.org/):
+Install `pydase` using [`poetry`](https://python-poetry.org/):
 
 ```bash
 poetry add pydase
@@ -81,6 +81,7 @@ Here's an example:
 
 ```python
 from pydase import DataService, Server
+from pydase.utils.decorators import frontend
 
 
 class Device(DataService):
@@ -118,6 +119,7 @@ class Device(DataService):
         # run code to set power state
         self._power = value
 
+    @frontend
     def reset(self) -> None:
         self.current = 0.0
         self.voltage = 0.0
@@ -215,7 +217,8 @@ class MyService(pydase.DataService):
 
 ![Method Components](docs/images/method_components.png)
 
-I decided against supporting function arguments due to the following reasons:
+You can still define synchronous tasks with arguments and call them using a python client. However, decorating them with the `@frontend` decorator will raise a `FunctionDefinitionError`. Defining a task with arguments will raise a `TaskDefinitionError`.
+I decided against supporting function arguments for functions rendered in the frontend due to the following reasons:
 
 1. Feature Request Pitfall: supporting function arguments create a bottomless pit of feature requests. As users encounter the limitations of supported types, demands for extending support to more complex types would grow.
 2. Complexity in Supported Argument Types: while simple types like `int`, `float`, `bool` and `str` could be easily supported, more complicated types are not (representation, (de-)serialization).
@@ -232,9 +235,9 @@ from pydase import DataService, Server
 
 class Channel(DataService):
     def __init__(self, channel_id: int) -> None:
+        super().__init__()
         self._channel_id = channel_id
         self._current = 0.0
-        super().__init__()
 
     @property
     def current(self) -> float:
@@ -250,9 +253,8 @@ class Channel(DataService):
 
 class Device(DataService):
     def __init__(self) -> None:
-        self.channels = [Channel(i) for i in range(2)]
-
         super().__init__()
+        self.channels = [Channel(i) for i in range(2)]
 
 
 if __name__ == "__main__":
@@ -278,6 +280,36 @@ Below are the components available in the `pydase.components` module, accompanie
 The `DeviceConnection` component acts as a base class within the `pydase` framework for managing device connections. It provides a structured approach to handle connections by offering a customizable `connect` method and a `connected` property. This setup facilitates the implementation of automatic reconnection logic, which periodically attempts reconnection whenever the connection is lost.
 
 In the frontend, this class abstracts away the direct interaction with the `connect` method and the `connected` property. Instead, it showcases user-defined attributes, methods, and properties. When the `connected` status is `False`, the frontend displays an overlay that prompts manual reconnection through the `connect()` method. Successful reconnection removes the overlay.
+
+```python
+import pydase.components
+import pydase.units as u
+
+
+class Device(pydase.components.DeviceConnection):
+    def __init__(self) -> None:
+        super().__init__()
+        self._voltage = 10 * u.units.V
+
+    def connect(self) -> None:
+        if not self._connected:
+            self._connected = True
+
+    @property
+    def voltage(self) -> float:
+        return self._voltage
+
+
+class MyService(pydase.DataService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.device = Device()
+
+
+if __name__ == "__main__":
+    service_instance = MyService()
+    pydase.Server(service_instance).run()
+```
 
 ![DeviceConnection Component](docs/images/DeviceConnection_component.png)
 
@@ -324,7 +356,7 @@ class MyDeviceConnection(pydase.components.DeviceConnection):
 
 ##### Reconnection Interval
 
-The automatic reconnection feature checks for device availability at a default interval of every 10 seconds. This interval is adjustable by modifying the `_reconnection_wait_time` attribute on the class instance.
+The `DeviceConnection` component automatically executes a task that checks for device availability at a default interval of 10 seconds. This interval is adjustable by modifying the `_reconnection_wait_time` attribute on the class instance.
 
 #### `Image`
 
@@ -335,7 +367,6 @@ The component offers methods to load images seamlessly, ensuring that visual con
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
-
 import pydase
 from pydase.components.image import Image
 
@@ -413,12 +444,14 @@ class MySlider(pydase.components.NumberSlider):
 
     @property
     def value(self) -> float:
+        """Slider value."""
         return self._value
 
     @value.setter
     def value(self, value: float) -> None:
         if value < self._min or value > self._max:
             raise ValueError("Value is either below allowed min or above max value.")
+
         self._value = value
 
 
@@ -494,7 +527,7 @@ In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value`
 
 - Incorporating units in `NumberSlider`
 
-  The `NumberSlider` is capable of displaying units alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
+  The `NumberSlider` is capable of [displaying units](#understanding-units-in-pydase) alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
 
   Here's how to implement a `NumberSlider` with unit display:
 
@@ -629,9 +662,9 @@ Note: If the service class structure has changed since the last time its state w
 
 ## Understanding Tasks in pydase
 
-In `pydase`, a task is defined as an asynchronous function contained in a class that inherits from `DataService`. These tasks usually contain a while loop and are designed to carry out periodic functions.
+In `pydase`, a task is defined as an asynchronous function without arguments contained in a class that inherits from `DataService`. These tasks usually contain a while loop and are designed to carry out periodic functions.
 
-For example, a task might be used to periodically read sensor data, update a database, or perform any other recurring job. The core feature of `pydase` is its ability to automatically generate start and stop functions for these tasks. This allows you to control task execution via both the frontend and an `rpyc` client, giving you flexible and powerful control over your service's operation.
+For example, a task might be used to periodically read sensor data, update a database, or perform any other recurring job. One core feature of `pydase` is its ability to automatically generate start and stop functions for these tasks. This allows you to control task execution via both the frontend and python clients, giving you flexible and powerful control over your service's operation.
 
 Another powerful feature of `pydase` is its ability to automatically start tasks upon initialization of the service. By specifying the tasks and their arguments in the `_autostart_tasks` dictionary in your service class's `__init__` method, `pydase` will automatically start these tasks when the server is started. Here's an example:
 
@@ -640,9 +673,9 @@ from pydase import DataService, Server
 
 class SensorService(DataService):
     def __init__(self):
-        self.readout_frequency = 1.0
-        self._autostart_tasks["read_sensor_data"] = ()  # args passed to the function go there
         super().__init__()
+        self.readout_frequency = 1.0
+        self._autostart_tasks["read_sensor_data"] = ()
 
     def _process_data(self, data: ...) -> None:
         ...
@@ -662,22 +695,22 @@ if __name__ == "__main__":
     Server(service).run()
 ```
 
-In this example, `read_sensor_data` is a task that continuously reads data from a sensor. The readout frequency can be updated using the `readout_frequency` attribute.
-By listing it in the `_autostart_tasks` dictionary, it will automatically start running when `Server(service).run()` is executed.
-As with all tasks, `pydase` will also generate `start_read_sensor_data` and `stop_read_sensor_data` methods, which can be called to manually start and stop the data reading task.
+In this example, `read_sensor_data` is a task that continuously reads data from a sensor. By adding it to the `_autostart_tasks` dictionary, it will automatically start running when `Server(service).run()` is executed.
+As with all tasks, `pydase` will generate `start_read_sensor_data` and `stop_read_sensor_data` methods, which can be called to manually start and stop the data reading task. The readout frequency can be updated using the `readout_frequency` attribute.
 
 ## Understanding Units in pydase
 
 `pydase` integrates with the [`pint`](https://pint.readthedocs.io/en/stable/) package to allow you to work with physical quantities within your service. This enables you to define attributes with units, making your service more expressive and ensuring consistency in the handling of physical quantities.
 
-You can define quantities in your `DataService` subclass using `pydase`'s `units` functionality. These quantities can be set and accessed like regular attributes, and `pydase` will automatically handle the conversion between floats and quantities with units.
+You can define quantities in your `DataService` subclass using `pydase`'s `units` functionality.
 
 Here's an example:
 
 ```python
 from typing import Any
-from pydase import DataService, Server
+
 import pydase.units as u
+from pydase import DataService, Server
 
 
 class ServiceClass(DataService):
@@ -689,17 +722,15 @@ class ServiceClass(DataService):
         return self._current
 
     @current.setter
-    def current(self, value: Any) -> None:
+    def current(self, value: u.Quantity) -> None:
         self._current = value
 
 
 if __name__ == "__main__":
     service = ServiceClass()
 
-    # You can just set floats to the Quantity objects. The DataService __setattr__ will
-    # automatically convert this
-    service.voltage = 10.0
-    service.current = 1.5
+    service.voltage = 10.0 * u.units.V
+    service.current = 1.5 * u.units.mA
 
     Server(service).run()
 ```
