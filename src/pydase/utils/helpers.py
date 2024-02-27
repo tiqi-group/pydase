@@ -1,5 +1,6 @@
 import inspect
 import logging
+from collections.abc import Callable
 from itertools import chain
 from typing import Any
 
@@ -196,3 +197,15 @@ def get_data_service_class_reference() -> Any:
 
 def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
     return isinstance(getattr(type(target_obj), attr_name, None), property)
+
+
+def function_has_arguments(func: Callable[..., Any]) -> bool:
+    sig = inspect.signature(func)
+    parameters = dict(sig.parameters)
+    # Remove 'self' parameter for instance methods.
+    parameters.pop("self", None)
+
+    # Check if there are any parameters left which would indicate additional arguments.
+    if len(parameters) > 0:
+        return True
+    return False
