@@ -60,7 +60,7 @@ def render_in_frontend(func: Callable[..., Any]) -> bool:
 
     It checks if the "@frontend" decorator was used or the method is a coroutine."""
 
-    if inspect.iscoroutine(func):
+    if inspect.iscoroutinefunction(func):
         return True
 
     try:
