@@ -191,7 +191,6 @@ class Serializer:
 
         for k, v in sig.parameters.items():
             signature["parameters"][k] = {
-                "name": v.name,
                 "annotation": str(v.annotation),
                 "default": dump(v.default) if v.default != inspect._empty else {},
             }
