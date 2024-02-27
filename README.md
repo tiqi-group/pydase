@@ -213,6 +213,8 @@ class MyService(pydase.DataService):
             # ...
 ```
 
+![Method Components](docs/images/method_components.png)
+
 I decided against supporting function arguments due to the following reasons:
 
 1. Feature Request Pitfall: supporting function arguments create a bottomless pit of feature requests. As users encounter the limitations of supported types, demands for extending support to more complex types would grow.
