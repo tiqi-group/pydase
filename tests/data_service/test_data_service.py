@@ -8,7 +8,7 @@ from pydase import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.data_service.task_manager import TaskDefinitionError
-from pydase.utils.serializer import FunctionDefinitionError, frontend
+from pydase.utils.decorators import FunctionDefinitionError, frontend
 from pytest import LogCaptureFixture
 
 

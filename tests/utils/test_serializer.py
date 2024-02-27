@@ -7,10 +7,10 @@ import pydase.units as u
 import pytest
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.task_manager import TaskStatus
+from pydase.utils.decorators import frontend
 from pydase.utils.serializer import (
     SerializationPathError,
     dump,
-    frontend,
     get_nested_dict_by_path,
     get_next_level_dict_by_key,
     serialized_dict_is_nested_object,
