@@ -204,6 +204,7 @@ class Serializer:
         readonly = False
         doc = get_attribute_doc(obj)
         obj_type = "DataService"
+        obj_name = obj.__class__.__name__
 
         # Get component base class if any
         component_base_cls = next(
@@ -252,6 +253,7 @@ class Serializer:
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc
 
         return {
+            "name": obj_name,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
