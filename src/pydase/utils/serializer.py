@@ -29,6 +29,23 @@ class KeywordArgumentError(Exception):
     pass
 
 
+# TODO: This decorator might be used on objects other than functions
+def no_frontend(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to mark a DataService method as excluded from frontend rendering."""
+
+    func._hide_from_frontend = True  # type: ignore
+    return func
+
+
+def render_in_frontend(func: Callable[..., Any]) -> bool:
+    """Determines if the method is not decorated with the `@no_frontend` decorator."""
+
+    try:
+        return func._hide_from_frontend  # type: ignore
+    except AttributeError:
+        return True
+
+
 class Serializer:
     @staticmethod
     def serialize_object(obj: Any) -> dict[str, Any]:
@@ -197,6 +214,7 @@ class Serializer:
             "doc": doc,
             "async": inspect.iscoroutinefunction(obj),
             "parameters": parameters,
+            "frontend_render": render_in_frontend(obj),
         }
 
     @staticmethod
