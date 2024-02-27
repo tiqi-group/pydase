@@ -29,21 +29,39 @@ class KeywordArgumentError(Exception):
     pass
 
 
-# TODO: This decorator might be used on objects other than functions
-def no_frontend(func: Callable[..., Any]) -> Callable[..., Any]:
-    """Decorator to mark a DataService method as excluded from frontend rendering."""
+def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Decorator to mark a DataService method for frontend rendering. Ensures that the
+    method does not contain arguments, as they are not supported for frontend rendering.
+    """
 
-    func._hide_from_frontend = True  # type: ignore
+    sig = inspect.signature(func)
+    parameters = dict(sig.parameters)
+    # Remove 'self' parameter for instance methods.
+    parameters.pop("self", None)
+
+    # Check if there are any parameters left which would indicate additional arguments.
+    if len(parameters) > 0:
+        parameter_list = ", ".join([f"{name!r}" for name, _ in parameters.items()])
+        raise Exception(
+            "The @frontend decorator requires functions without arguments. Function "
+            f"'{func.__name__}' has argument(s): {parameter_list}. "
+            "Please remove the argument(s) from this function to use it with the "
+            "@frontend decorator."
+        )
+
+    # Mark the function for frontend display.
+    func._display_in_frontend = True
     return func
 
 
 def render_in_frontend(func: Callable[..., Any]) -> bool:
-    """Determines if the method is not decorated with the `@no_frontend` decorator."""
+    """Determines if the method is decorated with the `@frontend` decorator."""
 
     try:
-        return func._hide_from_frontend  # type: ignore
+        return func._display_in_frontend  # type: ignore
     except AttributeError:
-        return True
+        return False
 
 
 class Serializer:
