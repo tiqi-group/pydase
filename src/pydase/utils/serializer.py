@@ -8,6 +8,7 @@ from typing import Any, TypedDict
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.utils.helpers import (
+    function_has_arguments,
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
@@ -35,17 +36,10 @@ def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
     method does not contain arguments, as they are not supported for frontend rendering.
     """
 
-    sig = inspect.signature(func)
-    parameters = dict(sig.parameters)
-    # Remove 'self' parameter for instance methods.
-    parameters.pop("self", None)
-
-    # Check if there are any parameters left which would indicate additional arguments.
-    if len(parameters) > 0:
-        parameter_list = ", ".join([f"{name!r}" for name, _ in parameters.items()])
+    if function_has_arguments(func):
         raise Exception(
             "The @frontend decorator requires functions without arguments. Function "
-            f"'{func.__name__}' has argument(s): {parameter_list}. "
+            f"'{func.__name__}' has at least one argument. "
             "Please remove the argument(s) from this function to use it with the "
             "@frontend decorator."
         )
