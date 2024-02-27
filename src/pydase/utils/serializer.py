@@ -56,7 +56,12 @@ def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
 
 
 def render_in_frontend(func: Callable[..., Any]) -> bool:
-    """Determines if the method is decorated with the `@frontend` decorator."""
+    """Determines if the method should be rendered in the frontend.
+
+    It checks if the "@frontend" decorator was used or the method is a coroutine."""
+
+    if inspect.iscoroutine(func):
+        return True
 
     try:
         return func._display_in_frontend  # type: ignore
