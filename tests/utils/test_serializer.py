@@ -6,9 +6,11 @@ import pydase
 import pydase.units as u
 import pytest
 from pydase.components.coloured_enum import ColouredEnum
+from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.serializer import (
     SerializationPathError,
     dump,
+    frontend,
     get_nested_dict_by_path,
     get_next_level_dict_by_key,
     serialized_dict_is_nested_object,
@@ -133,29 +135,34 @@ async def test_method_serialization() -> None:
         def some_method(self) -> str:
             return "some method"
 
-        async def some_task(self, sleep_time: int) -> None:
+        async def some_task(self) -> None:
             while True:
-                await asyncio.sleep(sleep_time)
+                await asyncio.sleep(10)
 
     instance = ClassWithMethod()
-    instance.start_some_task(10)  # type: ignore
+    instance.start_some_task()  # type: ignore
 
     assert dump(instance)["value"] == {
         "some_method": {
-            "async": False,
-            "doc": None,
-            "parameters": {},
-            "readonly": True,
             "type": "method",
             "value": None,
+            "readonly": True,
+            "doc": None,
+            "async": False,
+            "signature": {"parameters": {}, "return_annotation": {}},
+            "frontend_render": False,
         },
         "some_task": {
-            "async": True,
-            "doc": None,
-            "parameters": {"sleep_time": "int"},
-            "readonly": True,
             "type": "method",
-            "value": {"sleep_time": 10},
+            "value": TaskStatus.RUNNING.name,
+            "readonly": True,
+            "doc": None,
+            "async": True,
+            "signature": {
+                "parameters": {},
+                "return_annotation": {},
+            },
+            "frontend_render": True,
         },
     }
 
@@ -173,28 +180,79 @@ def test_methods_with_type_hints() -> None:
     assert dump(method_without_type_hint) == {
         "async": False,
         "doc": None,
-        "parameters": {"arg_without_type_hint": None},
+        "signature": {
+            "parameters": {
+                "arg_without_type_hint": {
+                    "annotation": "<class 'inspect._empty'>",
+                    "default": {},
+                }
+            },
+            "return_annotation": {},
+        },
         "readonly": True,
         "type": "method",
         "value": None,
+        "frontend_render": False,
     }
 
     assert dump(method_with_type_hint) == {
-        "async": False,
-        "doc": None,
-        "parameters": {"some_argument": "int"},
-        "readonly": True,
         "type": "method",
         "value": None,
+        "readonly": True,
+        "doc": None,
+        "async": False,
+        "signature": {
+            "parameters": {
+                "some_argument": {"annotation": "<class 'int'>", "default": {}}
+            },
+            "return_annotation": {},
+        },
+        "frontend_render": False,
+    }
+    assert dump(method_with_union_type_hint) == {
+        "type": "method",
+        "value": None,
+        "readonly": True,
+        "doc": None,
+        "async": False,
+        "signature": {
+            "parameters": {
+                "some_argument": {"annotation": "int | float", "default": {}}
+            },
+            "return_annotation": {},
+        },
+        "frontend_render": False,
     }
 
-    assert dump(method_with_union_type_hint) == {
-        "async": False,
-        "doc": None,
-        "parameters": {"some_argument": "int | float"},
-        "readonly": True,
+
+def test_exposed_function_serialization() -> None:
+    class MyService(pydase.DataService):
+        @frontend
+        def some_method(self) -> None:
+            pass
+
+    @frontend
+    def some_function() -> None:
+        pass
+
+    assert dump(MyService().some_method) == {
         "type": "method",
         "value": None,
+        "readonly": True,
+        "doc": None,
+        "async": False,
+        "signature": {"parameters": {}, "return_annotation": {}},
+        "frontend_render": True,
+    }
+
+    assert dump(some_function) == {
+        "type": "method",
+        "value": None,
+        "readonly": True,
+        "doc": None,
+        "async": False,
+        "signature": {"parameters": {}, "return_annotation": {}},
+        "frontend_render": True,
     }
 
 
@@ -224,6 +282,7 @@ def test_list_serialization() -> None:
                     "doc": None,
                     "readonly": False,
                     "type": "DataService",
+                    "name": "MySubclass",
                     "value": {
                         "bool_attr": {
                             "doc": None,
@@ -268,6 +327,7 @@ def test_dict_serialization() -> None:
         "type": "dict",
         "value": {
             "DataService_key": {
+                "name": "MyClass",
                 "doc": None,
                 "readonly": False,
                 "type": "DataService",
@@ -317,9 +377,14 @@ def test_derived_data_service_serialization() -> None:
     class DerivedService(BaseService):
         ...
 
-    base_instance = BaseService()
-    service_instance = DerivedService()
-    assert service_instance.serialize() == base_instance.serialize()
+    base_service_serialization = dump(BaseService())
+    derived_service_serialization = dump(DerivedService())
+
+    # Names of the classes obviously differ
+    base_service_serialization.pop("name")
+    derived_service_serialization.pop("name")
+
+    assert base_service_serialization == derived_service_serialization
 
 
 @pytest.fixture
