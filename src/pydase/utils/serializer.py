@@ -27,7 +27,7 @@ class SerializationValueError(Exception):
     pass
 
 
-class KeywordArgumentError(Exception):
+class FunctionDefinitionError(Exception):
     pass
 
 
@@ -38,7 +38,7 @@ def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
     """
 
     if function_has_arguments(func):
-        raise Exception(
+        raise FunctionDefinitionError(
             "The @frontend decorator requires functions without arguments. Function "
             f"'{func.__name__}' has at least one argument. "
             "Please remove the argument(s) from this function to use it with the "
@@ -46,7 +46,7 @@ def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
         )
 
     # Mark the function for frontend display.
-    func._display_in_frontend = True
+    func._display_in_frontend = True  # type: ignore
     return func
 
 
