@@ -7,7 +7,7 @@ import { LevelName } from './NotificationsComponent';
 type AsyncMethodProps = {
   name: string;
   parentPath: string;
-  value: Record<string, string>;
+  value: 'RUNNING' | null;
   docString?: string;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
@@ -38,33 +38,12 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
   useEffect(() => {
     renderCount.current++;
-
-    // updates the value of each form control that has a matching name in the
-    // runningTask object
-    if (runningTask) {
-      const formElement = formRef.current;
-      if (formElement) {
-        Object.entries(runningTask).forEach(([name, value]) => {
-          const inputElement = formElement.elements.namedItem(name);
-          if (inputElement) {
-            inputElement.value = value;
-          }
-        });
-      }
-    }
-  }, [runningTask]);
-
-  useEffect(() => {
     let message: string;
 
     if (runningTask === null) {
       message = `${fullAccessPath} task was stopped.`;
     } else {
-      const runningTaskEntries = Object.entries(runningTask)
-        .map(([key, value]) => `${key}: "${value}"`)
-        .join(', ');
-
-      message = `${fullAccessPath} was started with parameters { ${runningTaskEntries} }.`;
+      message = `${fullAccessPath} was started.`;
     }
     addNotification(message);
   }, [props.value]);
@@ -94,7 +73,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
             <DocStringComponent docString={docString} />
           </InputGroup.Text>
           <Button id={`button-${id}`} type="submit">
-            {runningTask ? 'Stop ' : 'Start '}
+            {runningTask === 'RUNNING' ? 'Stop ' : 'Start '}
           </Button>
         </InputGroup>
       </Form>
