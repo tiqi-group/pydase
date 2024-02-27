@@ -191,11 +191,32 @@ In `pydase`, components are fundamental building blocks that bridge the Python b
 - `enum.Enum`: Presented as an `EnumComponent`, facilitating dropdown selection.
 
 ### Method Components
+Within the `DataService` class of `pydase`, only methods devoid of arguments can be represented in the frontend, classified into two distinct categories
 
-Methods within the `DataService` class have frontend representations:
+1. [**Tasks**](#understanding-tasks-in-pydase): Argument-free asynchronous functions, identified within `pydase` as tasks, are inherently designed for frontend interaction. These tasks are automatically rendered with a start/stop button, allowing users to initiate or halt the task execution directly from the web interface. 
+2. **Synchronous Methods with `@frontend` Decorator**: Synchronous methods without arguments can also be presented in the frontend. For this, they have to be decorated with the `@frontend` decorator.
 
-- Regular Methods: These are rendered as a `MethodComponent` in the frontend, allowing users to execute the method via an "execute" button.
-- Asynchronous Methods: These are manifested as the `AsyncMethodComponent` with "start"/"stop" buttons to manage the execution of [tasks](#understanding-tasks-in-pydase).
+```python
+import pydase
+import pydase.components
+import pydase.units as u
+from pydase.utils.decorators import frontend
+
+
+class MyService(pydase.DataService):
+    @frontend
+    def exposed_method(self) -> None:
+        ...
+
+    async def my_task(self) -> None:
+        while True:
+            # ...
+```
+
+I decided against supporting function arguments due to the following reasons:
+
+1. Feature Request Pitfall: supporting function arguments create a bottomless pit of feature requests. As users encounter the limitations of supported types, demands for extending support to more complex types would grow.
+2. Complexity in Supported Argument Types: while simple types like `int`, `float`, `bool` and `str` could be easily supported, more complicated types are not (representation, (de-)serialization).
 
 ### DataService Instances (Nested Classes)
 
