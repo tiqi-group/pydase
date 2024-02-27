@@ -38,11 +38,11 @@ export const DeviceConnectionComponent = React.memo(
             <MethodComponent
               name="connect"
               parentPath={fullAccessPath}
-              parameters={connect.parameters}
               docString={connect.doc}
               addNotification={addNotification}
               displayName={'reconnect'}
               id={id + '-connect'}
+              render={true}
             />
           </div>
         )}

@@ -37,8 +37,8 @@ export type SerializedValue = {
   value?: ValueType | ValueType[];
   readonly: boolean;
   doc?: string | null;
-  parameters?: Record<string, SerializedValue>;
   async?: boolean;
+  frontend_render?: boolean;
   enum?: Record<string, string>;
 };
 type GenericComponentProps = {
@@ -147,6 +147,7 @@ export const GenericComponent = React.memo(
           parentPath={parentPath}
           docString={attribute.doc}
           value={String(attribute.value)}
+          readOnly={attribute.readonly}
           enumDict={attribute.enum}
           addNotification={addNotification}
           changeCallback={changeCallback}
@@ -161,10 +162,10 @@ export const GenericComponent = React.memo(
             name={name}
             parentPath={parentPath}
             docString={attribute.doc}
-            parameters={attribute.parameters}
             addNotification={addNotification}
             displayName={displayName}
             id={id}
+            render={attribute.frontend_render}
           />
         );
       } else {
@@ -173,11 +174,11 @@ export const GenericComponent = React.memo(
             name={name}
             parentPath={parentPath}
             docString={attribute.doc}
-            parameters={attribute.parameters}
             value={attribute.value as Record<string, string>}
             addNotification={addNotification}
             displayName={displayName}
             id={id}
+            render={attribute.frontend_render}
           />
         );
       }
