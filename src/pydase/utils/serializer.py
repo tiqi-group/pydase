@@ -152,7 +152,6 @@ class Serializer:
                 "annotation": str(v.annotation),
                 "default": dump(v.default) if v.default != inspect._empty else {},
             }
-            print(signature["parameters"][k])
 
         return {
             "type": obj_type,
