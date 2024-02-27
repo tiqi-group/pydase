@@ -67,5 +67,5 @@ async def test_task_status_update() -> None:
         state_manager._data_service_cache.get_value_dict_from_cache("my_method")[
             "value"
         ]
-        == {}
+        == "RUNNING"
     )
