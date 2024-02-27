@@ -3,7 +3,7 @@ import logging
 import sys
 from collections.abc import Callable
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -167,58 +167,6 @@ class Serializer:
         }
 
     @staticmethod
-    def _get_default_value_of_method_arg(
-        obj: Callable[..., Any], arg_name: str, arg_value: inspect.Parameter
-    ) -> Any:
-        default_value = arg_value.default
-        if default_value is None:
-            raise KeywordArgumentError(
-                f"Default value for keyword {arg_name!r} of function {obj.__name__!r} "
-                "cannot be 'None'."
-            )
-
-        if default_value is inspect.Parameter.empty:
-            annotation = arg_value.annotation
-            if annotation is not inspect._empty:
-                if annotation is None:
-                    raise KeywordArgumentError(
-                        f"Type hint of keyword {arg_name!r} of function "
-                        f"{obj.__name__!r} cannot be 'None'."
-                    )
-                if issubclass(annotation, u.Quantity):
-                    raise KeywordArgumentError(
-                        f"Keyword {arg_name!r} of function {obj.__name__!r} needs "
-                        "default argument. Quantity objects have no obvious default "
-                        "value."
-                    )
-
-                if annotation == str:
-                    default_value = ""
-                elif annotation == int:
-                    default_value = 0
-                elif annotation == float:
-                    default_value = 0.0
-                elif annotation == bool:
-                    default_value = False
-                elif issubclass(annotation, Enum):
-                    default_value = next(iter(annotation))
-                else:
-                    raise KeywordArgumentError(
-                        f"Type of keyword {arg_name!r} of function {obj.__name__} "
-                        "should be a simple type (str, int, float, bool, Enum, Quantity"
-                        ")."
-                    )
-            else:
-                logger.warning(
-                    "Keyword %a of function %a has no type hint. "
-                    "Defaulting to float...",
-                    arg_name,
-                    obj.__name__,
-                )
-                default_value = 0.0
-        return default_value
-
-    @staticmethod
     def _serialize_method(obj: Callable[..., Any]) -> dict[str, Any]:
         obj_type = "method"
         value = None
@@ -228,11 +176,21 @@ class Serializer:
 
         # Store parameters and their anotations in a dictionary
         sig = inspect.signature(obj)
-        parameters: dict[str, dict[str, Any]] = {}
+        sig.return_annotation
+
+        class SignatureDict(TypedDict):
+            parameters: dict[str, dict[str, Any]]
+            return_annotation: dict[str, Any]
+
+        signature: SignatureDict = {"parameters": {}, "return_annotation": {}}
 
         for k, v in sig.parameters.items():
-            default_value = Serializer._get_default_value_of_method_arg(obj, k, v)
-            parameters[k] = dump(default_value)
+            signature["parameters"][k] = {
+                "name": v.name,
+                "annotation": str(v.annotation),
+                "default": dump(v.default) if v.default != inspect._empty else {},
+            }
+            print(signature["parameters"][k])
 
         return {
             "type": obj_type,
@@ -240,7 +198,7 @@ class Serializer:
             "readonly": readonly,
             "doc": doc,
             "async": inspect.iscoroutinefunction(obj),
-            "parameters": parameters,
+            "signature": signature,
             "frontend_render": frontend_render,
         }
 
