@@ -209,3 +209,17 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
     if len(parameters) > 0:
         return True
     return False
+
+
+def render_in_frontend(func: Callable[..., Any]) -> bool:
+    """Determines if the method should be rendered in the frontend.
+
+    It checks if the "@frontend" decorator was used or the method is a coroutine."""
+
+    if inspect.iscoroutinefunction(func):
+        return True
+
+    try:
+        return func._display_in_frontend  # type: ignore
+    except AttributeError:
+        return False

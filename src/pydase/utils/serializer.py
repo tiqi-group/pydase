@@ -9,11 +9,11 @@ import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.helpers import (
-    function_has_arguments,
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
     parse_list_attr_and_index,
+    render_in_frontend,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,43 +25,6 @@ class SerializationPathError(Exception):
 
 class SerializationValueError(Exception):
     pass
-
-
-class FunctionDefinitionError(Exception):
-    pass
-
-
-def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator to mark a DataService method for frontend rendering. Ensures that the
-    method does not contain arguments, as they are not supported for frontend rendering.
-    """
-
-    if function_has_arguments(func):
-        raise FunctionDefinitionError(
-            "The @frontend decorator requires functions without arguments. Function "
-            f"'{func.__name__}' has at least one argument. "
-            "Please remove the argument(s) from this function to use it with the "
-            "@frontend decorator."
-        )
-
-    # Mark the function for frontend display.
-    func._display_in_frontend = True  # type: ignore
-    return func
-
-
-def render_in_frontend(func: Callable[..., Any]) -> bool:
-    """Determines if the method should be rendered in the frontend.
-
-    It checks if the "@frontend" decorator was used or the method is a coroutine."""
-
-    if inspect.iscoroutinefunction(func):
-        return True
-
-    try:
-        return func._display_in_frontend  # type: ignore
-    except AttributeError:
-        return False
 
 
 class Serializer:
