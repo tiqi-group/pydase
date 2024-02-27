@@ -1,9 +1,14 @@
 from enum import Enum
+from typing import Any
 
+import pydase
 import pydase.units as u
+import pytest
 from pydase import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
+from pydase.data_service.task_manager import TaskDefinitionError
+from pydase.utils.serializer import FunctionDefinitionError, frontend
 from pytest import LogCaptureFixture
 
 
@@ -114,3 +119,19 @@ def test_protected_and_private_attribute_warning(caplog: LogCaptureFixture) -> N
         "Class 'SubClass' does not inherit from DataService. This may lead to "
         "unexpected behaviour!"
     ) not in caplog.text
+
+
+def test_exposing_methods() -> None:
+    class ClassWithTask(pydase.DataService):
+        async def some_task(self, sleep_time: int) -> None:
+            pass
+
+    with pytest.raises(TaskDefinitionError):
+        ClassWithTask()
+
+    with pytest.raises(FunctionDefinitionError):
+
+        class ClassWithMethod(pydase.DataService):
+            @frontend
+            def some_method(self, *args: Any) -> str:
+                return "some method"
