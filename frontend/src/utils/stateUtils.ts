@@ -1,11 +1,5 @@
-export interface SerializedValue {
-  type: string;
-  value: Record<string, unknown> | Array<Record<string, unknown>>;
-  readonly: boolean;
-  doc: string | null;
-  async?: boolean;
-  parameters?: unknown;
-}
+import { SerializedValue } from '../components/GenericComponent';
+
 export type State = {
   type: string;
   value: Record<string, SerializedValue> | null;

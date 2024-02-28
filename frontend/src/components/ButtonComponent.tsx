@@ -1,9 +1,6 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 type ButtonComponentProps = {
@@ -14,19 +11,30 @@ type ButtonComponentProps = {
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
-  const { name, parentPath, value, readOnly, docString, addNotification } = props;
+  const {
+    value,
+    readOnly,
+    docString,
+    addNotification,
+    changeCallback = () => {},
+    displayName,
+    id
+  } = props;
   // const buttonName = props.mapping ? (value ? props.mapping[0] : props.mapping[1]) : name;
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   const renderCount = useRef(0);
 
@@ -35,11 +43,11 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   });
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
 
   const setChecked = (checked: boolean) => {
-    setAttribute(name, parentPath, checked);
+    changeCallback(checked);
   };
 
   return (
@@ -53,7 +61,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
         type="checkbox"
         variant={value ? 'success' : 'secondary'}
         checked={value}
-        value={parentPath}
+        value={displayName}
         disabled={readOnly}
         onChange={(e) => setChecked(e.currentTarget.checked)}>
         {displayName}

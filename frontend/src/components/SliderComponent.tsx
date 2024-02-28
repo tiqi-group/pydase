@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent, NumberObject } from './NumberComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 type SliderComponentProps = {
@@ -19,6 +16,14 @@ type SliderComponentProps = {
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
@@ -33,35 +38,31 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     stepSize,
     docString,
     isInstantUpdate,
-    addNotification
+    addNotification,
+    changeCallback = () => {},
+    displayName,
+    id
   } = props;
   const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
 
   useEffect(() => {
     renderCount.current++;
   });
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    addNotification(`${fullAccessPath} changed to ${value.value}.`);
   }, [props.value]);
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name}.min changed to ${min}.`);
+    addNotification(`${fullAccessPath}.min changed to ${min.value}.`);
   }, [props.min]);
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name}.max changed to ${max}.`);
+    addNotification(`${fullAccessPath}.max changed to ${max.value}.`);
   }, [props.max]);
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name}.stepSize changed to ${stepSize}.`);
+    addNotification(`${fullAccessPath}.stepSize changed to ${stepSize.value}.`);
   }, [props.stepSize]);
 
   const handleOnChange = (event, newNumber: number | number[]) => {
@@ -70,11 +71,11 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    setAttribute(`${name}.value`, parentPath, newNumber);
+    changeCallback(newNumber, `${name}.value`);
   };
 
   const handleValueChange = (newValue: number, valueType: string) => {
-    setAttribute(`${name}.${valueType}`, parentPath, newValue);
+    changeCallback(newValue, `${name}.${valueType}`);
   };
 
   const deconstructNumberDict = (
@@ -139,8 +140,9 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
             type="float"
             value={valueMagnitude}
             unit={valueUnit}
-            showName={false}
-            addNotification={() => null}
+            addNotification={() => {}}
+            changeCallback={(value) => changeCallback(value, name + '.value')}
+            id={id + '-value'}
           />
         </Col>
         <Col xs="auto">

@@ -1,11 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
-import { WebSettingsContext } from '../WebSettings';
 
 // TODO: add button functionality
 
@@ -17,22 +14,33 @@ type StringComponentProps = {
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
-  const { name, parentPath, readOnly, docString, isInstantUpdate, addNotification } =
-    props;
+  const {
+    name,
+    readOnly,
+    docString,
+    isInstantUpdate,
+    addNotification,
+    changeCallback = () => {},
+    displayName,
+    id
+  } = props;
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -43,25 +51,26 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
     if (props.value !== inputString) {
       setInputString(props.value);
     }
-    addNotification(`${parentPath}.${name} changed to ${props.value}.`);
+    addNotification(`${fullAccessPath} changed to ${props.value}.`);
   }, [props.value]);
 
   const handleChange = (event) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
-      setAttribute(name, parentPath, event.target.value);
+      changeCallback(event.target.value);
     }
   };
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      setAttribute(name, parentPath, inputString);
+      changeCallback(inputString);
+      event.preventDefault();
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      setAttribute(name, parentPath, inputString);
+      changeCallback(inputString);
     }
   };
 
@@ -77,9 +86,9 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         </InputGroup.Text>
         <Form.Control
           type="text"
+          name={name}
           value={inputString}
           disabled={readOnly}
-          name={name}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}

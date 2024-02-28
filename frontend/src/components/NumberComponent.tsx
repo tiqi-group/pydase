@@ -1,10 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useState, useRef } from 'react';
 import { Form, InputGroup } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 // TODO: add button functionality
@@ -41,8 +38,15 @@ type NumberComponentProps = {
   docString: string;
   isInstantUpdate: boolean;
   unit?: string;
-  showName?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName?: string;
+  id: string;
 };
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
@@ -128,92 +132,57 @@ const handleDeleteKey = (
   return { value, selectionStart };
 };
 
+const handleNumericKey = (
+  key: string,
+  value: string,
+  selectionStart: number,
+  selectionEnd: number
+) => {
+  // Check if a number key or a decimal point key is pressed
+  if (key === '.' && value.includes('.')) {
+    // Check if value already contains a decimal. If so, ignore input.
+    console.warn('Invalid input! Ignoring...');
+    return { value, selectionStart };
+  }
+
+  let newValue = value;
+
+  // Add the new key at the cursor's position
+  if (selectionEnd > selectionStart) {
+    // If there is a selection, replace it with the key
+    newValue = value.slice(0, selectionStart) + key + value.slice(selectionEnd);
+  } else {
+    // otherwise, append the key after the selection start
+    newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
+  }
+
+  return { value: newValue, selectionStart: selectionStart + 1 };
+};
+
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const {
     name,
-    parentPath,
+    value,
     readOnly,
+    type,
     docString,
     isInstantUpdate,
     unit,
-    addNotification
+    addNotification,
+    changeCallback = () => {},
+    displayName,
+    id
   } = props;
 
-  // Whether to show the name infront of the component (false if used with a slider)
-  const showName = props.showName !== undefined ? props.showName : true;
-
-  const renderCount = useRef(0);
   // Create a state for the cursor position
   const [cursorPosition, setCursorPosition] = useState(null);
   // Create a state for the input string
-  const [inputString, setInputString] = useState(props.value.toString());
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
+  const [inputString, setInputString] = useState(value.toString());
+  const renderCount = useRef(0);
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
-
-  useEffect(() => {
-    renderCount.current++;
-
-    // Set the cursor position after the component re-renders
-    const inputElement = document.getElementsByName(
-      fullAccessPath
-    )[0] as HTMLInputElement;
-    if (inputElement && cursorPosition !== null) {
-      inputElement.setSelectionRange(cursorPosition, cursorPosition);
-    }
-  });
-
-  useEffect(() => {
-    // Parse the input string to a number for comparison
-    const numericInputString =
-      props.type === 'int' ? parseInt(inputString) : parseFloat(inputString);
-    // Only update the inputString if it's different from the prop value
-    if (props.value !== numericInputString) {
-      setInputString(props.value.toString());
-    }
-
-    // emitting notification
-    let notificationMsg = `${parentPath}.${name} changed to ${props.value}`;
-    if (unit === undefined) {
-      notificationMsg += '.';
-    } else {
-      notificationMsg += ` ${unit}.`;
-    }
-    addNotification(notificationMsg);
-  }, [props.value]);
-
-  const handleNumericKey = (
-    key: string,
-    value: string,
-    selectionStart: number,
-    selectionEnd: number
-  ) => {
-    // Check if a number key or a decimal point key is pressed
-    if (key === '.' && (value.includes('.') || props.type === 'int')) {
-      // Check if value already contains a decimal. If so, ignore input.
-      // eslint-disable-next-line no-console
-      console.warn('Invalid input! Ignoring...');
-      return { value, selectionStart };
-    }
-
-    let newValue = value;
-
-    // Add the new key at the cursor's position
-    if (selectionEnd > selectionStart) {
-      // If there is a selection, replace it with the key
-      newValue = value.slice(0, selectionStart) + key + value.slice(selectionEnd);
-    } else {
-      // otherwise, append the key after the selection start
-      newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
-    }
-
-    return { value: newValue, selectionStart: selectionStart + 1 };
-  };
   const handleKeyDown = (event) => {
     const { key, target } = event;
     if (
@@ -256,7 +225,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionStart,
         selectionEnd
       ));
-    } else if (key === '.') {
+    } else if (key === '.' && type === 'float') {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
@@ -283,7 +252,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      setAttribute(name, parentPath, Number(newValue));
+      changeCallback(Number(newValue));
       return;
     } else {
       console.debug(key);
@@ -292,7 +261,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      setAttribute(name, parentPath, Number(newValue));
+      changeCallback(Number(newValue));
     }
 
     setInputString(newValue);
@@ -304,35 +273,59 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      setAttribute(name, parentPath, Number(inputString));
+      changeCallback(Number(inputString));
     }
   };
+  useEffect(() => {
+    // Parse the input string to a number for comparison
+    const numericInputString =
+      type === 'int' ? parseInt(inputString) : parseFloat(inputString);
+    // Only update the inputString if it's different from the prop value
+    if (value !== numericInputString) {
+      setInputString(value.toString());
+    }
+
+    // emitting notification
+    let notificationMsg = `${fullAccessPath} changed to ${props.value}`;
+    if (unit === undefined) {
+      notificationMsg += '.';
+    } else {
+      notificationMsg += ` ${unit}.`;
+    }
+    addNotification(notificationMsg);
+  }, [value]);
+
+  useEffect(() => {
+    // Set the cursor position after the component re-renders
+    const inputElement = document.getElementsByName(name)[0] as HTMLInputElement;
+    if (inputElement && cursorPosition !== null) {
+      inputElement.setSelectionRange(cursorPosition, cursorPosition);
+    }
+  });
 
   return (
     <div className="component numberComponent" id={id}>
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <div className="d-flex">
-        <InputGroup>
-          {showName && (
-            <InputGroup.Text>
-              {displayName}
-              <DocStringComponent docString={docString} />
-            </InputGroup.Text>
-          )}
-          <Form.Control
-            type="text"
-            value={inputString}
-            disabled={readOnly}
-            name={fullAccessPath}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
-          />
-          {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
-        </InputGroup>
-      </div>
+      <InputGroup>
+        {displayName && (
+          <InputGroup.Text>
+            {displayName}
+            <DocStringComponent docString={docString} />
+          </InputGroup.Text>
+        )}
+        <Form.Control
+          type="text"
+          value={inputString}
+          disabled={readOnly}
+          name={name}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
+        />
+        {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
+      </InputGroup>
     </div>
   );
 });

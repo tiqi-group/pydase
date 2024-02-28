@@ -1,8 +1,5 @@
-import { useContext } from 'react';
 import React from 'react';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
-import { WebSettingsContext } from '../WebSettings';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 import { MethodComponent } from './MethodComponent';
 
@@ -12,6 +9,8 @@ type DeviceConnectionProps = {
   parentPath: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
+  displayName: string;
+  id: string;
 };
 
 export const DeviceConnectionComponent = React.memo(
@@ -20,23 +19,14 @@ export const DeviceConnectionComponent = React.memo(
     props,
     parentPath,
     isInstantUpdate,
-    addNotification
+    addNotification,
+    displayName,
+    id
   }: DeviceConnectionProps) => {
     const { connected, connect, ...updatedProps } = props;
     const connectedVal = connected.value;
 
-    let fullAccessPath = parentPath;
-    if (name) {
-      fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-    }
-    const id = getIdFromFullAccessPath(fullAccessPath);
-
-    const webSettings = useContext(WebSettingsContext);
-    let displayName = fullAccessPath;
-
-    if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-      displayName = webSettings[fullAccessPath].displayName;
-    }
+    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
     return (
       <div className="deviceConnectionComponent" id={id}>
@@ -48,9 +38,11 @@ export const DeviceConnectionComponent = React.memo(
             <MethodComponent
               name="connect"
               parentPath={fullAccessPath}
-              parameters={connect.parameters}
               docString={connect.doc}
               addNotification={addNotification}
+              displayName={'reconnect'}
+              id={id + '-connect'}
+              render={true}
             />
           </div>
         )}
@@ -60,6 +52,8 @@ export const DeviceConnectionComponent = React.memo(
           parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
+          displayName={displayName}
+          id={id}
         />
       </div>
     );

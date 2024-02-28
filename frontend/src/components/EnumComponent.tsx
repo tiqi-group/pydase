@@ -1,8 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { setAttribute } from '../socket';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
@@ -11,41 +8,53 @@ type EnumComponentProps = {
   parentPath: string;
   value: string;
   docString?: string;
+  readOnly: boolean;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const {
     name,
-    parentPath: parentPath,
     value,
     docString,
     enumDict,
-    addNotification
+    addNotification,
+    displayName,
+    id,
+    readOnly
   } = props;
 
-  const renderCount = useRef(0);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
+  let { changeCallback } = props;
+  if (changeCallback === undefined) {
+    changeCallback = (value: string) => {
+      setEnumValue(() => {
+        return value;
+      });
+    };
   }
+  const renderCount = useRef(0);
+  const [enumValue, setEnumValue] = useState(value);
+
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   useEffect(() => {
     renderCount.current++;
   });
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
-
-  const handleValueChange = (newValue: string) => {
-    setAttribute(name, parentPath, newValue);
-  };
 
   return (
     <div className={'component enumComponent'} id={id}>
@@ -58,16 +67,24 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
             {displayName}
             <DocStringComponent docString={docString} />
           </InputGroup.Text>
-          <Form.Select
-            aria-label="Default select example"
-            value={value}
-            onChange={(event) => handleValueChange(event.target.value)}>
-            {Object.entries(enumDict).map(([key, val]) => (
-              <option key={key} value={key}>
-                {key} - {val}
-              </option>
-            ))}
-          </Form.Select>
+
+          {readOnly ? (
+            // Display the Form.Control when readOnly is true
+            <Form.Control value={enumValue} name={name} disabled={true} />
+          ) : (
+            // Display the Form.Select when readOnly is false
+            <Form.Select
+              aria-label="example-select"
+              value={enumValue}
+              name={name}
+              onChange={(event) => changeCallback(event.target.value)}>
+              {Object.entries(enumDict).map(([key, val]) => (
+                <option key={key} value={key}>
+                  {key} - {val}
+                </option>
+              ))}
+            </Form.Select>
+          )}
         </Col>
       </Row>
     </div>

@@ -3,15 +3,17 @@ import logging
 import sys
 from collections.abc import Callable
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
+from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
     parse_list_attr_and_index,
+    render_in_frontend,
 )
 
 logger = logging.getLogger(__name__)
@@ -133,22 +135,23 @@ class Serializer:
         value = None
         readonly = True
         doc = get_attribute_doc(obj)
+        frontend_render = render_in_frontend(obj)
 
         # Store parameters and their anotations in a dictionary
         sig = inspect.signature(obj)
-        parameters: dict[str, str | None] = {}
+        sig.return_annotation
+
+        class SignatureDict(TypedDict):
+            parameters: dict[str, dict[str, Any]]
+            return_annotation: dict[str, Any]
+
+        signature: SignatureDict = {"parameters": {}, "return_annotation": {}}
 
         for k, v in sig.parameters.items():
-            annotation = v.annotation
-            if annotation is not inspect._empty:
-                if isinstance(annotation, type):
-                    # Handle regular types
-                    parameters[k] = annotation.__name__
-                else:
-                    # Union, string annotation, Literal types, ...
-                    parameters[k] = str(annotation)
-            else:
-                parameters[k] = None
+            signature["parameters"][k] = {
+                "annotation": str(v.annotation),
+                "default": dump(v.default) if v.default != inspect._empty else {},
+            }
 
         return {
             "type": obj_type,
@@ -156,7 +159,8 @@ class Serializer:
             "readonly": readonly,
             "doc": doc,
             "async": inspect.iscoroutinefunction(obj),
-            "parameters": parameters,
+            "signature": signature,
+            "frontend_render": frontend_render,
         }
 
     @staticmethod
@@ -164,6 +168,7 @@ class Serializer:
         readonly = False
         doc = get_attribute_doc(obj)
         obj_type = "DataService"
+        obj_name = obj.__class__.__name__
 
         # Get component base class if any
         component_base_cls = next(
@@ -202,8 +207,7 @@ class Serializer:
 
             # If there's a running task for this method
             if key in obj._task_manager.tasks:
-                task_info = obj._task_manager.tasks[key]
-                value[key]["value"] = task_info["kwargs"]
+                value[key]["value"] = TaskStatus.RUNNING.name
 
             # If the DataService attribute is a property
             if isinstance(getattr(obj.__class__, key, None), property):
@@ -212,6 +216,7 @@ class Serializer:
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc
 
         return {
+            "name": obj_name,
             "type": obj_type,
             "value": value,
             "readonly": readonly,

@@ -18,7 +18,7 @@ For example, for a `Image` component, create a file named `image.py`.
 
 ### Step 2: Define the Backend Class
 
-Within the newly created file, define a Python class representing the component. This class should inherit from `DataService` and contains the attributes that the frontend needs to render the component. Every public attribute defined in this class will synchronise across the clients. It can also contain methods which can be used to interact with the component from the backend.
+Within the newly created file, define a Python class representing the component. This class should inherit from `DataService` and contains the attributes that the frontend needs to render the component. Every public attribute defined in this class will synchronise across the clients. It can also contain (public) methods which you can provide for the user to interact with the component from the backend (or python clients).
 
 For the `Image` component, the class may look like this:
 
@@ -31,21 +31,25 @@ from pydase.data_service.data_service import DataService
 class Image(DataService):
     def __init__(
         self,
-        image_representation: bytes = b"",
     ) -> None:
-        self.image_representation = image_representation
         super().__init__()
+        self._value: str = ""
+        self._format: str = ""
 
-    # need to decode the bytes
-    def __setattr__(self, __name: str, __value: Any) -> None:
-        if __name == "value":
-            if isinstance(__value, bytes):
-                __value = __value.decode()
-        return super().__setattr__(__name, __value)
+    @property
+    def value(self) -> str:
+        return self._value
 
+    @property
+    def format(self) -> str:
+        return self._format
+
+    def load_from_path(self, path: Path | str) -> None:
+        # changing self._value and self._format
+        ...
 ```
 
-So, changing the `image_representation` will push the updated value to the browsers connected to the service.
+So, calling `load_from_path` will push the updated value and format to the browsers clients connected to the service.
 
 ### Step 3: Register the Backend Class
 
@@ -85,10 +89,11 @@ def test_Image(capsys: CaptureFixture) -> None:
     class ServiceClass(DataService):
         image = Image()
 
-    service = ServiceClass()
-    # ...
-```
+    service_instance = ServiceClass()
 
+    service_instance.image.load_from_path("<path/to/image>.png")
+    assert service_instance.image.format == "PNG"
+```
 
 ## Adding a Frontend Component to `pydase`
 
@@ -107,43 +112,41 @@ Write the React component code, following the structure and patterns used in exi
 For example, for the `Image` component, a template could look like this:
 
 ```tsx
-import { setAttribute, runMethod } from '../socket';  // use this when your component should sets values of attributes
-                                                      // or runs a method, respectively
-import { DocStringComponent } from './DocStringComponent';
 import React, { useEffect, useRef, useState } from 'react';
-import { WebSettingsContext } from '../WebSettings';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 type ImageComponentProps = {
-  name: string;
-  parentPath?: string;
-  readOnly: boolean;
-  docString: string;
+  name: string;  // needed to create the fullAccessPath
+  parentPath: string;  // needed to create the fullAccessPath
+  readOnly: boolean;  // component changable through frontend?
+  docString: string;  // contains docstring of your component
+  displayName: string;  // name defined in the web_settings.json
+  id: string;  // unique identifier - created from fullAccessPath
   addNotification: (message: string, levelname?: LevelName) => void;
-  // Define your component specific props here
+  changeCallback?: (  // function used to communicate changes to the backend
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  // component-specific properties 
   value: string;
   format: string;
-}
+};
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
-  const { name, parentPath, value, docString, format, addNotification } = props;
+  const { value, docString, format, addNotification, displayName, id } = props;
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);  // add this if you want to expand/collapse your component
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
-  // Web settings contain the user-defined display name of the components (and possibly more later)
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
-  }
+  // Your component logic here
 
   useEffect(() => {
     renderCount.current++;
@@ -151,13 +154,11 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   // This will trigger a notification if notifications are enabled.
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    addNotification(`${fullAccessPath} changed.`);
   }, [props.value]);
 
-  // Your component logic here
-
   return (
-    <div className={'imageComponent'} id={id}>
+    <div className="component imageComponent" id={id}>
       {/* Add the Card and Collapse components here if you want to be able to expand and
        collapse your component.  */}
       <Card>
@@ -185,57 +186,98 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
 ### Step 3: Emitting Updates to the Backend
 
-React components in the frontend often need to send updates to the backend, particularly when user interactions modify the component's state or data. In `pydase`, we use `socketio` for smooth communication of these changes. To handle updates, we primarily use two events: `setAttribute` for updating attributes, and `runMethod` for executing backend methods. Below is a detailed guide on how to emit these events from your frontend component:
+React components in the frontend often need to send updates to the backend, particularly when user interactions modify the component's state or data. In `pydase`, we use `socketio` for communicating these changes.<br>
+There are two different events a component might want to trigger: updating an attribute or triggering a method. Below is a guide on how to emit these events from your frontend component:
 
-1. **Setup for emitting events**:
-    First, ensure you've imported the necessary functions from the `socket` module for both updating attributes and executing methods:
+1. **Updating Attributes**
 
-    ```tsx
-    import { setAttribute, runMethod } from '../socket';
-    ```
+    Updating the value of an attribute or property in the backend is a very common requirement. However, we want to define components in a reusable way, i.e. they can be linked to the backend but also be used without emitting change events.<br>
+    This is why we pass a `changeCallback` function as a prop to the component which it can use to communicate changes. If no function is passed, the component can be used in forms, for example.
 
-2. **Event Parameters**:
+    The `changeCallback` function takes the following arguments:
 
-    - When using **`setAttribute`**, we send three main pieces of data:
-        - `name`: The name of the attribute within the `DataService` instance to update.
-        - `parentPath`: The access path for the parent object of the attribute to be updated.
-        - `value`: The new value for the attribute, which must match the backend attribute type.
-    - For **`runMethod`**, the parameters are slightly different:
-        - `name`: The name of the method to be executed in the backend.
-        - `parentPath`: Similar to `setAttribute`, it's the access path to the object containing the method.
-        - `kwargs`: A dictionary of keyword arguments that the method requires.
-
-3. **Implementation**:
-
-    For illustation, take the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
-
-    ```tsx
-    import { setAttribute } from '../socket';
-    // ... (other imports)
+    - `value`: the new value for the attribute, which must match the backend attribute type.
+    - `attributeName`: the name of the attribute within the `DataService` instance to update. Defaults to the `name` prop of the component.
+    - `prefix`: the access path for the parent object of the attribute to be updated. Defaults to the `parentPath` prop of the component.
+    - `callback`: the function that will be called when the server sends an acknowledgement. Defaults to `undefined`
     
+    For illustration, take the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
+
+    ```tsx
+    // file: frontend/src/components/ButtonComponent.tsx
+    // ... (import statements)
+    
+    type ButtonComponentProps = {
+      // ...
+      changeCallback?: (
+        value: unknown,
+        attributeName?: string,
+        prefix?: string,
+        callback?: (ack: unknown) => void
+      ) => void;
+    };
+
     export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
-      // ... 
-      const { name, parentPath, value } = props;
-      let displayName = ...  // to access the user-defined display name
+      const {
+        // ...
+        changeCallback = () => {},
+      } = props;
 
       const setChecked = (checked: boolean) => {
-        setAttribute(name, parentPath, checked);
+        changeCallback(checked);
       };
 
       return (
         <ToggleButton
-          checked={value}
-          value={parentPath}
           // ... other props
           onChange={(e) => setChecked(e.currentTarget.checked)}>
-          {displayName}
+          {/* component TSX */}
         </ToggleButton>
       );
     });
     ```
 
-    In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `setAttribute`.
+    In this example, whenever the button's checked state changes (`onChange` event), we invoke the `setChecked` method, which in turn emits the new state to the backend using `changeCallback`.
 
+2. **Triggering Methods**
+
+    To trigger method through your component, you can either use the `MethodComponent` (which will render a button in the frontend), or use the low-level `runMethod` function. Its parameters are slightly different to the `changeCallback` function:
+
+    - `name`: the name of the method to be executed in the backend.
+    - `parentPath`: the access path to the object containing the method.
+    - `kwargs`: a dictionary of keyword arguments that the method requires.
+
+    To see how to use the `MethodComponent` in your component, have a look at the `DeviceConnection.tsx` file. Here is an example that demonstrates the usage of the `runMethod` function (also, have a look at the `MethodComponent.tsx` file):
+
+    ```tsx
+    import { runMethod } from '../socket';
+    // ... (other imports)
+
+    type ComponentProps = {
+      name: string;
+      parentPath: string;
+      // ...
+    };
+
+    export const Component = React.memo((props: ComponentProps) => {
+      const {
+        name,
+        parentPath,
+        // ...
+      } = props;
+
+      // ...
+
+      const someFunction = () => {
+        // ...
+        runMethod(name, parentPath, {});
+      };
+
+      return (
+        {/* component TSX */}
+      );
+    });
+    ```
 
 ### Step 4: Add the New Component to the GenericComponent
 
@@ -282,15 +324,17 @@ Inside the `GenericComponent` function, add a new conditional branch to render t
     <ImageComponent
       name={name}
       parentPath={parentPath}
-      readOnly={attribute.readonly}
-      docString={attribute.doc}
+      docString={attribute.value['value'].doc}
+      displayName={displayName}
+      id={id}
       addNotification={addNotification}
+      changeCallback={changeCallback}
       // Add any other specific props for the ImageComponent here
       value={attribute.value['value']['value'] as string}
       format={attribute.value['format']['value'] as string}
     />
   );
-} else {
+} else if (...) {
   // other code
 ```
 
@@ -305,12 +349,14 @@ For example, updating an `Image` component corresponds to setting a very long st
 To create a custom notification message, you can update the message passed to the `addNotification` method in the `useEffect` hook in the component file file. For the `ImageComponent`, this could look like this:
 
 ```tsx
+const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+
 useEffect(() => {
-  addNotification(`${parentPath}.${name} changed.`);
+  addNotification(`${fullAccessPath} changed.`);
 }, [props.value]);
 ```
 
-However, you might want to use the `addNotification` at different places. For an example, see the [MethodComponent](../../frontend/src/components/MethodComponent.tsx).
+However, you might want to use the `addNotification` at different places. For an example, see the `MethodComponent`.
 **Note**: you can specify the notification level by passing a string of type `LevelName` (one of 'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'). The default value is 'DEBUG'.
 
 ### Step 6: Write Tests for the Component (TODO)

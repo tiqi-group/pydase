@@ -1,9 +1,6 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { WebSettingsContext } from '../WebSettings';
+import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
-import { setAttribute } from '../socket';
 import { DocStringComponent } from './DocStringComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { LevelName } from './NotificationsComponent';
 
 type ColouredEnumComponentProps = {
@@ -14,39 +11,53 @@ type ColouredEnumComponentProps = {
   readOnly: boolean;
   enumDict: Record<string, string>;
   addNotification: (message: string, levelname?: LevelName) => void;
+  changeCallback?: (
+    value: unknown,
+    attributeName?: string,
+    prefix?: string,
+    callback?: (ack: unknown) => void
+  ) => void;
+  displayName: string;
+  id: string;
 };
 
 export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentProps) => {
   const {
     name,
-    parentPath: parentPath,
     value,
     docString,
     enumDict,
     readOnly,
-    addNotification
+    addNotification,
+    displayName,
+    id
   } = props;
-  const renderCount = useRef(0);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
-  const id = getIdFromFullAccessPath(fullAccessPath);
-  const webSettings = useContext(WebSettingsContext);
-  let displayName = name;
-
-  if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-    displayName = webSettings[fullAccessPath].displayName;
+  let { changeCallback } = props;
+  if (changeCallback === undefined) {
+    changeCallback = (value: string) => {
+      setEnumValue(() => {
+        return value;
+      });
+    };
   }
+
+  const renderCount = useRef(0);
+  const [enumValue, setEnumValue] = useState(value);
+
+  const fullAccessPath = [props.parentPath, props.name]
+    .filter((element) => element)
+    .join('.');
 
   useEffect(() => {
     renderCount.current++;
   });
 
   useEffect(() => {
-    addNotification(`${parentPath}.${name} changed to ${value}.`);
+    setEnumValue(() => {
+      return props.value;
+    });
+    addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
-
-  const handleValueChange = (newValue: string) => {
-    setAttribute(name, parentPath, newValue);
-  };
 
   return (
     <div className={'component enumComponent'} id={id}>
@@ -62,17 +73,19 @@ export const ColouredEnumComponent = React.memo((props: ColouredEnumComponentPro
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control
-              value={value}
+              value={enumValue}
+              name={name}
               disabled={true}
-              style={{ backgroundColor: enumDict[value] }}
+              style={{ backgroundColor: enumDict[enumValue] }}
             />
           ) : (
             // Display the Form.Select when readOnly is false
             <Form.Select
               aria-label="coloured-enum-select"
-              value={value}
-              style={{ backgroundColor: enumDict[value] }}
-              onChange={(event) => handleValueChange(event.target.value)}>
+              value={enumValue}
+              name={name}
+              style={{ backgroundColor: enumDict[enumValue] }}
+              onChange={(event) => changeCallback(event.target.value)}>
               {Object.entries(enumDict).map(([key]) => (
                 <option key={key} value={key}>
                   {key}
