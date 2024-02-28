@@ -39,15 +39,6 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     triggerNotification();
   };
 
-  const formContent = (
-    <Form onSubmit={execute} ref={formRef}>
-      <Button className="component" variant="primary" type="submit">
-        {`${displayName} `}
-        <DocStringComponent docString={docString} />
-      </Button>
-    </Form>
-  );
-
   useEffect(() => {
     renderCount.current++;
   });
@@ -57,7 +48,12 @@ export const MethodComponent = React.memo((props: MethodProps) => {
       {process.env.NODE_ENV === 'development' && (
         <div>Render count: {renderCount.current}</div>
       )}
-      <div>{formContent}</div>
+      <Form onSubmit={execute} ref={formRef}>
+        <Button className="component" variant="primary" type="submit">
+          {`${displayName} `}
+          <DocStringComponent docString={docString} />
+        </Button>
+      </Form>
     </div>
   );
 });

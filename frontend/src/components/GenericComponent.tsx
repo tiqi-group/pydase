@@ -238,14 +238,13 @@ export const GenericComponent = React.memo(
         <ImageComponent
           name={name}
           parentPath={parentPath}
-          value={attribute.value['value']['value'] as string}
-          readOnly={attribute.readonly}
           docString={attribute.value['value'].doc}
-          // Add any other specific props for the ImageComponent here
-          format={attribute.value['format']['value'] as string}
-          addNotification={addNotification}
           displayName={displayName}
           id={id}
+          addNotification={addNotification}
+          // Add any other specific props for the ImageComponent here
+          value={attribute.value['value']['value'] as string}
+          format={attribute.value['format']['value'] as string}
         />
       );
     } else if (attribute.type === 'ColouredEnum') {

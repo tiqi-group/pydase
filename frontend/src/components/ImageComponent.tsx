@@ -8,7 +8,6 @@ type ImageComponentProps = {
   name: string;
   parentPath: string;
   value: string;
-  readOnly: boolean;
   docString: string;
   format: string;
   addNotification: (message: string, levelname?: LevelName) => void;
@@ -35,9 +34,6 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
 
   return (
     <div className="component imageComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
-        <div>Render count: {renderCount.current}</div>
-      )}
       <Card>
         <Card.Header
           onClick={() => setOpen(!open)}
@@ -52,7 +48,6 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
             {process.env.NODE_ENV === 'development' && (
               <p>Render count: {renderCount.current}</p>
             )}
-            {/* Your component JSX here */}
             {format === '' && value === '' ? (
               <p>No image set in the backend.</p>
             ) : (
