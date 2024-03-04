@@ -103,6 +103,10 @@ def setup_sio_server(
 
             cached_value_dict["value"] = serialized_value["value"]
 
+            # Check if the serialized value contains an "enum" key, and if so, copy it
+            if "enum" in serialized_value:
+                cached_value_dict["enum"] = serialized_value["enum"]
+
             async def notify() -> None:
                 try:
                     await sio.emit(
