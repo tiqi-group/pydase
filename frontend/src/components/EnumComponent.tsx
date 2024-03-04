@@ -53,6 +53,9 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   });
 
   useEffect(() => {
+    setEnumValue(() => {
+      return props.value;
+    });
     addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
 
@@ -70,7 +73,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
 
           {readOnly ? (
             // Display the Form.Control when readOnly is true
-            <Form.Control value={enumValue} name={name} disabled={true} />
+            <Form.Control value={enumDict[enumValue]} name={name} disabled={true} />
           ) : (
             // Display the Form.Select when readOnly is false
             <Form.Select
@@ -80,7 +83,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
               onChange={(event) => changeCallback(event.target.value)}>
               {Object.entries(enumDict).map(([key, val]) => (
                 <option key={key} value={key}>
-                  {key} - {val}
+                  {val}
                 </option>
               ))}
             </Form.Select>
