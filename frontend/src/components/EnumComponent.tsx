@@ -53,6 +53,9 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
   });
 
   useEffect(() => {
+    setEnumValue(() => {
+      return props.value;
+    });
     addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [props.value]);
 
