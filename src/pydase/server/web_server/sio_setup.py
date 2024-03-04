@@ -62,7 +62,7 @@ class RunMethodDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-def setup_sio_server(
+def setup_sio_server(  # noqa: C901
     observer: DataServiceObserver,
     enable_cors: bool,
     loop: asyncio.AbstractEventLoop,
