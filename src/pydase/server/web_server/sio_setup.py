@@ -62,7 +62,7 @@ class RunMethodDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-def setup_sio_server(
+def setup_sio_server(  # noqa: C901
     observer: DataServiceObserver,
     enable_cors: bool,
     loop: asyncio.AbstractEventLoop,
@@ -102,6 +102,10 @@ def setup_sio_server(
                 cached_value_dict["type"] = serialized_value["type"]
 
             cached_value_dict["value"] = serialized_value["value"]
+
+            # Check if the serialized value contains an "enum" key, and if so, copy it
+            if "enum" in serialized_value:
+                cached_value_dict["enum"] = serialized_value["enum"]
 
             async def notify() -> None:
                 try:
