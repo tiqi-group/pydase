@@ -267,18 +267,24 @@ def set_nested_value_by_path(
         logger.error(e)
         return
 
-    # setting the new value
     serialized_value = dump(value)
-    serialized_value.pop("readonly", None)
-    value_type = serialized_value.pop("type")
-    if "readonly" in current_dict and current_dict["type"] != "method":
-        current_dict["type"] = value_type
+    keys_to_keep = set(serialized_value.keys())
+
+    if current_dict == {}:  # adding an attribute / element to a list or dict
+        pass
+    elif current_dict["type"] == "method":  # state change of task
+        keys_to_keep = set(current_dict.keys())
+
+        serialized_value = current_dict
+        serialized_value["value"] = value.name if isinstance(value, Enum) else None
+    else:
+        # attribute-specific information should not be overwritten by new value
+        serialized_value.pop("readonly")
+        serialized_value.pop("doc")
 
     current_dict.update(serialized_value)
 
     # removes keys that are not present in the serialized new value
-    keys_to_keep = set(serialized_value.keys()) | {"type", "readonly"}
-
     for key in list(current_dict.keys()):
         if key not in keys_to_keep:
             current_dict.pop(key, None)
