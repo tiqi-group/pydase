@@ -44,6 +44,8 @@ class DataServiceObserver(PropertyObserver):
 
         self._update_cache_value(full_access_path, value, cached_value_dict)
 
+        # TODO: get the cached value again -> _update_cache_value already put the
+        # right thing into the cache
         for callback in self._notification_callbacks:
             callback(full_access_path, value, cached_value_dict)
 
