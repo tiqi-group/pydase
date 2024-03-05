@@ -273,9 +273,15 @@ def set_nested_value_by_path(
     value_type = serialized_value.pop("type")
     if "readonly" in current_dict and current_dict["type"] != "method":
         current_dict["type"] = value_type
-    # TODO: this does not yet remove keys that are not present in the serialized new
-    # value
+
     current_dict.update(serialized_value)
+
+    # removes keys that are not present in the serialized new value
+    keys_to_keep = set(serialized_value.keys()) | {"type", "readonly"}
+
+    for key in list(current_dict.keys()):
+        if key not in keys_to_keep:
+            current_dict.pop(key, None)
 
 
 def get_nested_dict_by_path(
