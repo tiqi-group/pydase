@@ -32,6 +32,9 @@ const reducer = (state: State, action: Action): State => {
     case 'SET_DATA':
       return action.data;
     case 'UPDATE_ATTRIBUTE': {
+      if (state === null) {
+        return null;
+      }
       return {
         ...state,
         value: setNestedValueByPath(state.value, action.fullAccessPath, action.newValue)
