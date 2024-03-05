@@ -9,7 +9,6 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.utils.logging import SocketIOHandler
-from pydase.utils.serializer import dump
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ class RunMethodDict(TypedDict):
     kwargs: dict[str, Any]
 
 
-def setup_sio_server(  # noqa: C901
+def setup_sio_server(
     observer: DataServiceObserver,
     enable_cors: bool,
     loop: asyncio.AbstractEventLoop,
@@ -97,15 +96,6 @@ def setup_sio_server(  # noqa: C901
         full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
     ) -> None:
         if cached_value_dict != {}:
-            serialized_value = dump(value)
-            if cached_value_dict["type"] != "method":
-                cached_value_dict["type"] = serialized_value["type"]
-
-            cached_value_dict["value"] = serialized_value["value"]
-
-            # Check if the serialized value contains an "enum" key, and if so, copy it
-            if "enum" in serialized_value:
-                cached_value_dict["enum"] = serialized_value["enum"]
 
             async def notify() -> None:
                 try:

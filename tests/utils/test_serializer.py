@@ -1,4 +1,5 @@
 import asyncio
+import enum
 from enum import Enum
 from typing import Any
 
@@ -16,6 +17,11 @@ from pydase.utils.serializer import (
     serialized_dict_is_nested_object,
     set_nested_value_by_path,
 )
+
+
+class MyEnum(enum.Enum):
+    RUNNING = "running"
+    FINISHED = "finished"
 
 
 @pytest.mark.parametrize(
@@ -396,33 +402,55 @@ def setup_dict() -> dict[str, Any]:
     class ServiceClass(pydase.DataService):
         attr1 = 1.0
         attr2 = MySubclass()
+        enum_attr = MyEnum.RUNNING
         attr_list = [0, 1, MySubclass()]
 
     return ServiceClass().serialize()["value"]
 
 
-def test_update_attribute(setup_dict) -> None:
+def test_update_attribute(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr1", 15)
     assert setup_dict["attr1"]["value"] == 15
 
 
-def test_update_nested_attribute(setup_dict) -> None:
+def test_update_nested_attribute(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.attr3", 25.0)
     assert setup_dict["attr2"]["value"]["attr3"]["value"] == 25.0
 
 
-def test_update_list_entry(setup_dict) -> None:
+def test_update_float_attribute_to_enum(setup_dict: dict[str, Any]) -> None:
+    set_nested_value_by_path(setup_dict, "attr2.attr3", MyEnum.RUNNING)
+    assert setup_dict["attr2"]["value"]["attr3"] == {
+        "doc": None,
+        "enum": {"FINISHED": "finished", "RUNNING": "running"},
+        "readonly": False,
+        "type": "Enum",
+        "value": "RUNNING",
+    }
+
+
+def test_update_enum_attribute_to_float(setup_dict: dict[str, Any]) -> None:
+    set_nested_value_by_path(setup_dict, "enum_attr", 1.01)
+    assert setup_dict["enum_attr"] == {
+        "doc": None,
+        "readonly": False,
+        "type": "float",
+        "value": 1.01,
+    }
+
+
+def test_update_list_entry(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[1]", 20)
     assert setup_dict["attr_list"]["value"][1]["value"] == 20
 
 
-def test_update_list_append(setup_dict) -> None:
+def test_update_list_append(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
     assert setup_dict["attr_list"]["value"][3]["value"] == 20
 
 
 def test_update_invalid_list_index(
-    setup_dict, caplog: pytest.LogCaptureFixture
+    setup_dict: dict[str, Any], caplog: pytest.LogCaptureFixture
 ) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[10]", 30)
     assert (

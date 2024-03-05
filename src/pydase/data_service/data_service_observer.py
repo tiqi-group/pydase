@@ -42,10 +42,16 @@ class DataServiceObserver(PropertyObserver):
         ):
             logger.debug("'%s' changed to '%s'", full_access_path, value)
 
-        self._update_cache_value(full_access_path, value, cached_value_dict)
+            self._update_cache_value(full_access_path, value, cached_value_dict)
 
-        for callback in self._notification_callbacks:
-            callback(full_access_path, value, cached_value_dict)
+            cached_value_dict = deepcopy(
+                self.state_manager._data_service_cache.get_value_dict_from_cache(
+                    full_access_path
+                )
+            )
+
+            for callback in self._notification_callbacks:
+                callback(full_access_path, value, cached_value_dict)
 
         if isinstance(value, ObservableObject):
             self._update_property_deps_dict()
