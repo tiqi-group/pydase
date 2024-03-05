@@ -405,6 +405,9 @@ def setup_dict() -> dict[str, Any]:
         enum_attr = MyEnum.RUNNING
         attr_list = [0, 1, MySubclass()]
 
+        def my_task(self) -> None:
+            pass
+
     return ServiceClass().serialize()["value"]
 
 
@@ -436,6 +439,28 @@ def test_update_enum_attribute_to_float(setup_dict: dict[str, Any]) -> None:
         "readonly": False,
         "type": "float",
         "value": 1.01,
+    }
+
+
+def test_update_task_state(setup_dict: dict[str, Any]) -> None:
+    assert setup_dict["my_task"] == {
+        "async": False,
+        "doc": None,
+        "frontend_render": False,
+        "readonly": True,
+        "signature": {"parameters": {}, "return_annotation": {}},
+        "type": "method",
+        "value": None,
+    }
+    set_nested_value_by_path(setup_dict, "my_task", TaskStatus.RUNNING)
+    assert setup_dict["my_task"] == {
+        "async": False,
+        "doc": None,
+        "frontend_render": False,
+        "readonly": True,
+        "signature": {"parameters": {}, "return_annotation": {}},
+        "type": "method",
+        "value": "RUNNING",
     }
 
 
