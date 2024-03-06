@@ -16,7 +16,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
-from pydase.utils.serializer import generate_serialized_data_paths
+from pydase.utils.serializer import SerializedObject, generate_serialized_data_paths
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -126,7 +126,7 @@ class WebServer:
     @property
     def web_settings(self) -> dict[str, dict[str, Any]]:
         current_web_settings = self._get_web_settings_from_file()
-        for path in generate_serialized_data_paths(self.state_manager.cache["value"]):
+        for path in generate_serialized_data_paths(self.state_manager.cache_value):
             if path in current_web_settings:
                 continue
 
@@ -160,7 +160,7 @@ class WebServer:
             return type(self.service).__name__
 
         @app.get("/service-properties")
-        def service_properties() -> dict[str, Any]:
+        def service_properties() -> SerializedObject:
             return self.state_manager.cache
 
         @app.get("/web-settings")

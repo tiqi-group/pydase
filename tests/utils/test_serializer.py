@@ -11,6 +11,7 @@ from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.decorators import frontend
 from pydase.utils.serializer import (
     SerializationPathError,
+    SerializedObject,
     dump,
     get_nested_dict_by_path,
     get_next_level_dict_by_key,
@@ -464,12 +465,12 @@ def test_update_task_state(setup_dict: dict[str, Any]) -> None:
     }
 
 
-def test_update_list_entry(setup_dict: dict[str, Any]) -> None:
+def test_update_list_entry(setup_dict: dict[str, SerializedObject]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[1]", 20)
     assert setup_dict["attr_list"]["value"][1]["value"] == 20
 
 
-def test_update_list_append(setup_dict: dict[str, Any]) -> None:
+def test_update_list_append(setup_dict: dict[str, SerializedObject]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
     assert setup_dict["attr_list"]["value"][3]["value"] == 20
 

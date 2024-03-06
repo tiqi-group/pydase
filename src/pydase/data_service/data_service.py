@@ -17,6 +17,7 @@ from pydase.utils.helpers import (
     is_property_attribute,
 )
 from pydase.utils.serializer import (
+    SerializedObject,
     Serializer,
 )
 
@@ -125,7 +126,7 @@ class DataService(rpyc.Service, AbstractDataService):
         # allow all other attributes
         setattr(self, name, value)
 
-    def serialize(self) -> dict[str, dict[str, Any]]:
+    def serialize(self) -> SerializedObject:
         """
         Serializes the instance into a dictionary, preserving the structure of the
         instance.

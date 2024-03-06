@@ -9,6 +9,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.utils.logging import SocketIOHandler
+from pydase.utils.serializer import SerializedObject
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +94,7 @@ def setup_sio_server(
 
     # Add notification callback to observer
     def sio_callback(
-        full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
+        full_access_path: str, value: Any, cached_value_dict: SerializedObject
     ) -> None:
         if cached_value_dict != {}:
 
