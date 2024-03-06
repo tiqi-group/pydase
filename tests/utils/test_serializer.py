@@ -21,6 +21,8 @@ from pydase.utils.serializer import (
 
 
 class MyEnum(enum.Enum):
+    """MyEnum description"""
+
     RUNNING = "running"
     FINISHED = "finished"
 
@@ -425,7 +427,7 @@ def test_update_nested_attribute(setup_dict: dict[str, Any]) -> None:
 def test_update_float_attribute_to_enum(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.attr3", MyEnum.RUNNING)
     assert setup_dict["attr2"]["value"]["attr3"] == {
-        "doc": None,
+        "doc": "MyEnum description",
         "enum": {"FINISHED": "finished", "RUNNING": "running"},
         "readonly": False,
         "type": "Enum",
@@ -471,8 +473,14 @@ def test_update_list_entry(setup_dict: dict[str, SerializedObject]) -> None:
 
 
 def test_update_list_append(setup_dict: dict[str, SerializedObject]) -> None:
-    set_nested_value_by_path(setup_dict, "attr_list[3]", 20)
-    assert setup_dict["attr_list"]["value"][3]["value"] == 20
+    set_nested_value_by_path(setup_dict, "attr_list[3]", MyEnum.RUNNING)
+    assert setup_dict["attr_list"]["value"][3] == {
+        "doc": "MyEnum description",
+        "enum": {"FINISHED": "finished", "RUNNING": "running"},
+        "readonly": False,
+        "type": "Enum",
+        "value": "RUNNING",
+    }
 
 
 def test_update_invalid_list_index(

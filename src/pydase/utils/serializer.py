@@ -295,31 +295,22 @@ def set_nested_value_by_path(
         logger.error(e)
         return
 
-    serialized_value = dump(value)
-    keys_to_keep = set(serialized_value.keys())
-
-    if (
-        next_level_serialized_object == {}
-    ):  # adding an attribute / element to a list or dict
-        pass
-    elif next_level_serialized_object["type"] == "method":  # state change of task
-        keys_to_keep = set(next_level_serialized_object.keys())
-
-        serialized_value = {}  # type: ignore
+    if next_level_serialized_object["type"] == "method":  # state change of task
         next_level_serialized_object["value"] = (
             value.name if isinstance(value, Enum) else None
         )
     else:
-        # attribute-specific information should not be overwritten by new value
-        serialized_value.pop("readonly")  # type: ignore
-        serialized_value.pop("doc")  # type: ignore
+        serialized_value = dump(value)
+        keys_to_keep = set(serialized_value.keys())
 
-    next_level_serialized_object.update(serialized_value)
+        # TODO: you might want to pop "readonly" and/or "doc" from serialized_value if
+        # it is overwriting the values of the current dict
+        next_level_serialized_object.update(serialized_value)
 
-    # removes keys that are not present in the serialized new value
-    for key in list(next_level_serialized_object.keys()):
-        if key not in keys_to_keep:
-            next_level_serialized_object.pop(key, None)  # type: ignore
+        # removes keys that are not present in the serialized new value
+        for key in list(next_level_serialized_object.keys()):
+            if key not in keys_to_keep:
+                next_level_serialized_object.pop(key, None)  # type: ignore
 
 
 def get_nested_dict_by_path(
@@ -383,7 +374,12 @@ def get_next_level_dict_by_key(
         ):
             # Appending to list
             cast(list[SerializedObject], serialization_dict[attr_name]["value"]).append(
-                {}  # type: ignore
+                {
+                    "value": None,
+                    "type": None,
+                    "doc": None,
+                    "readonly": False,
+                }
             )
             next_level_serialized_object = cast(
                 list[SerializedObject], serialization_dict[attr_name]["value"]
