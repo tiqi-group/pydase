@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import inspect
 import logging
 import sys
-from collections.abc import Callable
 from enum import Enum
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict, cast
+
+if sys.version_info < (3, 11):
+    from typing_extensions import NotRequired
+else:
+    from typing import NotRequired
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -16,6 +22,9 @@ from pydase.utils.helpers import (
     render_in_frontend,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,10 +36,31 @@ class SerializationValueError(Exception):
     pass
 
 
+class SignatureDict(TypedDict):
+    parameters: dict[str, dict[str, Any]]
+    return_annotation: dict[str, Any]
+
+
+SerializedObject = TypedDict(
+    "SerializedObject",
+    {
+        "name": NotRequired[str],
+        "value": "list[SerializedObject] | float | int | str | bool | dict[str, Any] | None",  # noqa: E501
+        "type": str | None,
+        "doc": str | None,
+        "readonly": bool,
+        "enum": NotRequired[dict[str, Any]],
+        "async": NotRequired[bool],
+        "signature": NotRequired[SignatureDict],
+        "frontend_render": NotRequired[bool],
+    },
+)
+
+
 class Serializer:
     @staticmethod
-    def serialize_object(obj: Any) -> dict[str, Any]:
-        result: dict[str, Any] = {}
+    def serialize_object(obj: Any) -> SerializedObject:
+        result: SerializedObject
         if isinstance(obj, AbstractDataService):
             result = Serializer._serialize_data_service(obj)
 
@@ -67,7 +97,7 @@ class Serializer:
         return result
 
     @staticmethod
-    def _serialize_enum(obj: Enum) -> dict[str, Any]:
+    def _serialize_enum(obj: Enum) -> SerializedObject:
         import pydase.components.coloured_enum
 
         value = obj.name
@@ -91,7 +121,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_quantity(obj: u.Quantity) -> dict[str, Any]:
+    def _serialize_quantity(obj: u.Quantity) -> SerializedObject:
         obj_type = "Quantity"
         readonly = False
         doc = get_attribute_doc(obj)
@@ -104,7 +134,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_dict(obj: dict[str, Any]) -> dict[str, Any]:
+    def _serialize_dict(obj: dict[str, Any]) -> SerializedObject:
         obj_type = "dict"
         readonly = False
         doc = get_attribute_doc(obj)
@@ -117,7 +147,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_list(obj: list[Any]) -> dict[str, Any]:
+    def _serialize_list(obj: list[Any]) -> SerializedObject:
         obj_type = "list"
         readonly = False
         doc = get_attribute_doc(obj)
@@ -130,7 +160,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_method(obj: Callable[..., Any]) -> dict[str, Any]:
+    def _serialize_method(obj: Callable[..., Any]) -> SerializedObject:
         obj_type = "method"
         value = None
         readonly = True
@@ -141,16 +171,12 @@ class Serializer:
         sig = inspect.signature(obj)
         sig.return_annotation
 
-        class SignatureDict(TypedDict):
-            parameters: dict[str, dict[str, Any]]
-            return_annotation: dict[str, Any]
-
         signature: SignatureDict = {"parameters": {}, "return_annotation": {}}
 
         for k, v in sig.parameters.items():
             signature["parameters"][k] = {
                 "annotation": str(v.annotation),
-                "default": dump(v.default) if v.default != inspect._empty else {},
+                "default": {} if v.default == inspect._empty else dump(v.default),
             }
 
         return {
@@ -164,7 +190,7 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_data_service(obj: AbstractDataService) -> dict[str, Any]:
+    def _serialize_data_service(obj: AbstractDataService) -> SerializedObject:
         readonly = False
         doc = get_attribute_doc(obj)
         obj_type = "DataService"
@@ -184,7 +210,7 @@ class Serializer:
         # Get the difference between the two sets
         derived_only_attr_set = obj_attr_set - data_service_attr_set
 
-        value = {}
+        value: dict[str, SerializedObject] = {}
 
         # Iterate over attributes, properties, class attributes, and methods
         for key in sorted(derived_only_attr_set):
@@ -224,12 +250,12 @@ class Serializer:
         }
 
 
-def dump(obj: Any) -> dict[str, Any]:
+def dump(obj: Any) -> SerializedObject:
     return Serializer.serialize_object(obj)
 
 
 def set_nested_value_by_path(
-    serialization_dict: dict[str, Any], path: str, value: Any
+    serialization_dict: dict[str, SerializedObject], path: str, value: Any
 ) -> None:
     """
     Set a value in a nested dictionary structure, which conforms to the serialization
@@ -251,16 +277,18 @@ def set_nested_value_by_path(
     """
 
     parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
-    current_dict: dict[str, Any] = serialization_dict
+    current_dict: dict[str, SerializedObject] = serialization_dict
 
     try:
         for path_part in parent_path_parts:
-            current_dict = get_next_level_dict_by_key(
+            next_level_serialized_object = get_next_level_dict_by_key(
                 current_dict, path_part, allow_append=False
             )
-            current_dict = current_dict["value"]
+            current_dict = cast(
+                dict[str, SerializedObject], next_level_serialized_object["value"]
+            )
 
-        current_dict = get_next_level_dict_by_key(
+        next_level_serialized_object = get_next_level_dict_by_key(
             current_dict, attr_name, allow_append=True
         )
     except (SerializationPathError, SerializationValueError, KeyError) as e:
@@ -270,47 +298,53 @@ def set_nested_value_by_path(
     serialized_value = dump(value)
     keys_to_keep = set(serialized_value.keys())
 
-    if current_dict == {}:  # adding an attribute / element to a list or dict
+    if (
+        next_level_serialized_object == {}
+    ):  # adding an attribute / element to a list or dict
         pass
-    elif current_dict["type"] == "method":  # state change of task
-        keys_to_keep = set(current_dict.keys())
+    elif next_level_serialized_object["type"] == "method":  # state change of task
+        keys_to_keep = set(next_level_serialized_object.keys())
 
-        serialized_value = current_dict
-        serialized_value["value"] = value.name if isinstance(value, Enum) else None
+        serialized_value = {}  # type: ignore
+        next_level_serialized_object["value"] = (
+            value.name if isinstance(value, Enum) else None
+        )
     else:
         # attribute-specific information should not be overwritten by new value
-        serialized_value.pop("readonly")
-        serialized_value.pop("doc")
+        serialized_value.pop("readonly")  # type: ignore
+        serialized_value.pop("doc")  # type: ignore
 
-    current_dict.update(serialized_value)
+    next_level_serialized_object.update(serialized_value)
 
     # removes keys that are not present in the serialized new value
-    for key in list(current_dict.keys()):
+    for key in list(next_level_serialized_object.keys()):
         if key not in keys_to_keep:
-            current_dict.pop(key, None)
+            next_level_serialized_object.pop(key, None)  # type: ignore
 
 
 def get_nested_dict_by_path(
-    serialization_dict: dict[str, Any],
+    serialization_dict: dict[str, SerializedObject],
     path: str,
-) -> dict[str, Any]:
+) -> SerializedObject:
     parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
-    current_dict: dict[str, Any] = serialization_dict
+    current_dict: dict[str, SerializedObject] = serialization_dict
 
     for path_part in parent_path_parts:
-        current_dict = get_next_level_dict_by_key(
+        next_level_serialized_object = get_next_level_dict_by_key(
             current_dict, path_part, allow_append=False
         )
-        current_dict = current_dict["value"]
+        current_dict = cast(
+            dict[str, SerializedObject], next_level_serialized_object["value"]
+        )
     return get_next_level_dict_by_key(current_dict, attr_name, allow_append=False)
 
 
 def get_next_level_dict_by_key(
-    serialization_dict: dict[str, Any],
+    serialization_dict: dict[str, SerializedObject],
     attr_name: str,
     *,
     allow_append: bool = False,
-) -> dict[str, Any]:
+) -> SerializedObject:
     """
     Retrieve a nested dictionary entry or list item from a data structure serialized
     with `pydase.utils.serializer.Serializer`.
@@ -335,14 +369,25 @@ def get_next_level_dict_by_key(
 
     try:
         if index is not None:
-            serialization_dict = serialization_dict[attr_name]["value"][index]
+            next_level_serialized_object = cast(
+                list[SerializedObject], serialization_dict[attr_name]["value"]
+            )[index]
         else:
-            serialization_dict = serialization_dict[attr_name]
+            next_level_serialized_object = serialization_dict[attr_name]
     except IndexError as e:
-        if allow_append and index == len(serialization_dict[attr_name]["value"]):
+        if (
+            index is not None
+            and allow_append
+            and index
+            == len(cast(list[SerializedObject], serialization_dict[attr_name]["value"]))
+        ):
             # Appending to list
-            serialization_dict[attr_name]["value"].append({})
-            serialization_dict = serialization_dict[attr_name]["value"][index]
+            cast(list[SerializedObject], serialization_dict[attr_name]["value"]).append(
+                {}  # type: ignore
+            )
+            next_level_serialized_object = cast(
+                list[SerializedObject], serialization_dict[attr_name]["value"]
+            )[index]
         else:
             raise SerializationPathError(
                 f"Error occured trying to change '{attr_name}[{index}]': {e}"
@@ -354,17 +399,17 @@ def get_next_level_dict_by_key(
             "a 'value' key."
         )
 
-    if not isinstance(serialization_dict, dict):
+    if not isinstance(next_level_serialized_object, dict):
         raise SerializationValueError(
             f"Expected a dictionary at '{attr_name}', but found type "
-            f"'{type(serialization_dict).__name__}' instead."
+            f"'{type(next_level_serialized_object).__name__}' instead."
         )
 
-    return serialization_dict
+    return next_level_serialized_object
 
 
 def generate_serialized_data_paths(
-    data: dict[str, dict[str, Any]], parent_path: str = ""
+    data: dict[str, Any], parent_path: str = ""
 ) -> list[str]:
     """
     Generate a list of access paths for all attributes in a dictionary representing
@@ -404,7 +449,7 @@ def generate_serialized_data_paths(
     return paths
 
 
-def serialized_dict_is_nested_object(serialized_dict: dict[str, Any]) -> bool:
+def serialized_dict_is_nested_object(serialized_dict: SerializedObject) -> bool:
     return (
         serialized_dict["type"] != "Quantity"
         and isinstance(serialized_dict["value"], dict)

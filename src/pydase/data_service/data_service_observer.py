@@ -9,7 +9,7 @@ from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
 from pydase.utils.helpers import get_object_attr_from_path_list
-from pydase.utils.serializer import dump
+from pydase.utils.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class DataServiceObserver(PropertyObserver):
     def __init__(self, state_manager: StateManager) -> None:
         self.state_manager = state_manager
         self._notification_callbacks: list[
-            Callable[[str, Any, dict[str, Any]], None]
+            Callable[[str, Any, SerializedObject], None]
         ] = []
         super().__init__(state_manager.service)
 
@@ -59,7 +59,10 @@ class DataServiceObserver(PropertyObserver):
         self._notify_dependent_property_changes(full_access_path)
 
     def _update_cache_value(
-        self, full_access_path: str, value: Any, cached_value_dict: dict[str, Any]
+        self,
+        full_access_path: str,
+        value: Any,
+        cached_value_dict: SerializedObject | dict[str, Any],
     ) -> None:
         value_dict = dump(value)
         if cached_value_dict != {}:
@@ -93,7 +96,7 @@ class DataServiceObserver(PropertyObserver):
                 )
 
     def add_notification_callback(
-        self, callback: Callable[[str, Any, dict[str, Any]], None]
+        self, callback: Callable[[str, Any, SerializedObject], None]
     ) -> None:
         """
         Registers a callback function to be invoked upon attribute changes in the

@@ -13,6 +13,7 @@ from pydase.utils.helpers import (
     parse_list_attr_and_index,
 )
 from pydase.utils.serializer import (
+    SerializedObject,
     dump,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
@@ -114,9 +115,16 @@ class StateManager:
         self._data_service_cache = DataServiceCache(self.service)
 
     @property
-    def cache(self) -> dict[str, Any]:
+    def cache(self) -> SerializedObject:
         """Returns the cached DataService state."""
         return self._data_service_cache.cache
+
+    @property
+    def cache_value(self) -> dict[str, SerializedObject]:
+        """Returns the "value" value of the DataService serialization."""
+        return cast(
+            dict[str, SerializedObject], self._data_service_cache.cache["value"]
+        )
 
     def save_state(self) -> None:
         """
@@ -126,7 +134,7 @@ class StateManager:
 
         if self.filename is not None:
             with open(self.filename, "w") as f:
-                json.dump(self.cache["value"], f, indent=4)
+                json.dump(self.cache_value, f, indent=4)
         else:
             logger.info(
                 "State manager was not initialised with a filename. Skipping "
@@ -191,7 +199,7 @@ class StateManager:
             value: The new value to set for the attribute.
         """
 
-        current_value_dict = get_nested_dict_by_path(self.cache["value"], path)
+        current_value_dict = get_nested_dict_by_path(self.cache_value, path)
 
         # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
@@ -216,10 +224,12 @@ class StateManager:
         return dump(value_object)["value"] != current_value
 
     def __convert_value_if_needed(
-        self, value: Any, current_value_dict: dict[str, Any]
+        self, value: Any, current_value_dict: SerializedObject
     ) -> Any:
         if current_value_dict["type"] == "Quantity":
-            return u.convert_to_quantity(value, current_value_dict["value"]["unit"])
+            return u.convert_to_quantity(
+                value, cast(dict[str, Any], current_value_dict["value"])["unit"]
+            )
         if current_value_dict["type"] == "float" and not isinstance(value, float):
             return float(value)
         return value
@@ -234,7 +244,7 @@ class StateManager:
         # Update path to reflect the attribute without list indices
         path = ".".join([*parent_path_list, attr_name])
 
-        attr_cache_type = get_nested_dict_by_path(self.cache["value"], path)["type"]
+        attr_cache_type = get_nested_dict_by_path(self.cache_value, path)["type"]
 
         # Traverse the object according to the path parts
         target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
@@ -273,7 +283,7 @@ class StateManager:
             return has_decorator
 
         cached_serialization_dict = get_nested_dict_by_path(
-            self.cache["value"], full_access_path
+            self.cache_value, full_access_path
         )
 
         if cached_serialization_dict["value"] == "method":
