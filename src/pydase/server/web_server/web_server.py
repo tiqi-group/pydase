@@ -16,7 +16,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
-from pydase.utils.serializer import SerializedObject, generate_serialized_data_paths
+from pydase.utils.serializer import generate_serialized_data_paths
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)
@@ -160,8 +160,8 @@ class WebServer:
             return type(self.service).__name__
 
         @app.get("/service-properties")
-        def service_properties() -> SerializedObject:
-            return self.state_manager.cache
+        def service_properties() -> dict[str, Any]:
+            return self.state_manager.cache  # type: ignore
 
         @app.get("/web-settings")
         def web_settings() -> dict[str, Any]:
