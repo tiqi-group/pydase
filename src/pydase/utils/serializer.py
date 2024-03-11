@@ -303,8 +303,10 @@ def set_nested_value_by_path(
         serialized_value = dump(value)
         keys_to_keep = set(serialized_value.keys())
 
-        # TODO: you might want to pop "readonly" and/or "doc" from serialized_value if
-        # it is overwriting the values of the current dict
+        # TODO: you might also want to pop "doc" from serialized_value if
+        # it is overwriting the value of the current dict
+        serialized_value.pop("readonly")  # type: ignore
+
         next_level_serialized_object.update(serialized_value)
 
         # removes keys that are not present in the serialized new value
