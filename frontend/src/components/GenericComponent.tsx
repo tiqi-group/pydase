@@ -62,8 +62,13 @@ export const GenericComponent = React.memo(
     const webSettings = useContext(WebSettingsContext);
     let displayName = name;
 
-    if (webSettings[fullAccessPath] && webSettings[fullAccessPath].displayName) {
-      displayName = webSettings[fullAccessPath].displayName;
+    if (webSettings[fullAccessPath]) {
+      if (webSettings[fullAccessPath].display === false) {
+        return null;
+      }
+      if (webSettings[fullAccessPath].displayName) {
+        displayName = webSettings[fullAccessPath].displayName;
+      }
     }
 
     function changeCallback(
