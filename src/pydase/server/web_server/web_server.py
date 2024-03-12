@@ -6,7 +6,7 @@ from typing import Any
 
 import socketio  # type: ignore[import-untyped]
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -171,11 +171,12 @@ class WebServer:
             return self.web_settings
 
         # exposing custom.css file provided by user
-        if self.css is not None:
-
-            @app.get("/custom.css")
-            async def styles() -> FileResponse:
+        @app.get("/custom.css")
+        async def styles() -> Response:
+            if self.css is not None:
                 return FileResponse(str(self.css))
+
+            return Response(content="", media_type="text/css")
 
         app.mount(
             "/",
