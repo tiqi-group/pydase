@@ -130,7 +130,10 @@ class WebServer:
             if path in current_web_settings:
                 continue
 
-            current_web_settings[path] = {"displayName": path.split(".")[-1]}
+            current_web_settings[path] = {
+                "displayName": path.split(".")[-1],
+                "display": True,
+            }
 
         return current_web_settings
 

@@ -831,7 +831,8 @@ Please ensure that the CSS file path is accessible from the server's running loc
 `pydase` enables users to customize the frontend layout via the `web_settings.json` file. Each key in the file corresponds to the full access path of public attributes, properties, and methods of the exposed service, using dot-notation.
 
 - **Custom Display Names**: Modify the `"displayName"` value in the file to change how each component appears in the frontend.
-<!-- - **Adjustable Component Order**: The `"index"` values determine the order of components. Alter these values to rearrange the components as desired. -->
+- **Control Component Visibility**: Utilize the `"display"` key-value pair to control whether a component is rendered in the frontend. Set the value to `true` to make the component visible or `false` to hide it.
+<!-- - **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. -->
 
 The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
 

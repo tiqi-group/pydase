@@ -26,8 +26,8 @@ def test_web_settings() -> None:
     observer = DataServiceObserver(state_manager)
     with tempfile.TemporaryDirectory() as tmp:
         web_settings = {
-            "attr_1": {"displayName": "Attribute"},
-            "attr_1.name": {"displayName": "Attribute name"},
+            "attr_1": {"displayName": "Attribute", "display": False},
+            "attr_1.name": {"displayName": "Attribute name", "display": True},
         }
         web_settings_file = Path(tmp) / "web_settings.json"
 
@@ -44,8 +44,11 @@ def test_web_settings() -> None:
         new_web_settings = server.web_settings
 
         # existing entries are not overwritten, new entries are appended
-        assert new_web_settings == {**web_settings, "added": {"displayName": "added"}}
+        assert new_web_settings == {
+            **web_settings,
+            "added": {"displayName": "added", "display": True},
+        }
         assert json.loads(web_settings_file.read_text()) == {
             **web_settings,
-            "added": {"displayName": "added"},
+            "added": {"displayName": "added", "display": True},
         }
