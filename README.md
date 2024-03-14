@@ -18,6 +18,8 @@
   - [DataService Instances (Nested Classes)](#dataservice-instances-nested-classes)
   - [Custom Components (`pydase.components`)](#custom-components-pydasecomponents)
     - [`DeviceConnection`](#deviceconnection)
+      - [Customizing Connection Logic](#customizing-connection-logic)
+      - [Reconnection Interval](#reconnection-interval)
     - [`Image`](#image)
     - [`NumberSlider`](#numberslider)
     - [`ColouredEnum`](#colouredenum)
@@ -30,6 +32,7 @@
 - [Customizing the Web Interface](#customizing-the-web-interface)
   - [Enhancing the Web Interface Style with Custom CSS](#enhancing-the-web-interface-style-with-custom-css)
   - [Tailoring Frontend Component Layout](#tailoring-frontend-component-layout)
+  - [Specifying a Custom Frontend Source](#specifying-a-custom-frontend-source)
 - [Logging in pydase](#logging-in-pydase)
   - [Changing the Log Level](#changing-the-log-level)
 - [Documentation](#documentation)
@@ -835,6 +838,28 @@ Please ensure that the CSS file path is accessible from the server's running loc
 <!-- - **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. -->
 
 The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
+
+### Specifying a Custom Frontend Source
+
+To further personalize your web interface, you can provide `pydase` with a custom frontend GUI. To do so, you can use the `frontend_src` keyword in the `pydase.Server`:
+
+```python
+from pathlib import Path
+
+import pydase
+
+
+class MyService(pydase.DataService):
+    # Service definition
+
+
+if __name__ == "__main__":
+    service = MyService()
+    pydase.Server(
+        service,
+        frontend_src=Path("path/to/your/frontend/directory"),
+    ).run()
+```
 
 ## Logging in pydase
 
