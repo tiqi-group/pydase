@@ -70,7 +70,7 @@ class WebServer:
         enable_cors: bool = True,
         config_dir: Path = ServiceConfig().config_dir,
         generate_web_settings: bool = WebServerConfig().generate_web_settings,
-        **kwargs: Any,
+        frontend_src: Path = Path(__file__).parent.parent.parent / "frontend",
     ) -> None:
         self.observer = data_service_observer
         self.state_manager = self.observer.state_manager
@@ -79,6 +79,7 @@ class WebServer:
         self.host = host
         self.css = css
         self.enable_cors = enable_cors
+        self.frontend_src = frontend_src
         self._service_config_dir = config_dir
         self._generate_web_settings = generate_web_settings
         self._loop: asyncio.AbstractEventLoop
@@ -181,7 +182,7 @@ class WebServer:
         app.mount(
             "/",
             StaticFiles(
-                directory=Path(__file__).parent.parent.parent / "frontend",
+                directory=self.frontend_src,
                 html=True,
             ),
         )
