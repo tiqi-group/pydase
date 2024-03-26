@@ -3,12 +3,10 @@ import logging
 import os
 import signal
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import FrameType
 from typing import Any, Protocol, TypedDict
 
-from rpyc import ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
@@ -51,8 +49,7 @@ class AdditionalServerProtocol(Protocol):
         host: str,
         port: int,
         **kwargs: Any,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def serve(self) -> Any:
         """Starts the server. This method should be implemented as an asynchronous
@@ -154,9 +151,7 @@ class Server:
         self,
         service: DataService,
         host: str = "0.0.0.0",
-        rpc_port: int = ServiceConfig().rpc_port,
         web_port: int = ServiceConfig().web_port,
-        enable_rpc: bool = True,
         enable_web: bool = True,
         filename: str | Path | None = None,
         additional_servers: list[AdditionalServer] | None = None,
@@ -166,16 +161,13 @@ class Server:
             additional_servers = []
         self._service = service
         self._host = host
-        self._rpc_port = rpc_port
         self._web_port = web_port
-        self._enable_rpc = enable_rpc
         self._enable_web = enable_web
         self._kwargs = kwargs
         self._loop: asyncio.AbstractEventLoop
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
-        self.executor: ThreadPoolExecutor | None = None
         self._state_manager = StateManager(self._service, filename)
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
@@ -207,20 +199,6 @@ class Server:
         self.install_signal_handlers()
         self._service._task_manager.start_autostart_tasks()
 
-        if self._enable_rpc:
-            self.executor = ThreadPoolExecutor()
-            self._rpc_server = ThreadedServer(
-                self._service,
-                port=self._rpc_port,
-                protocol_config={
-                    "allow_all_attrs": True,
-                    "allow_setattr": True,
-                },
-            )
-            future_or_task = self._loop.run_in_executor(
-                executor=self.executor, func=self._rpc_server.start
-            )
-            self.servers["rpyc"] = future_or_task
         for server in self._additional_servers:
             addin_server = server["server"](
                 data_service_observer=self._observer,
@@ -257,10 +235,6 @@ class Server:
 
         await self.__cancel_servers()
         await self.__cancel_tasks()
-
-        if hasattr(self, "_rpc_server") and self._enable_rpc:
-            logger.debug("Closing rpyc server.")
-            self._rpc_server.close()
 
     async def __cancel_servers(self) -> None:
         for server_name, task in self.servers.items():

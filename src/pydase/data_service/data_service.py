@@ -3,8 +3,6 @@ import logging
 from enum import Enum
 from typing import Any, get_type_hints
 
-import rpyc  # type: ignore[import-untyped]
-
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.task_manager import TaskManager
@@ -35,7 +33,7 @@ def process_callable_attribute(attr: Any, args: dict[str, Any]) -> Any:
     )
 
 
-class DataService(rpyc.Service, AbstractDataService):
+class DataService(AbstractDataService):
     def __init__(self, **kwargs: Any) -> None:
         super().__init__()
         self._task_manager = TaskManager(self)
@@ -105,26 +103,6 @@ class DataService(rpyc.Service, AbstractDataService):
                 and not isinstance(attr_value, property)
             ):
                 self.__warn_if_not_observable(attr_value)
-
-    def _rpyc_getattr(self, name: str) -> Any:
-        if name.startswith("_"):
-            # disallow special and private attributes
-            raise AttributeError("cannot access private/special names")
-        # allow all other attributes
-        return getattr(self, name)
-
-    def _rpyc_setattr(self, name: str, value: Any) -> None:
-        if name.startswith("_"):
-            # disallow special and private attributes
-            raise AttributeError("cannot access private/special names")
-
-        # check if the attribute has a setter method
-        attr = getattr(self, name, None)
-        if isinstance(attr, property) and attr.fset is None:
-            raise AttributeError(f"{name} attribute does not have a setter method")
-
-        # allow all other attributes
-        setattr(self, name, value)
 
     def serialize(self) -> SerializedObject:
         """
