@@ -83,6 +83,7 @@ def test_enum_serialize() -> None:
     assert dump(EnumAttribute())["value"] == {
         "some_enum": {
             "type": "Enum",
+            "name": "EnumClass",
             "value": "FOO",
             "enum": {"FOO": "foo", "BAR": "bar"},
             "readonly": False,
@@ -92,6 +93,7 @@ def test_enum_serialize() -> None:
     assert dump(EnumPropertyWithoutSetter())["value"] == {
         "some_enum": {
             "type": "Enum",
+            "name": "EnumClass",
             "value": "FOO",
             "enum": {"FOO": "foo", "BAR": "bar"},
             "readonly": True,
@@ -101,6 +103,7 @@ def test_enum_serialize() -> None:
     assert dump(EnumPropertyWithSetter())["value"] == {
         "some_enum": {
             "type": "Enum",
+            "name": "EnumClass",
             "value": "FOO",
             "enum": {"FOO": "foo", "BAR": "bar"},
             "readonly": False,
@@ -123,6 +126,7 @@ def test_ColouredEnum_serialize() -> None:
 
     assert dump(Status.FAILED) == {
         "type": "ColouredEnum",
+        "name": "Status",
         "value": "FAILED",
         "enum": {
             "CANCELLED": "SlateGray",
@@ -427,6 +431,7 @@ def test_update_nested_attribute(setup_dict: dict[str, Any]) -> None:
 def test_update_float_attribute_to_enum(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.attr3", MyEnum.RUNNING)
     assert setup_dict["attr2"]["value"]["attr3"] == {
+        "name": "MyEnum",
         "doc": "MyEnum description",
         "enum": {"FINISHED": "finished", "RUNNING": "running"},
         "readonly": False,
@@ -476,6 +481,7 @@ def test_update_list_append(setup_dict: dict[str, SerializedObject]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[3]", MyEnum.RUNNING)
     assert setup_dict["attr_list"]["value"][3] == {
         "doc": "MyEnum description",
+        "name": "MyEnum",
         "enum": {"FINISHED": "finished", "RUNNING": "running"},
         "readonly": False,
         "type": "Enum",

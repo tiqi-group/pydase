@@ -103,6 +103,7 @@ class Serializer:
         value = obj.name
         readonly = False
         doc = obj.__doc__
+        class_name = type(obj).__name__
         if sys.version_info < (3, 11) and doc == "An enumeration.":
             doc = None
         if isinstance(obj, pydase.components.coloured_enum.ColouredEnum):
@@ -111,6 +112,7 @@ class Serializer:
             obj_type = "Enum"
 
         return {
+            "name": class_name,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
