@@ -1,6 +1,6 @@
 import enum
 import logging
-from typing import Any, NoReturn, cast
+from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 import pydase
 import pydase.components
@@ -9,14 +9,16 @@ import pydase.units as u
 from pydase.utils.helpers import get_component_classes
 from pydase.utils.serializer import SerializedObject
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 logger = logging.getLogger(__name__)
 
 
 class Deserializer:
     @classmethod
     def deserialize(cls, serialized_object: SerializedObject) -> Any:
-        # Main entry point for deserializing objects
-        type_handler = {
+        type_handler: dict[str | None, None | Callable[..., Any]] = {
             None: None,
             "int": cls.deserialize_primitive,
             "float": cls.deserialize_primitive,
@@ -26,7 +28,7 @@ class Deserializer:
             "Quantity": cls.deserialize_quantity,
             "Enum": cls.deserialize_enum,
             "ColouredEnum": lambda serialized_object: cls.deserialize_enum(
-                serialized_object, pydase.components.ColouredEnum
+                serialized_object, enum_class=pydase.components.ColouredEnum
             ),
             "list": cls.deserialize_list,
             "dict": cls.deserialize_dict,
