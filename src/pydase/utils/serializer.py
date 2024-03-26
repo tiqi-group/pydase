@@ -44,6 +44,7 @@ class SignatureDict(TypedDict):
 SerializedObject = TypedDict(
     "SerializedObject",
     {
+        "full_access_path": str,
         "name": NotRequired[str],
         "value": "list[SerializedObject] | float | int | str | bool | dict[str, Any] | None",  # noqa: E501
         "type": str | None,
@@ -59,28 +60,28 @@ SerializedObject = TypedDict(
 
 class Serializer:
     @staticmethod
-    def serialize_object(obj: Any) -> SerializedObject:
+    def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:
         result: SerializedObject
         if isinstance(obj, AbstractDataService):
-            result = Serializer._serialize_data_service(obj)
+            result = Serializer._serialize_data_service(obj, access_path=access_path)
 
         elif isinstance(obj, list):
-            result = Serializer._serialize_list(obj)
+            result = Serializer._serialize_list(obj, access_path=access_path)
 
         elif isinstance(obj, dict):
-            result = Serializer._serialize_dict(obj)
+            result = Serializer._serialize_dict(obj, access_path=access_path)
 
         # Special handling for u.Quantity
         elif isinstance(obj, u.Quantity):
-            result = Serializer._serialize_quantity(obj)
+            result = Serializer._serialize_quantity(obj, access_path=access_path)
 
         # Handling for Enums
         elif isinstance(obj, Enum):
-            result = Serializer._serialize_enum(obj)
+            result = Serializer._serialize_enum(obj, access_path=access_path)
 
         # Methods and coroutines
         elif inspect.isfunction(obj) or inspect.ismethod(obj):
-            result = Serializer._serialize_method(obj)
+            result = Serializer._serialize_method(obj, access_path=access_path)
 
         else:
             obj_type = type(obj).__name__
@@ -88,6 +89,7 @@ class Serializer:
             readonly = False
             doc = get_attribute_doc(obj)
             result = {
+                "full_access_path": access_path,
                 "type": obj_type,
                 "value": value,
                 "readonly": readonly,
@@ -97,7 +99,7 @@ class Serializer:
         return result
 
     @staticmethod
-    def _serialize_enum(obj: Enum) -> SerializedObject:
+    def _serialize_enum(obj: Enum, access_path: str = "") -> SerializedObject:
         import pydase.components.coloured_enum
 
         value = obj.name
@@ -112,6 +114,7 @@ class Serializer:
             obj_type = "Enum"
 
         return {
+            "full_access_path": access_path,
             "name": class_name,
             "type": obj_type,
             "value": value,
@@ -123,12 +126,13 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_quantity(obj: u.Quantity) -> SerializedObject:
+    def _serialize_quantity(obj: u.Quantity, access_path: str = "") -> SerializedObject:
         obj_type = "Quantity"
         readonly = False
         doc = get_attribute_doc(obj)
         value = {"magnitude": obj.m, "unit": str(obj.u)}
         return {
+            "full_access_path": access_path,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
@@ -136,12 +140,16 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_dict(obj: dict[str, Any]) -> SerializedObject:
+    def _serialize_dict(obj: dict[str, Any], access_path: str = "") -> SerializedObject:
         obj_type = "dict"
         readonly = False
         doc = get_attribute_doc(obj)
-        value = {key: Serializer.serialize_object(val) for key, val in obj.items()}
+        value = {
+            key: Serializer.serialize_object(val, access_path=f'{access_path}["{key}"]')
+            for key, val in obj.items()
+        }
         return {
+            "full_access_path": access_path,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
@@ -149,12 +157,16 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_list(obj: list[Any]) -> SerializedObject:
+    def _serialize_list(obj: list[Any], access_path: str = "") -> SerializedObject:
         obj_type = "list"
         readonly = False
         doc = get_attribute_doc(obj)
-        value = [Serializer.serialize_object(o) for o in obj]
+        value = [
+            Serializer.serialize_object(o, access_path=f"{access_path}[{i}]")
+            for i, o in enumerate(obj)
+        ]
         return {
+            "full_access_path": access_path,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
@@ -162,7 +174,9 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_method(obj: Callable[..., Any]) -> SerializedObject:
+    def _serialize_method(
+        obj: Callable[..., Any], access_path: str = ""
+    ) -> SerializedObject:
         obj_type = "method"
         value = None
         readonly = True
@@ -176,12 +190,17 @@ class Serializer:
         signature: SignatureDict = {"parameters": {}, "return_annotation": {}}
 
         for k, v in sig.parameters.items():
+            default_value = cast(
+                dict[str, Any], {} if v.default == inspect._empty else dump(v.default)
+            )
+            default_value.pop("full_access_path", None)
             signature["parameters"][k] = {
                 "annotation": str(v.annotation),
-                "default": {} if v.default == inspect._empty else dump(v.default),
+                "default": default_value,
             }
 
         return {
+            "full_access_path": access_path,
             "type": obj_type,
             "value": value,
             "readonly": readonly,
@@ -192,7 +211,9 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_data_service(obj: AbstractDataService) -> SerializedObject:
+    def _serialize_data_service(
+        obj: AbstractDataService, access_path: str = ""
+    ) -> SerializedObject:
         readonly = False
         doc = get_attribute_doc(obj)
         obj_type = "DataService"
@@ -231,7 +252,8 @@ class Serializer:
 
             val = getattr(obj, key)
 
-            value[key] = Serializer.serialize_object(val)
+            path = f"{access_path}.{key}" if access_path else key
+            value[key] = Serializer.serialize_object(val, access_path=path)
 
             # If there's a running task for this method
             if key in obj._task_manager.tasks:
@@ -244,6 +266,7 @@ class Serializer:
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc
 
         return {
+            "full_access_path": access_path,
             "name": obj_name,
             "type": obj_type,
             "value": value,
@@ -303,11 +326,10 @@ def set_nested_value_by_path(
         )
     else:
         serialized_value = dump(value)
-        keys_to_keep = set(serialized_value.keys())
+        serialized_value["full_access_path"] = path
+        serialized_value["readonly"] = next_level_serialized_object["readonly"]
 
-        # TODO: you might also want to pop "doc" from serialized_value if
-        # it is overwriting the value of the current dict
-        serialized_value.pop("readonly")  # type: ignore
+        keys_to_keep = set(serialized_value.keys())
 
         next_level_serialized_object.update(serialized_value)
 
@@ -379,6 +401,7 @@ def get_next_level_dict_by_key(
             # Appending to list
             cast(list[SerializedObject], serialization_dict[attr_name]["value"]).append(
                 {
+                    "full_access_path": "",
                     "value": None,
                     "type": None,
                     "doc": None,

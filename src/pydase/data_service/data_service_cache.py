@@ -45,6 +45,7 @@ class DataServiceCache:
             )
         except (SerializationPathError, SerializationValueError, KeyError):
             return {
+                "full_access_path": full_access_path,
                 "value": None,
                 "type": None,
                 "doc": None,

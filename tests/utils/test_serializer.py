@@ -30,12 +30,40 @@ class MyEnum(enum.Enum):
 @pytest.mark.parametrize(
     "test_input, expected",
     [
-        (1, {"type": "int", "value": 1, "readonly": False, "doc": None}),
-        (1.0, {"type": "float", "value": 1.0, "readonly": False, "doc": None}),
-        (True, {"type": "bool", "value": True, "readonly": False, "doc": None}),
+        (
+            1,
+            {
+                "full_access_path": "",
+                "type": "int",
+                "value": 1,
+                "readonly": False,
+                "doc": None,
+            },
+        ),
+        (
+            1.0,
+            {
+                "full_access_path": "",
+                "type": "float",
+                "value": 1.0,
+                "readonly": False,
+                "doc": None,
+            },
+        ),
+        (
+            True,
+            {
+                "full_access_path": "",
+                "type": "bool",
+                "value": True,
+                "readonly": False,
+                "doc": None,
+            },
+        ),
         (
             u.Quantity(10, "m"),
             {
+                "full_access_path": "",
                 "type": "Quantity",
                 "value": {"magnitude": 10, "unit": "meter"},
                 "readonly": False,
@@ -82,6 +110,7 @@ def test_enum_serialize() -> None:
 
     assert dump(EnumAttribute())["value"] == {
         "some_enum": {
+            "full_access_path": "some_enum",
             "type": "Enum",
             "name": "EnumClass",
             "value": "FOO",
@@ -92,6 +121,7 @@ def test_enum_serialize() -> None:
     }
     assert dump(EnumPropertyWithoutSetter())["value"] == {
         "some_enum": {
+            "full_access_path": "some_enum",
             "type": "Enum",
             "name": "EnumClass",
             "value": "FOO",
@@ -102,6 +132,7 @@ def test_enum_serialize() -> None:
     }
     assert dump(EnumPropertyWithSetter())["value"] == {
         "some_enum": {
+            "full_access_path": "some_enum",
             "type": "Enum",
             "name": "EnumClass",
             "value": "FOO",
@@ -125,6 +156,7 @@ def test_ColouredEnum_serialize() -> None:
         CANCELLED = "SlateGray"
 
     assert dump(Status.FAILED) == {
+        "full_access_path": "",
         "type": "ColouredEnum",
         "name": "Status",
         "value": "FAILED",
@@ -157,6 +189,7 @@ async def test_method_serialization() -> None:
 
     assert dump(instance)["value"] == {
         "some_method": {
+            "full_access_path": "some_method",
             "type": "method",
             "value": None,
             "readonly": True,
@@ -166,6 +199,7 @@ async def test_method_serialization() -> None:
             "frontend_render": False,
         },
         "some_task": {
+            "full_access_path": "some_task",
             "type": "method",
             "value": TaskStatus.RUNNING.name,
             "readonly": True,
@@ -191,6 +225,7 @@ def test_methods_with_type_hints() -> None:
         pass
 
     assert dump(method_without_type_hint) == {
+        "full_access_path": "",
         "async": False,
         "doc": None,
         "signature": {
@@ -209,6 +244,7 @@ def test_methods_with_type_hints() -> None:
     }
 
     assert dump(method_with_type_hint) == {
+        "full_access_path": "",
         "type": "method",
         "value": None,
         "readonly": True,
@@ -223,6 +259,7 @@ def test_methods_with_type_hints() -> None:
         "frontend_render": False,
     }
     assert dump(method_with_union_type_hint) == {
+        "full_access_path": "",
         "type": "method",
         "value": None,
         "readonly": True,
@@ -249,6 +286,7 @@ def test_exposed_function_serialization() -> None:
         pass
 
     assert dump(MyService().some_method) == {
+        "full_access_path": "",
         "type": "method",
         "value": None,
         "readonly": True,
@@ -259,6 +297,7 @@ def test_exposed_function_serialization() -> None:
     }
 
     assert dump(some_function) == {
+        "full_access_path": "",
         "type": "method",
         "value": None,
         "readonly": True,
@@ -286,30 +325,41 @@ def test_list_serialization() -> None:
 
     assert dump(instance)["value"] == {
         "list_attr": {
+            "full_access_path": "list_attr",
             "doc": None,
             "readonly": False,
             "type": "list",
             "value": [
-                {"doc": None, "readonly": False, "type": "int", "value": 1},
                 {
+                    "full_access_path": "list_attr[0]",
+                    "doc": None,
+                    "readonly": False,
+                    "type": "int",
+                    "value": 1,
+                },
+                {
+                    "full_access_path": "list_attr[1]",
                     "doc": None,
                     "readonly": False,
                     "type": "DataService",
                     "name": "MySubclass",
                     "value": {
                         "bool_attr": {
+                            "full_access_path": "list_attr[1].bool_attr",
                             "doc": None,
                             "readonly": False,
                             "type": "bool",
                             "value": True,
                         },
                         "int_attr": {
+                            "full_access_path": "list_attr[1].int_attr",
                             "doc": None,
                             "readonly": False,
                             "type": "int",
                             "value": 1,
                         },
                         "name": {
+                            "full_access_path": "list_attr[1].name",
                             "doc": None,
                             "readonly": True,
                             "type": "str",
@@ -335,17 +385,20 @@ def test_dict_serialization() -> None:
     }
 
     assert dump(test_dict) == {
+        "full_access_path": "",
         "doc": None,
         "readonly": False,
         "type": "dict",
         "value": {
             "DataService_key": {
+                "full_access_path": '["DataService_key"]',
                 "name": "MyClass",
                 "doc": None,
                 "readonly": False,
                 "type": "DataService",
                 "value": {
                     "name": {
+                        "full_access_path": '["DataService_key"].name',
                         "doc": None,
                         "readonly": False,
                         "type": "str",
@@ -354,19 +407,33 @@ def test_dict_serialization() -> None:
                 },
             },
             "Quantity_key": {
+                "full_access_path": '["Quantity_key"]',
                 "doc": None,
                 "readonly": False,
                 "type": "Quantity",
                 "value": {"magnitude": 1.0, "unit": "s"},
             },
-            "bool_key": {"doc": None, "readonly": False, "type": "bool", "value": True},
+            "bool_key": {
+                "full_access_path": '["bool_key"]',
+                "doc": None,
+                "readonly": False,
+                "type": "bool",
+                "value": True,
+            },
             "float_key": {
+                "full_access_path": '["float_key"]',
                 "doc": None,
                 "readonly": False,
                 "type": "float",
                 "value": 1.0,
             },
-            "int_key": {"doc": None, "readonly": False, "type": "int", "value": 1},
+            "int_key": {
+                "full_access_path": '["int_key"]',
+                "doc": None,
+                "readonly": False,
+                "type": "int",
+                "value": 1,
+            },
         },
     }
 
@@ -387,8 +454,7 @@ def test_derived_data_service_serialization() -> None:
         def name(self, value: str) -> None:
             self._name = value
 
-    class DerivedService(BaseService):
-        ...
+    class DerivedService(BaseService): ...
 
     base_service_serialization = dump(BaseService())
     derived_service_serialization = dump(DerivedService())
@@ -415,7 +481,7 @@ def setup_dict() -> dict[str, Any]:
         def my_task(self) -> None:
             pass
 
-    return ServiceClass().serialize()["value"]
+    return ServiceClass().serialize()["value"]  # type: ignore
 
 
 def test_update_attribute(setup_dict: dict[str, Any]) -> None:
@@ -431,6 +497,7 @@ def test_update_nested_attribute(setup_dict: dict[str, Any]) -> None:
 def test_update_float_attribute_to_enum(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.attr3", MyEnum.RUNNING)
     assert setup_dict["attr2"]["value"]["attr3"] == {
+        "full_access_path": "attr2.attr3",
         "name": "MyEnum",
         "doc": "MyEnum description",
         "enum": {"FINISHED": "finished", "RUNNING": "running"},
@@ -443,6 +510,7 @@ def test_update_float_attribute_to_enum(setup_dict: dict[str, Any]) -> None:
 def test_update_enum_attribute_to_float(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "enum_attr", 1.01)
     assert setup_dict["enum_attr"] == {
+        "full_access_path": "enum_attr",
         "doc": None,
         "readonly": False,
         "type": "float",
@@ -452,6 +520,7 @@ def test_update_enum_attribute_to_float(setup_dict: dict[str, Any]) -> None:
 
 def test_update_task_state(setup_dict: dict[str, Any]) -> None:
     assert setup_dict["my_task"] == {
+        "full_access_path": "my_task",
         "async": False,
         "doc": None,
         "frontend_render": False,
@@ -462,6 +531,7 @@ def test_update_task_state(setup_dict: dict[str, Any]) -> None:
     }
     set_nested_value_by_path(setup_dict, "my_task", TaskStatus.RUNNING)
     assert setup_dict["my_task"] == {
+        "full_access_path": "my_task",
         "async": False,
         "doc": None,
         "frontend_render": False,
@@ -474,12 +544,13 @@ def test_update_task_state(setup_dict: dict[str, Any]) -> None:
 
 def test_update_list_entry(setup_dict: dict[str, SerializedObject]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[1]", 20)
-    assert setup_dict["attr_list"]["value"][1]["value"] == 20
+    assert setup_dict["attr_list"]["value"][1]["value"] == 20  # type: ignore # noqa
 
 
 def test_update_list_append(setup_dict: dict[str, SerializedObject]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[3]", MyEnum.RUNNING)
-    assert setup_dict["attr_list"]["value"][3] == {
+    assert setup_dict["attr_list"]["value"][3] == {  # type: ignore
+        "full_access_path": "attr_list[3]",
         "doc": "MyEnum description",
         "name": "MyEnum",
         "enum": {"FINISHED": "finished", "RUNNING": "running"},
@@ -512,12 +583,12 @@ def test_update_invalid_path(
 
 def test_update_list_inside_class(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.list_attr[1]", 40)
-    assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40
+    assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40  # noqa
 
 
 def test_update_class_attribute_inside_list(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
-    assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50
+    assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50  # noqa
 
 
 def test_get_next_level_attribute_nested_dict(setup_dict: dict[str, Any]) -> None:
