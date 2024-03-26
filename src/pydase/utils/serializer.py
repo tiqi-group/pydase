@@ -62,7 +62,11 @@ class Serializer:
     @staticmethod
     def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:
         result: SerializedObject
-        if isinstance(obj, AbstractDataService):
+
+        if isinstance(obj, Exception):
+            result = Serializer._serialize_exception(obj)
+
+        elif isinstance(obj, AbstractDataService):
             result = Serializer._serialize_data_service(obj, access_path=access_path)
 
         elif isinstance(obj, list):
@@ -97,6 +101,17 @@ class Serializer:
             }
 
         return result
+
+    @staticmethod
+    def _serialize_exception(obj: Exception) -> SerializedObject:
+        return {
+            "full_access_path": "",
+            "doc": "",
+            "readonly": True,
+            "type": "Exception",
+            "value": obj.args[0],
+            "name": obj.__class__.__name__,
+        }
 
     @staticmethod
     def _serialize_enum(obj: Enum, access_path: str = "") -> SerializedObject:
