@@ -17,6 +17,7 @@ python-socketio = "^5.8.0"
 confz = "^2.0.0"
 pint = "^0.22"
 pillow = "^10.0.0"
+websocket-client = "^1.7.0"
 
 [tool.poetry.group.dev]
 optional = true
