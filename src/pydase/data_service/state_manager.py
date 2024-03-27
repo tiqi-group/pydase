@@ -251,7 +251,9 @@ class StateManager:
 
         if attr_cache_type in ("ColouredEnum", "Enum"):
             enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
-            setattr(target_obj, attr_name, enum_attr.__class__[value])
+            # take the value of the existing enum class
+            # TODO: this might break when you set a value from a different enum
+            setattr(target_obj, attr_name, enum_attr.__class__[value.name])
         elif attr_cache_type == "list":
             list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
             list_obj[index] = value
