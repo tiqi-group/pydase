@@ -126,20 +126,30 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
         logging.debug("Client [%s] disconnected", click.style(str(sid), fg="cyan"))
 
     @sio.event
-    async def update_value(sid: str, data: UpdateDict) -> None:
+    async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:  # type: ignore
         path = data["access_path"]
 
         # this should probably happen within the following function call -> can also
         # look at the current type of the attribute at "path"
         new_value = loads(data["value"])
 
-        return state_manager.set_service_attribute_value_by_path(
-            path=path, value=new_value
-        )
+        try:
+            state_manager.set_service_attribute_value_by_path(
+                path=path, value=new_value
+            )
+        except Exception as e:
+            logger.exception(e)
+            return dump(e)
 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
-        return state_manager._data_service_cache.get_value_dict_from_cache(access_path)
+        try:
+            return state_manager._data_service_cache.get_value_dict_from_cache(
+                access_path
+            )
+        except Exception as e:
+            logger.exception(e)
+            return dump(e)
 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
