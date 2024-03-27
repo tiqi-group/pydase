@@ -22,10 +22,13 @@ class UpdateDict(TypedDict):
 
     Attributes:
     ----------
+    access_path : string
+        The full access path of the attribute to be updated.
     value : SerializedObject
         The serialized new value to be assigned to the attribute.
     """
 
+    access_path: str
     value: SerializedObject
 
 
@@ -124,7 +127,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> None:
-        path = data["value"]["full_access_path"]
+        path = data["access_path"]
 
         # this should probably happen within the following function call -> can also
         # look at the current type of the attribute at "path"
