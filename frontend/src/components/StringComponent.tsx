@@ -7,8 +7,7 @@ import { LevelName } from './NotificationsComponent';
 // TODO: add button functionality
 
 type StringComponentProps = {
-  name: string;
-  parentPath?: string;
+  fullAccessPath: string;
   value: string;
   readOnly: boolean;
   docString: string;
@@ -26,7 +25,7 @@ type StringComponentProps = {
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const {
-    name,
+    fullAccessPath,
     readOnly,
     docString,
     isInstantUpdate,
@@ -38,9 +37,6 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -86,7 +82,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         </InputGroup.Text>
         <Form.Control
           type="text"
-          name={name}
+          name={fullAccessPath}
           value={inputString}
           disabled={readOnly}
           onChange={handleChange}

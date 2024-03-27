@@ -4,8 +4,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
 type ButtonComponentProps = {
-  name: string;
-  parentPath?: string;
+  fullAccessPath: string;
   value: boolean;
   readOnly: boolean;
   docString: string;
@@ -24,6 +23,7 @@ type ButtonComponentProps = {
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const {
     value,
+    fullAccessPath,
     readOnly,
     docString,
     addNotification,
@@ -32,9 +32,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
     id
   } = props;
   // const buttonName = props.mapping ? (value ? props.mapping[0] : props.mapping[1]) : name;
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   const renderCount = useRef(0);
 

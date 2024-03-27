@@ -6,10 +6,9 @@ import { NumberComponent, NumberObject } from './NumberComponent';
 import { LevelName } from './NotificationsComponent';
 
 type SliderComponentProps = {
-  name: string;
+  fullAccessPath: string;
   min: NumberObject;
   max: NumberObject;
-  parentPath?: string;
   value: NumberObject;
   readOnly: boolean;
   docString: string;
@@ -30,8 +29,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRef(0);
   const [open, setOpen] = useState(false);
   const {
-    name,
-    parentPath,
+    fullAccessPath,
     value,
     min,
     max,
@@ -43,7 +41,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     displayName,
     id
   } = props;
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -133,8 +130,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         <Col xs="3" xl>
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
-            parentPath={parentPath}
-            name={`${name}.value`}
+            fullAccessPath={`${fullAccessPath}.value`}
             docString=""
             readOnly={valueReadOnly}
             type="float"

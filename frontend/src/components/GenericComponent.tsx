@@ -45,24 +45,16 @@ export type SerializedValue = {
 };
 type GenericComponentProps = {
   attribute: SerializedValue;
-  name: string;
-  parentPath: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
 };
 
 export const GenericComponent = React.memo(
-  ({
-    attribute,
-    name,
-    parentPath,
-    isInstantUpdate,
-    addNotification
-  }: GenericComponentProps) => {
-    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  ({ attribute, isInstantUpdate, addNotification }: GenericComponentProps) => {
+    const { full_access_path: fullAccessPath } = attribute;
     const id = getIdFromFullAccessPath(fullAccessPath);
     const webSettings = useContext(WebSettingsContext);
-    let displayName = name;
+    let displayName = fullAccessPath.split('.').at(-1);
 
     if (webSettings[fullAccessPath]) {
       if (webSettings[fullAccessPath].display === false) {
@@ -83,8 +75,7 @@ export const GenericComponent = React.memo(
     if (attribute.type === 'bool') {
       return (
         <ButtonComponent
-          name={name}
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Boolean(attribute.value)}
@@ -97,9 +88,8 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'float' || attribute.type === 'int') {
       return (
         <NumberComponent
-          name={name}
           type={attribute.type}
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value)}
@@ -113,9 +103,8 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'Quantity') {
       return (
         <NumberComponent
-          name={name}
           type="float"
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
           value={Number(attribute.value['magnitude'])}
@@ -130,8 +119,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'NumberSlider') {
       return (
         <SliderComponent
-          name={name}
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.value['value'].doc}
           readOnly={attribute.readonly}
           value={attribute.value['value']}
@@ -148,8 +136,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'Enum') {
       return (
         <EnumComponent
-          name={name}
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           value={String(attribute.value)}
           readOnly={attribute.readonly}
@@ -164,8 +151,7 @@ export const GenericComponent = React.memo(
       if (!attribute.async) {
         return (
           <MethodComponent
-            name={name}
-            parentPath={parentPath}
+            fullAccessPath={fullAccessPath}
             docString={attribute.doc}
             addNotification={addNotification}
             displayName={displayName}
@@ -176,10 +162,9 @@ export const GenericComponent = React.memo(
       } else {
         return (
           <AsyncMethodComponent
-            name={name}
-            parentPath={parentPath}
+            fullAccessPath={fullAccessPath}
             docString={attribute.doc}
-            value={attribute.value as Record<string, string>}
+            value={attribute.value as 'RUNNING' | null}
             addNotification={addNotification}
             displayName={displayName}
             id={id}
@@ -190,11 +175,10 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'str') {
       return (
         <StringComponent
-          name={name}
+          fullAccessPath={fullAccessPath}
           value={attribute.value as string}
           readOnly={attribute.readonly}
           docString={attribute.doc}
-          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
@@ -205,9 +189,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'DataService') {
       return (
         <DataServiceComponent
-          name={name}
           props={attribute.value as DataServiceJSON}
-          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           displayName={displayName}
@@ -217,9 +199,8 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'DeviceConnection') {
       return (
         <DeviceConnectionComponent
-          name={name}
+          fullAccessPath={fullAccessPath}
           props={attribute.value as DataServiceJSON}
-          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           displayName={displayName}
@@ -229,10 +210,8 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'list') {
       return (
         <ListComponent
-          name={name}
           value={attribute.value as SerializedValue[]}
           docString={attribute.doc}
-          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           id={id}
@@ -241,8 +220,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'Image') {
       return (
         <ImageComponent
-          name={name}
-          parentPath={parentPath}
+          fullAccessPath={fullAccessPath}
           docString={attribute.value['value'].doc}
           displayName={displayName}
           id={id}
@@ -255,20 +233,15 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'ColouredEnum') {
       return (
         <ColouredEnumComponent
-          name={name}
-          parentPath={parentPath}
-          docString={attribute.doc}
-          value={String(attribute.value)}
-          readOnly={attribute.readonly}
-          enumDict={attribute.enum}
+          attribute={attribute}
           addNotification={addNotification}
-          changeCallback={changeCallback}
           displayName={displayName}
           id={id}
+          changeCallback={changeCallback}
         />
       );
     } else {
-      return <div key={name}>{name}</div>;
+      return <div key={fullAccessPath}>{fullAccessPath}</div>;
     }
   }
 );

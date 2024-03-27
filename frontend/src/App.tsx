@@ -188,8 +188,6 @@ const App = () => {
       <div className="App navbarOffset">
         <WebSettingsContext.Provider value={webSettings}>
           <GenericComponent
-            name=""
-            parentPath=""
             attribute={state as SerializedValue}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}

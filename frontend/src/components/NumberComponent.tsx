@@ -30,9 +30,8 @@ export type FloatObject = {
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
 type NumberComponentProps = {
-  name: string;
   type: 'float' | 'int';
-  parentPath?: string;
+  fullAccessPath: string;
   value: number;
   readOnly: boolean;
   docString: string;
@@ -161,7 +160,7 @@ const handleNumericKey = (
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const {
-    name,
+    fullAccessPath,
     value,
     readOnly,
     type,
@@ -179,9 +178,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   // Create a state for the input string
   const [inputString, setInputString] = useState(value.toString());
   const renderCount = useRef(0);
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
+  const name = fullAccessPath.split('.').at(-1);
 
   const handleKeyDown = (event) => {
     const { key, target } = event;
