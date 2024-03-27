@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { SerializedValue } from './components/GenericComponent';
+import { serializeDict, serializeList } from './utils/serializationUtils';
 
 export const hostname =
   process.env.NODE_ENV === 'development' ? `localhost` : window.location.hostname;
@@ -27,10 +28,20 @@ export const runMethod = (
   kwargs: Record<string, unknown> = {},
   callback?: (ack: unknown) => void
 ) => {
-  // TODO: serialize args and kwargs before passing to trigger_method
+  const serializedArgs = serializeList(args);
+  const serializedKwargs = serializeDict(kwargs);
+
   if (callback) {
-    socket.emit('trigger_method', { access_path: accessPath, args, kwargs }, callback);
+    socket.emit(
+      'trigger_method',
+      { access_path: accessPath, args: serializedArgs, kwargs: serializedKwargs },
+      callback
+    );
   } else {
-    socket.emit('trigger_method', { access_path: accessPath, args, kwargs });
+    socket.emit('trigger_method', {
+      access_path: accessPath,
+      args: serializedArgs,
+      kwargs: serializedKwargs
+    });
   }
 };
