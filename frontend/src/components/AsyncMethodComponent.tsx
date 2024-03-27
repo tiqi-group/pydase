@@ -57,7 +57,8 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       method_name = `start_${name}`;
     }
 
-    runMethod(method_name, parentPath, {});
+    const accessPath = [parentPath, method_name].filter((element) => element).join('.');
+    runMethod(accessPath);
   };
 
   return (

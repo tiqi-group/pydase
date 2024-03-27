@@ -32,7 +32,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
-    runMethod(name, parentPath, {});
+    runMethod(fullAccessPath);
 
     triggerNotification();
   };
