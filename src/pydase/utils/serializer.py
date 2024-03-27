@@ -344,6 +344,9 @@ def set_nested_value_by_path(
         serialized_value["full_access_path"] = path
         serialized_value["readonly"] = next_level_serialized_object["readonly"]
 
+        if next_level_serialized_object["doc"] is not None:
+            serialized_value["doc"] = next_level_serialized_object["doc"]
+
         keys_to_keep = set(serialized_value.keys())
 
         next_level_serialized_object.update(serialized_value)
