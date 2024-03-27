@@ -253,7 +253,9 @@ class StateManager:
             enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
             # take the value of the existing enum class
             # TODO: this might break when you set a value from a different enum
-            setattr(target_obj, attr_name, enum_attr.__class__[value.name])
+            if isinstance(value, enum.Enum):
+                value = value.name
+            setattr(target_obj, attr_name, enum_attr.__class__[value])
         elif attr_cache_type == "list":
             list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
             list_obj[index] = value
