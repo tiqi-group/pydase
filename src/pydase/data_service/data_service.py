@@ -14,7 +14,7 @@ from pydase.utils.helpers import (
     get_class_and_instance_attributes,
     is_property_attribute,
 )
-from pydase.utils.serializer import (
+from pydase.utils.serialization.serializer import (
     SerializedObject,
     Serializer,
 )

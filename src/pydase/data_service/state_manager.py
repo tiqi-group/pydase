@@ -12,7 +12,7 @@ from pydase.utils.helpers import (
     is_property_attribute,
     parse_list_attr_and_index,
 )
-from pydase.utils.serializer import (
+from pydase.utils.serialization.serializer import (
     SerializedObject,
     dump,
     generate_serialized_data_paths,

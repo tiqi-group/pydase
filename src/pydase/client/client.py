@@ -6,7 +6,7 @@ import socketio  # type: ignore
 
 from pydase.client.proxy_class_factory import ProxyClassFactory
 from pydase.utils.serialization.deserializer import loads
-from pydase.utils.serializer import SerializedObject
+from pydase.utils.serialization.serializer import SerializedObject
 
 if TYPE_CHECKING:
     from pydase.client.proxy_class_factory import ProxyClass

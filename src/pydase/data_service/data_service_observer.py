@@ -9,7 +9,7 @@ from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
 from pydase.utils.helpers import get_object_attr_from_path_list
-from pydase.utils.serializer import SerializedObject, dump
+from pydase.utils.serialization.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)
 

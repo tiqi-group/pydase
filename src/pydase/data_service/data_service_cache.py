@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from pydase.utils.serializer import (
+from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializationValueError,
     SerializedObject,

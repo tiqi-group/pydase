@@ -6,7 +6,11 @@ import socketio  # type: ignore
 
 import pydase
 from pydase.utils.serialization.deserializer import Deserializer, loads
-from pydase.utils.serializer import SerializedMethod, SerializedObject, dump
+from pydase.utils.serialization.serializer import (
+    SerializedMethod,
+    SerializedObject,
+    dump,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
