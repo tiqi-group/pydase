@@ -4,7 +4,7 @@ import inspect
 import logging
 import sys
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Literal, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -15,6 +15,23 @@ from pydase.utils.helpers import (
     get_data_service_class_reference,
     parse_list_attr_and_index,
     render_in_frontend,
+)
+from pydase.utils.serialization.types import (
+    DataServiceTypes,
+    SerializedBool,
+    SerializedDataService,
+    SerializedDict,
+    SerializedEnum,
+    SerializedException,
+    SerializedFloat,
+    SerializedInteger,
+    SerializedList,
+    SerializedMethod,
+    SerializedNoneType,
+    SerializedObject,
+    SerializedQuantity,
+    SerializedString,
+    SignatureDict,
 )
 
 if TYPE_CHECKING:
@@ -33,110 +50,6 @@ class SerializationPathError(Exception):
 
 class SerializationValueError(Exception):
     pass
-
-
-class SignatureDict(TypedDict):
-    parameters: dict[str, dict[str, Any]]
-    return_annotation: dict[str, Any]
-
-
-class SerializedObjectBase(TypedDict):
-    full_access_path: str
-    doc: str | None
-    readonly: bool
-
-
-class SerializedInteger(SerializedObjectBase):
-    value: int
-    type: Literal["int"]
-
-
-class SerializedFloat(SerializedObjectBase):
-    value: float
-    type: Literal["float"]
-
-
-class SerializedQuantity(SerializedObjectBase):
-    value: u.QuantityDict
-    type: Literal["Quantity"]
-
-
-class SerializedBool(SerializedObjectBase):
-    value: bool
-    type: Literal["bool"]
-
-
-class SerializedString(SerializedObjectBase):
-    value: str
-    type: Literal["str"]
-
-
-class SerializedEnum(SerializedObjectBase):
-    name: str
-    value: str
-    type: Literal["Enum", "ColouredEnum"]
-    enum: dict[str, Any]
-
-
-class SerializedList(SerializedObjectBase):
-    value: list[SerializedObject]
-    type: Literal["list"]
-
-
-class SerializedDict(SerializedObjectBase):
-    value: dict[str, SerializedObject]
-    type: Literal["dict"]
-
-
-class SerializedNoneType(SerializedObjectBase):
-    value: None
-    type: Literal["NoneType"]
-
-
-SerializedMethod = TypedDict(
-    "SerializedMethod",
-    {
-        "full_access_path": str,
-        "value": Literal["RUNNING"] | None,
-        "type": Literal["method"],
-        "doc": str | None,
-        "readonly": bool,
-        "async": bool,
-        "signature": SignatureDict,
-        "frontend_render": bool,
-    },
-)
-
-
-class SerializedException(SerializedObjectBase):
-    name: str
-    value: str
-    type: Literal["Exception"]
-
-
-DataServiceTypes = Literal["DataService", "Image", "NumberSlider", "DeviceConnection"]
-
-
-class SerializedDataService(SerializedObjectBase):
-    name: str
-    value: dict[str, SerializedObject]
-    type: DataServiceTypes
-
-
-SerializedObject = (
-    SerializedBool
-    | SerializedFloat
-    | SerializedInteger
-    | SerializedString
-    | SerializedList
-    | SerializedDict
-    | SerializedNoneType
-    | SerializedMethod
-    | SerializedException
-    | SerializedDataService
-    | SerializedEnum
-    | SerializedQuantity
-)
 
 
 class Serializer:
