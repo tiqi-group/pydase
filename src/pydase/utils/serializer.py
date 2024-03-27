@@ -430,7 +430,7 @@ def set_nested_value_by_path(
 
     if next_level_serialized_object["type"] == "method":  # state change of task
         next_level_serialized_object["value"] = (
-            value.name if TaskStatus.RUNNING else None
+            "RUNNING" if isinstance(value, TaskStatus) else None
         )
     else:
         serialized_value = dump(value)
