@@ -3,6 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { LevelName } from './NotificationsComponent';
+import { SerializedValue } from './GenericComponent';
 
 // TODO: add button functionality
 
@@ -13,12 +14,7 @@ type StringComponentProps = {
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
@@ -59,14 +55,24 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      changeCallback(inputString);
+      changeCallback({
+        type: 'str',
+        value: inputString,
+        full_access_path: fullAccessPath,
+        readonly: true
+      });
       event.preventDefault();
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      changeCallback(inputString);
+      changeCallback({
+        type: 'str',
+        value: inputString,
+        full_access_path: fullAccessPath,
+        readonly: true
+      });
     }
   };
 

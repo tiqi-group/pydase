@@ -3,6 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { LevelName } from './NotificationsComponent';
+import { SerializedValue } from './GenericComponent';
 
 // TODO: add button functionality
 
@@ -38,12 +39,7 @@ type NumberComponentProps = {
   isInstantUpdate: boolean;
   unit?: string;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName?: string;
   id: string;
 };
@@ -249,7 +245,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      changeCallback(Number(newValue));
+      changeCallback({
+        type: type,
+        value: Number(newValue),
+        full_access_path: fullAccessPath,
+        readonly: true
+      });
       return;
     } else {
       console.debug(key);
@@ -258,7 +259,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      changeCallback(Number(newValue));
+      changeCallback({
+        type: type,
+        value: Number(newValue),
+        full_access_path: fullAccessPath,
+        readonly: true
+      });
     }
 
     setInputString(newValue);
@@ -270,7 +276,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      changeCallback(Number(inputString));
+      changeCallback({
+        type: type,
+        value: Number(inputString),
+        full_access_path: fullAccessPath,
+        readonly: true
+      });
     }
   };
   useEffect(() => {

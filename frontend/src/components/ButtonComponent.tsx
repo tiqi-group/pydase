@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { SerializedValue } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
 type ButtonComponentProps = {
@@ -10,12 +11,7 @@ type ButtonComponentProps = {
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
