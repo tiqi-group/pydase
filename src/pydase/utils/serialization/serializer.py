@@ -427,7 +427,7 @@ def get_next_level_dict_by_key(
                 {
                     "full_access_path": "",
                     "value": None,
-                    "type": "NoneType",
+                    "type": "None",
                     "doc": None,
                     "readonly": False,
                 }

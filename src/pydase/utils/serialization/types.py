@@ -67,6 +67,11 @@ class SerializedNoneType(SerializedObjectBase):
     type: Literal["NoneType"]
 
 
+class SerializedNoValue(SerializedObjectBase):
+    value: None
+    type: Literal["None"]
+
+
 SerializedMethod = TypedDict(
     "SerializedMethod",
     {
@@ -110,4 +115,5 @@ SerializedObject = (
     | SerializedDataService
     | SerializedEnum
     | SerializedQuantity
+    | SerializedNoValue
 )

@@ -47,7 +47,7 @@ class DataServiceCache:
             return {
                 "full_access_path": full_access_path,
                 "value": None,
-                "type": "NoneType",
+                "type": "None",
                 "doc": None,
                 "readonly": False,
             }
