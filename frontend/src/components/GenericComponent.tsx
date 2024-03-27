@@ -14,7 +14,7 @@ import { ColouredEnumComponent } from './ColouredEnumComponent';
 import { LevelName } from './NotificationsComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { WebSettingsContext } from '../WebSettings';
-import { setAttribute } from '../socket';
+import { updateValue } from '../socket';
 
 type AttributeType =
   | 'str'
@@ -34,6 +34,8 @@ type AttributeType =
 type ValueType = boolean | string | number | Record<string, unknown>;
 export type SerializedValue = {
   type: AttributeType;
+  full_access_path: string;
+  name?: string;
   value?: ValueType | ValueType[];
   readonly: boolean;
   doc?: string | null;
@@ -72,12 +74,10 @@ export const GenericComponent = React.memo(
     }
 
     function changeCallback(
-      value: unknown,
-      attributeName: string = name,
-      prefix: string = parentPath,
+      value: SerializedValue,
       callback: (ack: unknown) => void = undefined
     ) {
-      setAttribute(attributeName, prefix, value, callback);
+      updateValue(value, callback);
     }
 
     if (attribute.type === 'bool') {
