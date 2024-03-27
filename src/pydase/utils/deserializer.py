@@ -36,14 +36,16 @@ class Deserializer:
             "Exception": cls.deserialize_exception,
         }
 
+        # First go through handled types (as ColouredEnum is also within the components)
+        handler = type_handler.get(serialized_object["type"])
+        if handler:
+            return handler(serialized_object)
+
         # Custom types like Components or DataService classes
         component_class = cls.get_component_class(serialized_object["type"])
         if component_class:
             return cls.deserialize_component_type(serialized_object, component_class)
 
-        handler = type_handler.get(serialized_object["type"])
-        if handler:
-            return handler(serialized_object)
         return None
 
     @classmethod
