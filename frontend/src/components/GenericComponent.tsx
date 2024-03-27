@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { ButtonComponent } from './ButtonComponent';
 import { NumberComponent } from './NumberComponent';
 import { SliderComponent } from './SliderComponent';
-import { EnumComponent } from './EnumComponent';
+import { EnumComponent, EnumSerialization } from './EnumComponent';
 import { MethodComponent } from './MethodComponent';
 import { AsyncMethodComponent } from './AsyncMethodComponent';
 import { StringComponent } from './StringComponent';
@@ -10,7 +10,6 @@ import { ListComponent } from './ListComponent';
 import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 import { DeviceConnectionComponent } from './DeviceConnection';
 import { ImageComponent } from './ImageComponent';
-import { ColouredEnumComponent } from './ColouredEnumComponent';
 import { LevelName } from './NotificationsComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { WebSettingsContext } from '../WebSettings';
@@ -133,14 +132,10 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'Enum') {
+    } else if (attribute.type === 'Enum' || attribute.type === 'ColouredEnum') {
       return (
         <EnumComponent
-          fullAccessPath={fullAccessPath}
-          docString={attribute.doc}
-          value={String(attribute.value)}
-          readOnly={attribute.readonly}
-          enumDict={attribute.enum}
+          attribute={attribute as EnumSerialization}
           addNotification={addNotification}
           changeCallback={changeCallback}
           displayName={displayName}
@@ -228,16 +223,6 @@ export const GenericComponent = React.memo(
           // Add any other specific props for the ImageComponent here
           value={attribute.value['value']['value'] as string}
           format={attribute.value['format']['value'] as string}
-        />
-      );
-    } else if (attribute.type === 'ColouredEnum') {
-      return (
-        <ColouredEnumComponent
-          attribute={attribute}
-          addNotification={addNotification}
-          displayName={displayName}
-          id={id}
-          changeCallback={changeCallback}
         />
       );
     } else {
