@@ -9,7 +9,7 @@ import pytest
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.data_service.task_manager import TaskStatus
 from pydase.utils.decorators import frontend
-from pydase.utils.serializer import (
+from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializedObject,
     dump,
