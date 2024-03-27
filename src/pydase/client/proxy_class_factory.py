@@ -45,6 +45,11 @@ class ProxyClassFactory:
             "Exception": loads,
         }
 
+        # First go through handled types (as ColouredEnum is also within the components)
+        handler = type_handler.get(serialized_object["type"])
+        if handler:
+            return handler(serialized_object)
+
         # Custom types like Components or DataService classes
         component_class = Deserializer.get_component_class(serialized_object["type"])
         if component_class:
@@ -53,10 +58,6 @@ class ProxyClassFactory:
             )
             proxy_class._sio = self.sio_client
             return proxy_class
-
-        handler = type_handler.get(serialized_object["type"])
-        if handler:
-            return handler(serialized_object)
         return None
 
     def _deserialize_method(self, serialized_object: SerializedObject) -> Any:
