@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, cast
 import socketio  # type: ignore
 
 import pydase
-from pydase.utils.deserializer import Deserializer, loads
+from pydase.utils.serialization.deserializer import Deserializer, loads
 from pydase.utils.serializer import SerializedMethod, SerializedObject, dump
 
 if TYPE_CHECKING:

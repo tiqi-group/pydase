@@ -7,9 +7,9 @@ import socketio  # type: ignore[import-untyped]
 
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.deserializer import Deserializer, loads
 from pydase.utils.helpers import get_object_attr_from_path_list
 from pydase.utils.logging import SocketIOHandler
+from pydase.utils.serialization.deserializer import Deserializer, loads
 from pydase.utils.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)

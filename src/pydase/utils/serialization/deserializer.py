@@ -7,7 +7,7 @@ import pydase.components
 import pydase.server.web_server.sio_setup
 import pydase.units as u
 from pydase.utils.helpers import get_component_classes
-from pydase.utils.serializer import SerializedObject
+from pydase.utils.serialization.types import SerializedObject
 
 if TYPE_CHECKING:
     from collections.abc import Callable
