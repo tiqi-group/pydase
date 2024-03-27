@@ -38,7 +38,6 @@ class Client:
             time.sleep(0.01)
 
     def setup_events(self) -> None:
-        # TODO: subscribe to update event and update the cache of the proxy class.
         @self.sio.event
         def class_structure(data: SerializedObject) -> None:
             self.proxy = self.proxy_class_factory.create_proxy(data)

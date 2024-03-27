@@ -223,6 +223,7 @@ class StateManager:
 
         return dump(value_object)["value"] != current_value
 
+    # TODO: can we remove this? We can replace this with the loads function, no?
     def __convert_value_if_needed(
         self, value: Any, current_value_dict: SerializedObject
     ) -> Any:
