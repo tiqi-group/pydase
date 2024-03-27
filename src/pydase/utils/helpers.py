@@ -63,49 +63,6 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
     return target_obj
 
 
-def convert_arguments_to_hinted_types(
-    args: dict[str, Any], type_hints: dict[str, Any]
-) -> dict[str, Any] | str:
-    """
-    Convert the given arguments to their types hinted in the type_hints dictionary.
-
-    This function attempts to convert each argument in the args dictionary to the type
-    specified for the argument in the type_hints dictionary. If the conversion is
-    successful, the function replaces the original argument in the args dictionary with
-    the converted argument.
-
-    If a ValueError is raised during the conversion of an argument, the function logs
-    an error message and returns the error message as a string.
-
-    Args:
-        args: A dictionary of arguments to be converted. The keys are argument names
-              and the values are the arguments themselves.
-        type_hints: A dictionary of type hints for the arguments. The keys are
-                    argument names and the values are the hinted types.
-
-    Returns:
-        A dictionary of the converted arguments if all conversions are successful,
-        or an error message string if a ValueError is raised during a conversion.
-    """
-
-    # Convert arguments to their hinted types
-    for arg_name, arg_value in args.items():
-        if arg_name in type_hints:
-            arg_type = type_hints[arg_name]
-            if isinstance(arg_type, type):
-                # Attempt to convert the argument to its hinted type
-                try:
-                    args[arg_name] = arg_type(arg_value)
-                except ValueError:
-                    msg = (
-                        f"Failed to convert argument '{arg_name}' to type "
-                        f"{arg_type.__name__}"
-                    )
-                    logger.error(msg)
-                    return msg
-    return args
-
-
 def update_value_if_changed(
     target: Any, attr_name_or_index: str | int, new_value: Any
 ) -> None:
