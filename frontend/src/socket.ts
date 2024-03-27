@@ -16,9 +16,16 @@ export const updateValue = (
   callback?: (ack: unknown) => void
 ) => {
   if (callback) {
-    socket.emit('update_value', { value: serializedObject }, callback);
+    socket.emit(
+      'update_value',
+      { access_path: serializedObject['full_access_path'], value: serializedObject },
+      callback
+    );
   } else {
-    socket.emit('update_value', { value: serializedObject });
+    socket.emit('update_value', {
+      access_path: serializedObject['full_access_path'],
+      value: serializedObject
+    });
   }
 };
 
