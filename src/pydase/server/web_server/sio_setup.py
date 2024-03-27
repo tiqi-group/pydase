@@ -124,7 +124,6 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> None:
-        logger.debug(data)
         path = data["value"]["full_access_path"]
 
         # this should probably happen within the following function call -> can also
@@ -141,7 +140,6 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
-        logger.info(data)
         try:
             method = get_object_attr_from_path_list(
                 state_manager.service, data["access_path"].split(".")
