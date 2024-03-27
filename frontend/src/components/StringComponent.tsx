@@ -59,7 +59,8 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         type: 'str',
         value: inputString,
         full_access_path: fullAccessPath,
-        readonly: true
+        readonly: readOnly,
+        doc: docString
       });
       event.preventDefault();
     }
@@ -71,7 +72,8 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         type: 'str',
         value: inputString,
         full_access_path: fullAccessPath,
-        readonly: true
+        readonly: readOnly,
+        doc: docString
       });
     }
   };

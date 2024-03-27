@@ -91,7 +91,8 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
                   enum: enumDict,
                   value: event.target.value,
                   full_access_path: fullAccessPath,
-                  readonly: true
+                  readonly: attribute.readonly,
+                  doc: attribute.doc
                 })
               }>
               {Object.entries(enumDict).map(([key, val]) => (

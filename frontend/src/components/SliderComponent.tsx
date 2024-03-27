@@ -68,7 +68,8 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       type: value.type,
       value: newNumber,
       full_access_path: `${fullAccessPath}.value`,
-      readonly: value.readonly
+      readonly: value.readonly,
+      doc: docString
     });
   };
 
@@ -141,7 +142,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
             fullAccessPath={`${fullAccessPath}.value`}
-            docString=""
+            docString={docString}
             readOnly={valueReadOnly}
             type="float"
             value={valueMagnitude}

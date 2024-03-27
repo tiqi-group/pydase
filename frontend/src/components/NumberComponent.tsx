@@ -249,7 +249,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         type: type,
         value: Number(newValue),
         full_access_path: fullAccessPath,
-        readonly: true
+        readonly: readOnly,
+        doc: docString
       });
       return;
     } else {
@@ -263,7 +264,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         type: type,
         value: Number(newValue),
         full_access_path: fullAccessPath,
-        readonly: true
+        readonly: readOnly,
+        doc: docString
       });
     }
 
@@ -280,7 +282,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         type: type,
         value: Number(inputString),
         full_access_path: fullAccessPath,
-        readonly: true
+        readonly: readOnly,
+        doc: docString
       });
     }
   };
