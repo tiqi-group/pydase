@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { SerializedValue } from './components/GenericComponent';
 
 export const hostname =
   process.env.NODE_ENV === 'development' ? `localhost` : window.location.hostname;
@@ -9,28 +10,27 @@ console.debug('Websocket: ', URL);
 
 export const socket = io(URL, { path: '/ws/socket.io', transports: ['websocket'] });
 
-export const setAttribute = (
-  name: string,
-  parentPath: string,
-  value: unknown,
+export const updateValue = (
+  serializedObject: SerializedValue,
   callback?: (ack: unknown) => void
 ) => {
   if (callback) {
-    socket.emit('set_attribute', { name, parent_path: parentPath, value }, callback);
+    socket.emit('update_value', { value: serializedObject }, callback);
   } else {
-    socket.emit('set_attribute', { name, parent_path: parentPath, value });
+    socket.emit('update_value', { value: serializedObject });
   }
 };
 
 export const runMethod = (
-  name: string,
-  parentPath: string,
-  kwargs: Record<string, unknown>,
+  accessPath: string,
+  args: unknown[] = [],
+  kwargs: Record<string, unknown> = {},
   callback?: (ack: unknown) => void
 ) => {
+  // TODO: serialize args and kwargs before passing to trigger_method
   if (callback) {
-    socket.emit('run_method', { name, parent_path: parentPath, kwargs }, callback);
+    socket.emit('trigger_method', { access_path: accessPath, args, kwargs }, callback);
   } else {
-    socket.emit('run_method', { name, parent_path: parentPath, kwargs });
+    socket.emit('trigger_method', { access_path: accessPath, args, kwargs });
   }
 };
