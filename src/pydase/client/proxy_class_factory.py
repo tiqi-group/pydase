@@ -1,11 +1,12 @@
 import logging
+from copy import copy
 from typing import TYPE_CHECKING, Any, cast
 
 import socketio  # type: ignore
 
 import pydase
 from pydase.utils.deserializer import Deserializer, loads
-from pydase.utils.serializer import SerializedObject, dump
+from pydase.utils.serializer import SerializedMethod, SerializedObject, dump
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -24,7 +25,7 @@ class ProxyClassFactory:
         self.sio_client = sio_client
 
     def create_proxy(self, data: SerializedObject) -> "ProxyClass":
-        proxy = self._deserialize(data)
+        proxy: "ProxyClass" = self._deserialize(data)
         proxy._sio = self.sio_client
         return proxy
 
@@ -39,7 +40,6 @@ class ProxyClassFactory:
             "Quantity": self._create_attr_property,
             "Enum": self._create_attr_property,
             "ColouredEnum": self._create_attr_property,
-            "method": self._deserialize_method,
             "list": loads,
             "dict": loads,
             "Exception": loads,
@@ -60,7 +60,7 @@ class ProxyClassFactory:
             return proxy_class
         return None
 
-    def _deserialize_method(self, serialized_object: SerializedObject) -> Any:
+    def _deserialize_method(self, serialized_object: SerializedMethod) -> Any:
         def method_proxy(self: "ProxyClass", *args: Any, **kwargs: Any) -> Any:
             serialized_response = cast(
                 dict[str, Any],
@@ -80,6 +80,11 @@ class ProxyClassFactory:
     def _deserialize_component_type(
         self, serialized_object: SerializedObject, base_class: type
     ) -> Any:
+        def add_prefix_to_last_path_element(s: str, prefix: str) -> str:
+            parts = s.split(".")
+            parts[-1] = f"{prefix}_{parts[-1]}"
+            return ".".join(parts)
+
         def create_proxy_class(serialized_object: SerializedObject) -> type:
             class_bases = (base_class,)
             class_attrs: dict[str, Any] = {}
@@ -88,7 +93,30 @@ class ProxyClassFactory:
             for key, value in cast(
                 dict[str, SerializedObject], serialized_object["value"]
             ).items():
-                class_attrs[key] = self._deserialize(value)
+                if value["type"] == "method":
+                    if value["async"] is True:
+                        start_method = copy(value)
+                        start_method["full_access_path"] = (
+                            add_prefix_to_last_path_element(
+                                start_method["full_access_path"], "start"
+                            )
+                        )
+                        stop_method = copy(value)
+                        stop_method["full_access_path"] = (
+                            add_prefix_to_last_path_element(
+                                stop_method["full_access_path"], "stop"
+                            )
+                        )
+                        class_attrs[f"start_{key}"] = self._deserialize_method(
+                            start_method
+                        )
+                        class_attrs[f"stop_{key}"] = self._deserialize_method(
+                            stop_method
+                        )
+                    else:
+                        class_attrs[key] = self._deserialize_method(value)
+                else:
+                    class_attrs[key] = self._deserialize(value)
 
             # Create the dynamic class with the given name and attributes
             return type(serialized_object["name"], class_bases, class_attrs)  # type: ignore
