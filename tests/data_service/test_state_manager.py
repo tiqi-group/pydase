@@ -240,8 +240,8 @@ def test_load_state(tmp_path: Path, caplog: LogCaptureFixture) -> None:
         "Ignoring value from JSON file..."
     ) in caplog.text
     assert (
-        "Attribute type of 'removed_attr' changed from 'str' to 'None'. "
-        "Ignoring value from JSON file..." in caplog.text
+        "Path 'removed_attr' could not be loaded. It does not correspond to an "
+        "attribute of the class. Ignoring value from JSON file..." in caplog.text
     )
     assert "Value of attribute 'subservice.name' has not changed..." in caplog.text
     assert "'my_slider.value' changed to '1.0'" in caplog.text

@@ -13,6 +13,7 @@ from pydase.utils.helpers import (
 )
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.serializer import (
+    SerializationPathError,
     SerializedObject,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
@@ -299,12 +300,20 @@ class StateManager:
                 )
             return has_decorator
 
-        cached_serialization_dict = get_nested_dict_by_path(
-            self.cache_value, full_access_path
-        )
+        try:
+            cached_serialization_dict = get_nested_dict_by_path(
+                self.cache_value, full_access_path
+            )
 
-        if cached_serialization_dict["value"] == "method":
+            if cached_serialization_dict["value"] == "method":
+                return False
+
+            # nested objects cannot be loaded
+            return not serialized_dict_is_nested_object(cached_serialization_dict)
+        except SerializationPathError:
+            logger.debug(
+                "Path %a could not be loaded. It does not correspond to an attribute of"
+                " the class. Ignoring value from JSON file...",
+                attr_name,
+            )
             return False
-
-        # nested objects cannot be loaded
-        return not serialized_dict_is_nested_object(cached_serialization_dict)
