@@ -5,6 +5,7 @@ import pydase.units as u
 from pydase.data_service.data_service import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager, load_state
+from pydase.utils.serialization.serializer import dump
 from pytest import LogCaptureFixture
 
 
@@ -70,20 +71,10 @@ def test_set_service_attribute_value_by_path(caplog: LogCaptureFixture) -> None:
     DataServiceObserver(state_manager)
 
     state_manager.set_service_attribute_value_by_path(
-        path="voltage", value=1.0 * u.units.mV
+        path="voltage", serialized_value=dump(1.0 * u.units.mV)
     )
     assert "'voltage' changed to '1.0 mV'" in caplog.text
     caplog.clear()
-
-    state_manager.set_service_attribute_value_by_path(path="voltage", value=2)
-
-    assert "'voltage' changed to '2.0 mV'" in caplog.text
-    caplog.clear()
-
-    state_manager.set_service_attribute_value_by_path(
-        path="voltage", value={"magnitude": 123, "unit": "kV"}
-    )
-    assert "'voltage' changed to '123.0 kV'" in caplog.text
 
 
 def test_autoconvert_offset_to_baseunit() -> None:

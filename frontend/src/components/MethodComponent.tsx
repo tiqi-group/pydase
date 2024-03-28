@@ -5,8 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
 type MethodProps = {
-  name: string;
-  parentPath: string;
+  fullAccessPath: string;
   docString?: string;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
@@ -15,7 +14,7 @@ type MethodProps = {
 };
 
 export const MethodComponent = React.memo((props: MethodProps) => {
-  const { name, parentPath, docString, addNotification, displayName, id } = props;
+  const { fullAccessPath, docString, addNotification, displayName, id } = props;
 
   // Conditional rendering based on the 'render' prop.
   if (!props.render) {
@@ -24,7 +23,6 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   const renderCount = useRef(0);
   const formRef = useRef(null);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
   const triggerNotification = () => {
     const message = `Method ${fullAccessPath} was triggered.`;
@@ -34,7 +32,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
-    runMethod(name, parentPath, {});
+    runMethod(fullAccessPath);
 
     triggerNotification();
   };

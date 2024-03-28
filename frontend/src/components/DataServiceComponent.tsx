@@ -6,9 +6,7 @@ import { SerializedValue, GenericComponent } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
 type DataServiceProps = {
-  name: string;
   props: DataServiceJSON;
-  parentPath?: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
@@ -18,17 +16,8 @@ type DataServiceProps = {
 export type DataServiceJSON = Record<string, SerializedValue>;
 
 export const DataServiceComponent = React.memo(
-  ({
-    name,
-    props,
-    parentPath = undefined,
-    isInstantUpdate,
-    addNotification,
-    displayName,
-    id
-  }: DataServiceProps) => {
+  ({ props, isInstantUpdate, addNotification, displayName, id }: DataServiceProps) => {
     const [open, setOpen] = useState(true);
-    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
     if (displayName !== '') {
       return (
@@ -43,8 +32,6 @@ export const DataServiceComponent = React.memo(
                   <GenericComponent
                     key={key}
                     attribute={value}
-                    name={key}
-                    parentPath={fullAccessPath}
                     isInstantUpdate={isInstantUpdate}
                     addNotification={addNotification}
                   />
@@ -61,8 +48,6 @@ export const DataServiceComponent = React.memo(
             <GenericComponent
               key={key}
               attribute={value}
-              name={key}
-              parentPath={fullAccessPath}
               isInstantUpdate={isInstantUpdate}
               addNotification={addNotification}
             />

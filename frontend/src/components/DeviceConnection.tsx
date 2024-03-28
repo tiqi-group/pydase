@@ -4,9 +4,8 @@ import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
 import { MethodComponent } from './MethodComponent';
 
 type DeviceConnectionProps = {
-  name: string;
+  fullAccessPath: string;
   props: DataServiceJSON;
-  parentPath: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
@@ -15,9 +14,8 @@ type DeviceConnectionProps = {
 
 export const DeviceConnectionComponent = React.memo(
   ({
-    name,
+    fullAccessPath,
     props,
-    parentPath,
     isInstantUpdate,
     addNotification,
     displayName,
@@ -25,8 +23,6 @@ export const DeviceConnectionComponent = React.memo(
   }: DeviceConnectionProps) => {
     const { connected, connect, ...updatedProps } = props;
     const connectedVal = connected.value;
-
-    const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
     return (
       <div className="deviceConnectionComponent" id={id}>
@@ -36,8 +32,7 @@ export const DeviceConnectionComponent = React.memo(
               {displayName != '' ? displayName : 'Device'} is currently not available!
             </div>
             <MethodComponent
-              name="connect"
-              parentPath={fullAccessPath}
+              fullAccessPath={`${fullAccessPath}.connect`}
               docString={connect.doc}
               addNotification={addNotification}
               displayName={'reconnect'}
@@ -47,9 +42,7 @@ export const DeviceConnectionComponent = React.memo(
           </div>
         )}
         <DataServiceComponent
-          name={name}
           props={updatedProps}
-          parentPath={parentPath}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           displayName={displayName}

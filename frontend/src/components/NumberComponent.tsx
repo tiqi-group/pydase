@@ -3,6 +3,7 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { LevelName } from './NotificationsComponent';
+import { SerializedValue } from './GenericComponent';
 
 // TODO: add button functionality
 
@@ -30,21 +31,15 @@ export type FloatObject = {
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
 type NumberComponentProps = {
-  name: string;
-  type: 'float' | 'int';
-  parentPath?: string;
+  type: 'float' | 'int' | 'Quantity';
+  fullAccessPath: string;
   value: number;
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
   unit?: string;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName?: string;
   id: string;
 };
@@ -161,7 +156,7 @@ const handleNumericKey = (
 
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const {
-    name,
+    fullAccessPath,
     value,
     readOnly,
     type,
@@ -179,9 +174,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   // Create a state for the input string
   const [inputString, setInputString] = useState(value.toString());
   const renderCount = useRef(0);
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
+  const name = fullAccessPath.split('.').at(-1);
 
   const handleKeyDown = (event) => {
     const { key, target } = event;
@@ -225,7 +218,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionStart,
         selectionEnd
       ));
-    } else if (key === '.' && type === 'float') {
+    } else if (key === '.' && (type === 'float' || type === 'Quantity')) {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
@@ -252,7 +245,20 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
-      changeCallback(Number(newValue));
+      let updatedValue: number | Record<string, unknown> = Number(newValue);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(newValue),
+          unit: unit
+        };
+      }
+      changeCallback({
+        type: type,
+        value: updatedValue,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
       return;
     } else {
       console.debug(key);
@@ -261,7 +267,20 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      changeCallback(Number(newValue));
+      let updatedValue: number | Record<string, unknown> = Number(newValue);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(newValue),
+          unit: unit
+        };
+      }
+      changeCallback({
+        type: type,
+        value: updatedValue,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
     }
 
     setInputString(newValue);
@@ -273,7 +292,20 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      changeCallback(Number(inputString));
+      let updatedValue: number | Record<string, unknown> = Number(inputString);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(inputString),
+          unit: unit
+        };
+      }
+      changeCallback({
+        type: type,
+        value: updatedValue,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
     }
   };
   useEffect(() => {

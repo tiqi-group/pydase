@@ -16,7 +16,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
-from pydase.utils.serializer import generate_serialized_data_paths
+from pydase.utils.serialization.serializer import generate_serialized_data_paths
 from pydase.version import __version__
 
 logger = logging.getLogger(__name__)

@@ -1,22 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import { ToggleButton } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { SerializedValue } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
 type ButtonComponentProps = {
-  name: string;
-  parentPath?: string;
+  fullAccessPath: string;
   value: boolean;
   readOnly: boolean;
   docString: string;
   mapping?: [string, string]; // Enforce a tuple of two strings
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
@@ -24,6 +19,7 @@ type ButtonComponentProps = {
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const {
     value,
+    fullAccessPath,
     readOnly,
     docString,
     addNotification,
@@ -32,9 +28,6 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
     id
   } = props;
   // const buttonName = props.mapping ? (value ? props.mapping[0] : props.mapping[1]) : name;
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   const renderCount = useRef(0);
 

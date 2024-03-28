@@ -3,30 +3,25 @@ import { Form, InputGroup } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import '../App.css';
 import { LevelName } from './NotificationsComponent';
+import { SerializedValue } from './GenericComponent';
 
 // TODO: add button functionality
 
 type StringComponentProps = {
-  name: string;
-  parentPath?: string;
+  fullAccessPath: string;
   value: string;
   readOnly: boolean;
   docString: string;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const {
-    name,
+    fullAccessPath,
     readOnly,
     docString,
     isInstantUpdate,
@@ -38,9 +33,6 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const renderCount = useRef(0);
   const [inputString, setInputString] = useState(props.value);
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -63,14 +55,26 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !isInstantUpdate) {
-      changeCallback(inputString);
+      changeCallback({
+        type: 'str',
+        value: inputString,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
       event.preventDefault();
     }
   };
 
   const handleBlur = () => {
     if (!isInstantUpdate) {
-      changeCallback(inputString);
+      changeCallback({
+        type: 'str',
+        value: inputString,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
     }
   };
 
@@ -86,7 +90,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         </InputGroup.Text>
         <Form.Control
           type="text"
-          name={name}
+          name={fullAccessPath}
           value={inputString}
           disabled={readOnly}
           onChange={handleChange}
