@@ -30,7 +30,6 @@ class ProxyClassFactory:
 
     def create_proxy(self, data: SerializedObject) -> "ProxyClass":
         proxy: "ProxyClass" = self._deserialize(data)
-        proxy._sio = self.sio_client
         return proxy
 
     def _deserialize(self, serialized_object: SerializedObject) -> Any:
@@ -139,13 +138,18 @@ class ProxyClassFactory:
         get.__doc__ = serialized_attr["doc"]
 
         def set(self: "ProxyClass", value: Any) -> None:  # type: ignore
-            self._sio.call(
-                "update_value",
-                {
-                    "access_path": serialized_attr["full_access_path"],
-                    "value": dump(value),
-                },
+            result = cast(
+                SerializedObject | None,
+                self._sio.call(
+                    "update_value",
+                    {
+                        "access_path": serialized_attr["full_access_path"],
+                        "value": dump(value),
+                    },
+                ),
             )
+            if result is not None:
+                loads(result)
 
         if serialized_attr["readonly"]:
             return property(get)
