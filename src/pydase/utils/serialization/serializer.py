@@ -54,7 +54,7 @@ class SerializationValueError(Exception):
 
 class Serializer:
     @staticmethod
-    def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:
+    def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
         result: SerializedObject
 
         if isinstance(obj, Exception):

@@ -114,7 +114,7 @@ def setup_sio_server(
     return sio
 
 
-def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> None:
+def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> None:  # noqa: C901
     @sio.event  # type: ignore
     async def connect(sid: str, environ: Any) -> None:
         logging.debug("Client [%s] connected", click.style(str(sid), fg="cyan"))
