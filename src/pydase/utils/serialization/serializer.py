@@ -346,8 +346,7 @@ def set_nested_value_by_path(
             "RUNNING" if isinstance(value, TaskStatus) else None
         )
     else:
-        serialized_value = dump(value)
-        serialized_value["full_access_path"] = path
+        serialized_value = Serializer.serialize_object(value, access_path=path)
         serialized_value["readonly"] = next_level_serialized_object["readonly"]
 
         keys_to_keep = set(serialized_value.keys())
@@ -437,11 +436,20 @@ def get_next_level_dict_by_key(
                 f"Error occured trying to change '{attr_name}[{index}]': {e}"
             )
     except KeyError:
-        raise SerializationPathError(
-            f"Error occured trying to access the key '{attr_name}': it is either "
-            "not present in the current dictionary or its value does not contain "
-            "a 'value' key."
-        )
+        if not allow_append:
+            raise SerializationPathError(
+                f"Error occured trying to access the key '{attr_name}': it is either "
+                "not present in the current dictionary or its value does not contain "
+                "a 'value' key."
+            )
+        serialization_dict[attr_name] = {
+            "full_access_path": "",
+            "value": None,
+            "type": "None",
+            "doc": None,
+            "readonly": False,
+        }
+        next_level_serialized_object = serialization_dict[attr_name]
 
     if not isinstance(next_level_serialized_object, dict):
         raise SerializationValueError(

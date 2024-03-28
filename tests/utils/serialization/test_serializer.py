@@ -570,17 +570,6 @@ def test_update_invalid_list_index(
     )
 
 
-def test_update_invalid_path(
-    setup_dict: dict[str, Any], caplog: pytest.LogCaptureFixture
-) -> None:
-    set_nested_value_by_path(setup_dict, "invalid_path", 30)
-    assert (
-        "Error occured trying to access the key 'invalid_path': it is either "
-        "not present in the current dictionary or its value does not contain "
-        "a 'value' key." in caplog.text
-    )
-
-
 def test_update_list_inside_class(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr2.list_attr[1]", 40)
     assert setup_dict["attr2"]["value"]["list_attr"]["value"][1]["value"] == 40  # noqa
@@ -743,3 +732,142 @@ def test_serialized_dict_is_nested_object() -> None:
     assert not serialized_dict_is_nested_object(serialized_dict["unit"])
     assert not serialized_dict_is_nested_object(serialized_dict["float"])
     assert not serialized_dict_is_nested_object(serialized_dict["state"])
+
+
+class MyService(pydase.DataService):
+    name = "MyService"
+
+
+@pytest.mark.parametrize(
+    "test_input, expected",
+    [
+        (
+            1,
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "type": "int",
+                    "value": 1,
+                    "readonly": False,
+                    "doc": None,
+                }
+            },
+        ),
+        (
+            1.0,
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "type": "float",
+                    "value": 1.0,
+                    "readonly": False,
+                    "doc": None,
+                },
+            },
+        ),
+        (
+            True,
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "type": "bool",
+                    "value": True,
+                    "readonly": False,
+                    "doc": None,
+                },
+            },
+        ),
+        (
+            u.Quantity(10, "m"),
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "type": "Quantity",
+                    "value": {"magnitude": 10, "unit": "meter"},
+                    "readonly": False,
+                    "doc": None,
+                },
+            },
+        ),
+        (
+            MyEnum.RUNNING,
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "value": "RUNNING",
+                    "type": "Enum",
+                    "doc": "MyEnum description",
+                    "readonly": False,
+                    "name": "MyEnum",
+                    "enum": {"RUNNING": "running", "FINISHED": "finished"},
+                }
+            },
+        ),
+        (
+            [1.0],
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "value": [
+                        {
+                            "full_access_path": "new_attr[0]",
+                            "doc": None,
+                            "readonly": False,
+                            "type": "float",
+                            "value": 1.0,
+                        }
+                    ],
+                    "type": "list",
+                    "doc": None,
+                    "readonly": False,
+                }
+            },
+        ),
+        (
+            {"key": 1.0},
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "value": {
+                        "key": {
+                            "full_access_path": 'new_attr["key"]',
+                            "doc": None,
+                            "readonly": False,
+                            "type": "float",
+                            "value": 1.0,
+                        }
+                    },
+                    "type": "dict",
+                    "doc": None,
+                    "readonly": False,
+                }
+            },
+        ),
+        (
+            MyService(),
+            {
+                "new_attr": {
+                    "full_access_path": "new_attr",
+                    "value": {
+                        "name": {
+                            "full_access_path": "new_attr.name",
+                            "doc": None,
+                            "readonly": False,
+                            "type": "str",
+                            "value": "MyService",
+                        }
+                    },
+                    "type": "DataService",
+                    "doc": None,
+                    "readonly": False,
+                    "name": "MyService",
+                }
+            },
+        ),
+    ],
+)
+def test_dynamically_add_attributes(test_input: Any, expected: dict[str, Any]) -> None:
+    serialized_object: dict[str, SerializedObject] = {}
+
+    set_nested_value_by_path(serialized_object, "new_attr", test_input)
+    assert serialized_object == expected
