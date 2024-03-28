@@ -45,14 +45,14 @@ class Client(pydase.DataService):
             else:
                 # need to change to avoid overwriting the proxy class
                 data["type"] = "DeviceConnection"
-                self.proxy._notify_changed("", loads(data))
+                super(pydase.DataService, self.proxy)._notify_changed("", loads(data))
 
         @self._sio.event
         def notify(data: NotifyDict) -> None:
             # Notify the DataServiceObserver directly, not going through
             # self._notify_changed as this would trigger the "update_value" event
-            super(pydase.DataService, self)._notify_changed(
-                f"proxy.{data['data']['full_access_path']}",
+            super(pydase.DataService, self.proxy)._notify_changed(
+                data["data"]["full_access_path"],
                 loads(data["data"]["value"]),
             )
 
