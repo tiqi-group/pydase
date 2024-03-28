@@ -31,7 +31,7 @@ export type FloatObject = {
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
 type NumberComponentProps = {
-  type: 'float' | 'int';
+  type: 'float' | 'int' | 'Quantity';
   fullAccessPath: string;
   value: number;
   readOnly: boolean;
@@ -218,7 +218,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionStart,
         selectionEnd
       ));
-    } else if (key === '.' && type === 'float') {
+    } else if (key === '.' && (type === 'float' || type === 'Quantity')) {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
@@ -245,9 +245,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         selectionEnd
       ));
     } else if (key === 'Enter' && !isInstantUpdate) {
+      let updatedValue: number | Record<string, unknown> = Number(newValue);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(newValue),
+          unit: unit
+        };
+      }
       changeCallback({
         type: type,
-        value: Number(newValue),
+        value: updatedValue,
         full_access_path: fullAccessPath,
         readonly: readOnly,
         doc: docString
@@ -260,9 +267,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
+      let updatedValue: number | Record<string, unknown> = Number(newValue);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(newValue),
+          unit: unit
+        };
+      }
       changeCallback({
         type: type,
-        value: Number(newValue),
+        value: updatedValue,
         full_access_path: fullAccessPath,
         readonly: readOnly,
         doc: docString
@@ -278,9 +292,16 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
+      let updatedValue: number | Record<string, unknown> = Number(inputString);
+      if (type === 'Quantity') {
+        updatedValue = {
+          magnitude: Number(inputString),
+          unit: unit
+        };
+      }
       changeCallback({
         type: type,
-        value: Number(inputString),
+        value: updatedValue,
         full_access_path: fullAccessPath,
         readonly: readOnly,
         doc: docString

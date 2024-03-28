@@ -102,7 +102,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === 'Quantity') {
       return (
         <NumberComponent
-          type="float"
+          type="Quantity"
           fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
