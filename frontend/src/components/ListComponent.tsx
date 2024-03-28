@@ -4,8 +4,6 @@ import { SerializedValue, GenericComponent } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
 type ListComponentProps = {
-  name: string;
-  parentPath?: string;
   value: SerializedValue[];
   docString: string;
   isInstantUpdate: boolean;
@@ -14,8 +12,7 @@ type ListComponentProps = {
 };
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
-  const { name, parentPath, value, docString, isInstantUpdate, addNotification, id } =
-    props;
+  const { value, docString, isInstantUpdate, addNotification, id } = props;
 
   const renderCount = useRef(0);
 
@@ -34,8 +31,6 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
           <GenericComponent
             key={`${name}[${index}]`}
             attribute={item}
-            name={`${name}[${index}]`}
-            parentPath={parentPath}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}
           />

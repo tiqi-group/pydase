@@ -5,8 +5,7 @@ import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
 import { LevelName } from './NotificationsComponent';
 
 type ImageComponentProps = {
-  name: string;
-  parentPath: string;
+  fullAccessPath: string;
   value: string;
   docString: string;
   format: string;
@@ -16,13 +15,11 @@ type ImageComponentProps = {
 };
 
 export const ImageComponent = React.memo((props: ImageComponentProps) => {
-  const { value, docString, format, addNotification, displayName, id } = props;
+  const { fullAccessPath, value, docString, format, addNotification, displayName, id } =
+    props;
 
   const renderCount = useRef(0);
   const [open, setOpen] = useState(true);
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   useEffect(() => {
     renderCount.current++;

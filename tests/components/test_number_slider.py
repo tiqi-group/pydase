@@ -1,13 +1,12 @@
 import logging
 from collections.abc import Callable
 
+import pytest
 from pydase.components.number_slider import NumberSlider
 from pydase.data_service.data_service import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pytest import LogCaptureFixture
-
-from tests.utils.test_serializer import pytest
 
 logger = logging.getLogger(__name__)
 

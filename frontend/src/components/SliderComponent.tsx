@@ -4,24 +4,19 @@ import { DocStringComponent } from './DocStringComponent';
 import { Slider } from '@mui/material';
 import { NumberComponent, NumberObject } from './NumberComponent';
 import { LevelName } from './NotificationsComponent';
+import { SerializedValue } from './GenericComponent';
 
 type SliderComponentProps = {
-  name: string;
+  fullAccessPath: string;
   min: NumberObject;
   max: NumberObject;
-  parentPath?: string;
   value: NumberObject;
   readOnly: boolean;
   docString: string;
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
@@ -30,8 +25,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRef(0);
   const [open, setOpen] = useState(false);
   const {
-    name,
-    parentPath,
+    fullAccessPath,
     value,
     min,
     max,
@@ -43,7 +37,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     displayName,
     id
   } = props;
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -71,11 +64,26 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    changeCallback(newNumber, `${name}.value`);
+    changeCallback({
+      type: value.type,
+      value: newNumber,
+      full_access_path: `${fullAccessPath}.value`,
+      readonly: value.readonly,
+      doc: docString
+    });
   };
 
-  const handleValueChange = (newValue: number, valueType: string) => {
-    changeCallback(newValue, `${name}.${valueType}`);
+  const handleValueChange = (
+    newValue: number,
+    name: string,
+    valueObject: NumberObject
+  ) => {
+    changeCallback({
+      type: valueObject.type,
+      value: newValue,
+      full_access_path: `${fullAccessPath}.${name}`,
+      readonly: valueObject.readonly
+    });
   };
 
   const deconstructNumberDict = (
@@ -133,15 +141,14 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         <Col xs="3" xl>
           <NumberComponent
             isInstantUpdate={isInstantUpdate}
-            parentPath={parentPath}
-            name={`${name}.value`}
-            docString=""
+            fullAccessPath={`${fullAccessPath}.value`}
+            docString={docString}
             readOnly={valueReadOnly}
             type="float"
             value={valueMagnitude}
             unit={valueUnit}
             addNotification={() => {}}
-            changeCallback={(value) => changeCallback(value, name + '.value')}
+            changeCallback={changeCallback}
             id={id + '-value'}
           />
         </Col>
@@ -179,7 +186,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
                 type="number"
                 value={minMagnitude}
                 disabled={minReadOnly}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'min')}
+                onChange={(e) => handleValueChange(Number(e.target.value), 'min', min)}
               />
             </Col>
 
@@ -189,7 +196,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
                 type="number"
                 value={maxMagnitude}
                 disabled={maxReadOnly}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'max')}
+                onChange={(e) => handleValueChange(Number(e.target.value), 'max', max)}
               />
             </Col>
 
@@ -199,7 +206,9 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
                 type="number"
                 value={stepSizeMagnitude}
                 disabled={stepSizeReadOnly}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'step_size')}
+                onChange={(e) =>
+                  handleValueChange(Number(e.target.value), 'step_size', stepSize)
+                }
               />
             </Col>
           </Row>

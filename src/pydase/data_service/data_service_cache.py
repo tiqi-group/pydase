@@ -1,7 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from pydase.utils.serializer import (
+from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializationValueError,
     SerializedObject,
@@ -45,8 +45,9 @@ class DataServiceCache:
             )
         except (SerializationPathError, SerializationValueError, KeyError):
             return {
+                "full_access_path": full_access_path,
                 "value": None,
-                "type": None,
+                "type": "None",
                 "doc": None,
                 "readonly": False,
             }

@@ -5,16 +5,16 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
-    get_object_attr_from_path_list,
+    get_object_attr_from_path,
     is_property_attribute,
     parse_list_attr_and_index,
 )
-from pydase.utils.serializer import (
+from pydase.utils.serialization.deserializer import loads
+from pydase.utils.serialization.serializer import (
+    SerializationPathError,
     SerializedObject,
-    dump,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
     serialized_dict_is_nested_object,
@@ -154,23 +154,25 @@ class StateManager:
             return
 
         for path in generate_serialized_data_paths(json_dict):
-            nested_json_dict = get_nested_dict_by_path(json_dict, path)
-            nested_class_dict = self._data_service_cache.get_value_dict_from_cache(path)
-
-            value, value_type = nested_json_dict["value"], nested_json_dict["type"]
-            class_attr_value_type = nested_class_dict.get("type", None)
-
-            if class_attr_value_type == value_type:
-                if self.__is_loadable_state_attribute(path):
-                    self.set_service_attribute_value_by_path(path, value)
-            else:
-                logger.info(
-                    "Attribute type of '%s' changed from '%s' to "
-                    "'%s'. Ignoring value from JSON file...",
-                    path,
-                    value_type,
-                    class_attr_value_type,
+            if self.__is_loadable_state_attribute(path):
+                nested_json_dict = get_nested_dict_by_path(json_dict, path)
+                nested_class_dict = self._data_service_cache.get_value_dict_from_cache(
+                    path
                 )
+
+                value_type = nested_json_dict["type"]
+                class_attr_value_type = nested_class_dict.get("type", None)
+
+                if class_attr_value_type == value_type:
+                    self.set_service_attribute_value_by_path(path, nested_json_dict)
+                else:
+                    logger.info(
+                        "Attribute type of '%s' changed from '%s' to "
+                        "'%s'. Ignoring value from JSON file...",
+                        path,
+                        value_type,
+                        class_attr_value_type,
+                    )
 
     def _get_state_dict_from_json_file(self) -> dict[str, Any]:
         if self.filename is not None and os.path.exists(self.filename):
@@ -183,7 +185,7 @@ class StateManager:
     def set_service_attribute_value_by_path(
         self,
         path: str,
-        value: Any,
+        serialized_value: SerializedObject,
     ) -> None:
         """
         Sets the value of an attribute in the service managed by the `StateManager`
@@ -206,54 +208,69 @@ class StateManager:
             logger.debug("Attribute '%s' is read-only. Ignoring new value...", path)
             return
 
-        converted_value = self.__convert_value_if_needed(value, current_value_dict)
+        if "full_access_path" not in serialized_value:
+            # Backwards compatibility for JSON files not containing the
+            # full_access_path
+            logger.warning(
+                "The format of your JSON file is out-of-date. This might lead "
+                "to unexpected errors. Please consider updating it."
+            )
+            serialized_value["full_access_path"] = current_value_dict[
+                "full_access_path"
+            ]
 
         # only set value when it has changed
-        if self.__attr_value_has_changed(converted_value, current_value_dict["value"]):
-            self.__update_attribute_by_path(path, converted_value)
+        if self.__attr_value_has_changed(serialized_value, current_value_dict):
+            self.__update_attribute_by_path(path, serialized_value)
         else:
             logger.debug("Value of attribute '%s' has not changed...", path)
 
-    def __attr_value_has_changed(self, value_object: Any, current_value: Any) -> bool:
-        """Check if the serialized value of `value_object` differs from `current_value`.
+    def __attr_value_has_changed(
+        self, serialized_new_value: Any, serialized_current_value: Any
+    ) -> bool:
+        return not (
+            serialized_new_value["type"] == serialized_current_value["type"]
+            and serialized_new_value["value"] == serialized_current_value["value"]
+        )
 
-        The method serializes `value_object` to compare it, which is mainly
-        necessary for handling Quantity objects.
-        """
-
-        return dump(value_object)["value"] != current_value
-
-    def __convert_value_if_needed(
-        self, value: Any, current_value_dict: SerializedObject
-    ) -> Any:
-        if current_value_dict["type"] == "Quantity":
-            return u.convert_to_quantity(
-                value, cast(dict[str, Any], current_value_dict["value"])["unit"]
-            )
-        if current_value_dict["type"] == "float" and not isinstance(value, float):
-            return float(value)
-        return value
-
-    def __update_attribute_by_path(self, path: str, value: Any) -> None:
-        parent_path_list, attr_name = path.split(".")[:-1], path.split(".")[-1]
+    def __update_attribute_by_path(
+        self, path: str, serialized_value: SerializedObject
+    ) -> None:
+        parent_path, attr_name = ".".join(path.split(".")[:-1]), path.split(".")[-1]
 
         # If attr_name corresponds to a list entry, extract the attr_name and the
         # index
         attr_name, index = parse_list_attr_and_index(attr_name)
 
         # Update path to reflect the attribute without list indices
-        path = ".".join([*parent_path_list, attr_name])
+        path = f"{parent_path}.{attr_name}" if parent_path != "" else attr_name
 
         attr_cache_type = get_nested_dict_by_path(self.cache_value, path)["type"]
 
         # Traverse the object according to the path parts
-        target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
+        target_obj = get_object_attr_from_path(self.service, parent_path)
 
         if attr_cache_type in ("ColouredEnum", "Enum"):
-            enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
-            setattr(target_obj, attr_name, enum_attr.__class__[value])
-        elif attr_cache_type == "list":
-            list_obj = get_object_attr_from_path_list(target_obj, [attr_name])
+            enum_attr = get_object_attr_from_path(target_obj, attr_name)
+            # take the value of the existing enum class
+            if serialized_value["type"] in ("ColouredEnum", "Enum"):
+                try:
+                    setattr(
+                        target_obj,
+                        attr_name,
+                        enum_attr.__class__[serialized_value["value"]],
+                    )
+                    return
+                except KeyError:
+                    # This error will arise when setting an enum from another enum class
+                    # In this case, we resort to loading the enum and setting it
+                    # directly
+                    pass
+
+        value = loads(serialized_value)
+
+        if attr_cache_type == "list":
+            list_obj = get_object_attr_from_path(target_obj, attr_name)
             list_obj[index] = value
         else:
             setattr(target_obj, attr_name, value)
@@ -266,10 +283,11 @@ class StateManager:
         attributes default to being loadable.
         """
 
-        parent_object = get_object_attr_from_path_list(
-            self.service, full_access_path.split(".")[:-1]
+        parent_path, attr_name = (
+            ".".join(full_access_path.split(".")[:-1]),
+            full_access_path.split(".")[-1],
         )
-        attr_name = full_access_path.split(".")[-1]
+        parent_object = get_object_attr_from_path(self.service, parent_path)
 
         if is_property_attribute(parent_object, attr_name):
             prop = getattr(type(parent_object), attr_name)
@@ -282,12 +300,20 @@ class StateManager:
                 )
             return has_decorator
 
-        cached_serialization_dict = get_nested_dict_by_path(
-            self.cache_value, full_access_path
-        )
+        try:
+            cached_serialization_dict = get_nested_dict_by_path(
+                self.cache_value, full_access_path
+            )
 
-        if cached_serialization_dict["value"] == "method":
+            if cached_serialization_dict["value"] == "method":
+                return False
+
+            # nested objects cannot be loaded
+            return not serialized_dict_is_nested_object(cached_serialization_dict)
+        except SerializationPathError:
+            logger.debug(
+                "Path %a could not be loaded. It does not correspond to an attribute of"
+                " the class. Ignoring value from JSON file...",
+                attr_name,
+            )
             return False
-
-        # nested objects cannot be loaded
-        return not serialized_dict_is_nested_object(cached_serialization_dict)

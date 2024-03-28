@@ -8,8 +8,8 @@ from pydase.observer_pattern.observable.observable_object import ObservableObjec
 from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
-from pydase.utils.helpers import get_object_attr_from_path_list
-from pydase.utils.serializer import SerializedObject, dump
+from pydase.utils.helpers import get_object_attr_from_path
+from pydase.utils.serialization.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)
 
@@ -65,23 +65,23 @@ class DataServiceObserver(PropertyObserver):
         cached_value_dict: SerializedObject | dict[str, Any],
     ) -> None:
         value_dict = dump(value)
-        if cached_value_dict != {}:
-            if (
-                cached_value_dict["type"] != "method"
-                and cached_value_dict["type"] != value_dict["type"]
-            ):
-                logger.warning(
-                    "Type of '%s' changed from '%s' to '%s'. This could have unwanted "
-                    "side effects! Consider setting it to '%s' directly.",
-                    full_access_path,
-                    cached_value_dict["type"],
-                    value_dict["type"],
-                    cached_value_dict["type"],
-                )
-            self.state_manager._data_service_cache.update_cache(
+        if (
+            cached_value_dict != {}
+            and cached_value_dict["type"] != "method"
+            and cached_value_dict["type"] != value_dict["type"]
+        ):
+            logger.warning(
+                "Type of '%s' changed from '%s' to '%s'. This could have unwanted "
+                "side effects! Consider setting it to '%s' directly.",
                 full_access_path,
-                value,
+                cached_value_dict["type"],
+                value_dict["type"],
+                cached_value_dict["type"],
             )
+        self.state_manager._data_service_cache.update_cache(
+            full_access_path,
+            value,
+        )
 
     def _notify_dependent_property_changes(self, changed_attr_path: str) -> None:
         changed_props = self.property_deps_dict.get(changed_attr_path, [])
@@ -92,7 +92,7 @@ class DataServiceObserver(PropertyObserver):
             if prop not in self.changing_attributes:
                 self._notify_changed(
                     prop,
-                    get_object_attr_from_path_list(self.observable, prop.split(".")),
+                    get_object_attr_from_path(self.observable, prop),
                 )
 
     def add_notification_callback(
