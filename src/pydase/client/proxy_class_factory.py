@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     import pydase.components
 
     class ProxyClass(pydase.DataService):
-        _sio: socketio.Client
+        __sio: socketio.Client
 
 
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class ProxyClassFactory:
             proxy_class = self._deserialize_component_type(
                 serialized_object, component_class
             )
-            proxy_class._sio = self.sio_client
+            proxy_class.__sio = self.sio_client
             return proxy_class
         return None
 
@@ -67,7 +67,7 @@ class ProxyClassFactory:
         def method_proxy(self: "ProxyClass", *args: Any, **kwargs: Any) -> Any:
             serialized_response = cast(
                 dict[str, Any],
-                self._sio.call(
+                self.__sio.call(
                     "trigger_method",
                     {
                         "access_path": serialized_object["full_access_path"],
@@ -82,7 +82,7 @@ class ProxyClassFactory:
 
     def _deserialize_component_type(
         self, serialized_object: SerializedObject, base_class: type
-    ) -> Any:
+    ) -> "ProxyClass":
         def add_prefix_to_last_path_element(s: str, prefix: str) -> str:
             parts = s.split(".")
             parts[-1] = f"{prefix}_{parts[-1]}"
@@ -131,7 +131,7 @@ class ProxyClassFactory:
             return loads(
                 cast(
                     SerializedObject,
-                    self._sio.call("get_value", serialized_attr["full_access_path"]),
+                    self.__sio.call("get_value", serialized_attr["full_access_path"]),
                 )
             )
 
@@ -140,7 +140,7 @@ class ProxyClassFactory:
         def set(self: "ProxyClass", value: Any) -> None:  # type: ignore
             result = cast(
                 SerializedObject | None,
-                self._sio.call(
+                self.__sio.call(
                     "update_value",
                     {
                         "access_path": serialized_attr["full_access_path"],
