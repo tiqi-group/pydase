@@ -9,7 +9,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.logging import SocketIOHandler
-from pydase.utils.serialization.deserializer import Deserializer, loads
+from pydase.utils.serialization.deserializer import Deserializer
 from pydase.utils.serialization.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)
@@ -129,13 +129,9 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:  # type: ignore
         path = data["access_path"]
 
-        # this should probably happen within the following function call -> can also
-        # look at the current type of the attribute at "path"
-        new_value = loads(data["value"])
-
         try:
             state_manager.set_service_attribute_value_by_path(
-                path=path, value=new_value
+                path=path, serialized_value=data["value"]
             )
         except Exception as e:
             logger.exception(e)
