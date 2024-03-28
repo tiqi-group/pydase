@@ -15,10 +15,16 @@ from pydase.utils.serialization.serializer import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    import pydase.components
 
-    class ProxyClass(pydase.DataService):
-        __sio: socketio.Client
+class ProxyClass(pydase.DataService):
+    __sio: socketio.Client
+
+    def __setattr__(self, key, value):
+        # prevent overriding of proxy attributes
+        if hasattr(self, key) and isinstance(getattr(self, key), ProxyClass):
+            raise AttributeError(f"{key} is read-only and cannot be overridden.")
+
+        super().__setattr__(key, value)
 
 
 logger = logging.getLogger(__name__)
@@ -28,8 +34,8 @@ class ProxyClassFactory:
     def __init__(self, sio_client: socketio.Client) -> None:
         self.sio_client = sio_client
 
-    def create_proxy(self, data: SerializedObject) -> "ProxyClass":
-        proxy: "ProxyClass" = self._deserialize(data)
+    def create_proxy(self, data: SerializedObject) -> ProxyClass:
+        proxy: ProxyClass = self._deserialize(data)
         return proxy
 
     def _deserialize(self, serialized_object: SerializedObject) -> Any:
@@ -64,7 +70,7 @@ class ProxyClassFactory:
         return None
 
     def _deserialize_method(self, serialized_object: SerializedMethod) -> Any:
-        def method_proxy(self: "ProxyClass", *args: Any, **kwargs: Any) -> Any:
+        def method_proxy(self: ProxyClass, *args: Any, **kwargs: Any) -> Any:
             serialized_response = cast(
                 dict[str, Any],
                 self.__sio.call(
@@ -82,14 +88,17 @@ class ProxyClassFactory:
 
     def _deserialize_component_type(
         self, serialized_object: SerializedObject, base_class: type
-    ) -> "ProxyClass":
+    ) -> ProxyClass:
         def add_prefix_to_last_path_element(s: str, prefix: str) -> str:
             parts = s.split(".")
             parts[-1] = f"{prefix}_{parts[-1]}"
             return ".".join(parts)
 
         def create_proxy_class(serialized_object: SerializedObject) -> type:
-            class_bases = (base_class,)
+            class_bases = (
+                ProxyClass,
+                base_class,
+            )
             class_attrs: dict[str, Any] = {}
 
             # Process and add properties based on the serialized object
@@ -127,7 +136,7 @@ class ProxyClassFactory:
         return create_proxy_class(serialized_object)()
 
     def _create_attr_property(self, serialized_attr: SerializedObject) -> property:
-        def get(self: "ProxyClass") -> Any:  # type: ignore
+        def get(self: ProxyClass) -> Any:  # type: ignore
             return loads(
                 cast(
                     SerializedObject,
@@ -137,7 +146,7 @@ class ProxyClassFactory:
 
         get.__doc__ = serialized_attr["doc"]
 
-        def set(self: "ProxyClass", value: Any) -> None:  # type: ignore
+        def set(self: ProxyClass, value: Any) -> None:  # type: ignore
             result = cast(
                 SerializedObject | None,
                 self.__sio.call(
