@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 import pydase
 import pydase.components
-import pydase.server.web_server.sio_setup
 import pydase.units as u
 from pydase.utils.helpers import get_component_classes
 from pydase.utils.serialization.types import SerializedObject
@@ -50,6 +49,8 @@ class Deserializer:
 
     @classmethod
     def deserialize_primitive(cls, serialized_object: SerializedObject) -> Any:
+        if serialized_object["type"] == "float":
+            return float(serialized_object["value"])
         return serialized_object["value"]
 
     @classmethod
