@@ -30,13 +30,13 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
 
 
-def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
+def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     """
     Traverse the object tree according to the given path.
 
     Args:
         target_obj: The root object to start the traversal from.
-        path: A list of attribute names representing the path to traverse.
+        path: Access path of the object.
 
     Returns:
         The attribute at the end of the path. If the path includes a list index,
@@ -46,7 +46,8 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
     Raises:
         ValueError: If a list index in the path is not a valid integer.
     """
-    for part in path:
+    path_list = path.split(".") if path != "" else []
+    for part in path_list:
         try:
             # Try to split the part into attribute and index
             attr, index_str = part.split("[", maxsplit=1)

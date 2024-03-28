@@ -7,7 +7,7 @@ import socketio  # type: ignore[import-untyped]
 
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.helpers import get_object_attr_from_path_list
+from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.logging import SocketIOHandler
 from pydase.utils.serialization.deserializer import Deserializer, loads
 from pydase.utils.serialization.serializer import SerializedObject, dump
@@ -154,8 +154,8 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
         try:
-            method = get_object_attr_from_path_list(
-                state_manager.service, data["access_path"].split(".")
+            method = get_object_attr_from_path(
+                state_manager.service, data["access_path"]
             )
             args = Deserializer.deserialize(data["args"])
             kwargs: dict[str, Any] = Deserializer.deserialize(data["kwargs"])

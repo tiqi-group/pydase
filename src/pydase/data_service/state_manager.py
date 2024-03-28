@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, cast
 import pydase.units as u
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
-    get_object_attr_from_path_list,
+    get_object_attr_from_path,
     is_property_attribute,
     parse_list_attr_and_index,
 )
@@ -235,23 +235,25 @@ class StateManager:
             return float(value)
         return value
 
-    def __update_attribute_by_path(self, path: str, value: Any) -> None:
-        parent_path_list, attr_name = path.split(".")[:-1], path.split(".")[-1]
+    def __update_attribute_by_path(
+        self, path: str, serialized_value: SerializedObject
+    ) -> None:
+        parent_path, attr_name = ".".join(path.split(".")[:-1]), path.split(".")[-1]
 
         # If attr_name corresponds to a list entry, extract the attr_name and the
         # index
         attr_name, index = parse_list_attr_and_index(attr_name)
 
         # Update path to reflect the attribute without list indices
-        path = ".".join([*parent_path_list, attr_name])
+        path = f"{parent_path}.{attr_name}" if parent_path != "" else attr_name
 
         attr_cache_type = get_nested_dict_by_path(self.cache_value, path)["type"]
 
         # Traverse the object according to the path parts
-        target_obj = get_object_attr_from_path_list(self.service, parent_path_list)
+        target_obj = get_object_attr_from_path(self.service, parent_path)
 
         if attr_cache_type in ("ColouredEnum", "Enum"):
-            enum_attr = get_object_attr_from_path_list(target_obj, [attr_name])
+            enum_attr = get_object_attr_from_path(target_obj, attr_name)
             # take the value of the existing enum class
             # TODO: this might break when you set a value from a different enum
             if isinstance(value, enum.Enum):
@@ -271,10 +273,11 @@ class StateManager:
         attributes default to being loadable.
         """
 
-        parent_object = get_object_attr_from_path_list(
-            self.service, full_access_path.split(".")[:-1]
+        parent_path, attr_name = (
+            ".".join(full_access_path.split(".")[:-1]),
+            full_access_path.split(".")[-1],
         )
-        attr_name = full_access_path.split(".")[-1]
+        parent_object = get_object_attr_from_path(self.service, parent_path)
 
         if is_property_attribute(parent_object, attr_name):
             prop = getattr(type(parent_object), attr_name)

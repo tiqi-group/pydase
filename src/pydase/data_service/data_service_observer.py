@@ -8,7 +8,7 @@ from pydase.observer_pattern.observable.observable_object import ObservableObjec
 from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
-from pydase.utils.helpers import get_object_attr_from_path_list
+from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.serialization.serializer import SerializedObject, dump
 
 logger = logging.getLogger(__name__)
@@ -92,7 +92,7 @@ class DataServiceObserver(PropertyObserver):
             if prop not in self.changing_attributes:
                 self._notify_changed(
                     prop,
-                    get_object_attr_from_path_list(self.observable, prop.split(".")),
+                    get_object_attr_from_path(self.observable, prop),
                 )
 
     def add_notification_callback(
