@@ -67,5 +67,9 @@ class Observable(ObservableObject):
         self, observer_attr_name: str, instance_attr_name: str
     ) -> str:
         if observer_attr_name != "":
-            return f"{observer_attr_name}.{instance_attr_name}"
+            return (
+                f"{observer_attr_name}.{instance_attr_name}"
+                if instance_attr_name != ""
+                else observer_attr_name
+            )
         return instance_attr_name
