@@ -1,15 +1,14 @@
 import logging
 import time
-from typing import TYPE_CHECKING, TypedDict
+from typing import Any, TypedDict
 
 import socketio  # type: ignore
 
-from pydase.client.proxy_class_factory import ProxyClassFactory
+import pydase
+from pydase.client.proxy_class_factory import ProxyClassFactory, ProxyConnection
 from pydase.utils.serialization.deserializer import loads
-from pydase.utils.serialization.serializer import SerializedObject
-
-if TYPE_CHECKING:
-    from pydase.client.proxy_class_factory import ProxyClass
+from pydase.utils.serialization.serializer import SerializedObject, dump
+from pydase.utils.serialization.types import SerializedDataService
 
 logger = logging.getLogger(__name__)
 
@@ -23,31 +22,56 @@ class NotifyDict(TypedDict):
     data: NotifyDataDict
 
 
-class Client:
+class Client(pydase.DataService):
     def __init__(self, hostname: str, port: int):
-        self.sio = socketio.Client()
-        self.setup_events()
-        self.proxy_class_factory = ProxyClassFactory(self.sio)
-        self.proxy: ProxyClass | None = None
-        self.sio.connect(
+        super().__init__()
+        self._sio = socketio.Client()
+        self._setup_events()
+        self._proxy_class_factory = ProxyClassFactory(self._sio)
+        self.proxy = ProxyConnection()
+        self._sio.connect(
             f"ws://{hostname}:{port}",
             socketio_path="/ws/socket.io",
             transports=["websocket"],
         )
-        while self.proxy is None:
+        while not self.proxy._initialised:
             time.sleep(0.01)
 
-    def setup_events(self) -> None:
-        @self.sio.event
-        def class_structure(data: SerializedObject) -> None:
-            self.proxy = self.proxy_class_factory.create_proxy(data)
+    def _setup_events(self) -> None:
+        @self._sio.event
+        def class_structure(data: SerializedDataService) -> None:
+            if not self.proxy._initialised:
+                self.proxy = self._proxy_class_factory.create_proxy(data)
+            else:
+                # need to change to avoid overwriting the proxy class
+                data["type"] = "DeviceConnection"
+                self.proxy._notify_changed("", loads(data))
 
-        @self.sio.event
+        @self._sio.event
         def notify(data: NotifyDict) -> None:
-            if self.proxy is not None:
-                self.proxy._notify_changed(
-                    data["data"]["full_access_path"], loads(data["data"]["value"])
-                )
+            # Notify the DataServiceObserver directly, not going through
+            # self._notify_changed as this would trigger the "update_value" event
+            super(pydase.DataService, self)._notify_changed(
+                f"proxy.{data['data']['full_access_path']}",
+                loads(data["data"]["value"]),
+            )
 
     def disconnect(self) -> None:
-        self.sio.disconnect()
+        self._sio.disconnect()
+
+    def _notify_changed(self, changed_attribute: str, value: Any) -> None:
+        if (
+            changed_attribute.startswith("proxy.")
+            and all(part[0] != "_" for part in changed_attribute.split("."))
+            and changed_attribute != "proxy.connected"
+        ):
+            logger.debug(f"{changed_attribute}: {value}")
+
+            self._sio.call(
+                "update_value",
+                {
+                    "access_path": changed_attribute[6:],
+                    "value": dump(value),
+                },
+            )
+        return super()._notify_changed(changed_attribute, value)
