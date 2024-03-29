@@ -42,7 +42,7 @@ class ProxyConnection(pydase.components.DeviceConnection, ProxyClassMixin):
     def __init__(self) -> None:
         super().__init__()
         self._initialised = False
-        self._reconnection_wait_time = 1
+        self._reconnection_wait_time = 1.0
 
     @property
     def connected(self) -> bool:
