@@ -153,7 +153,12 @@ def get_data_service_class_reference() -> Any:
     return getattr(pydase.data_service.data_service, "DataService")
 
 
-def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
+def is_property_attribute(target_obj: Any, access_path: str) -> bool:
+    parent_path, attr_name = (
+        ".".join(access_path.split(".")[:-1]),
+        access_path.split(".")[-1],
+    )
+    target_obj = get_object_attr_from_path(target_obj, parent_path)
     return isinstance(getattr(type(target_obj), attr_name, None), property)
 
 
