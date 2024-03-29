@@ -6,6 +6,7 @@ import socketio  # type: ignore
 
 import pydase
 from pydase.client.proxy_class_factory import ProxyClassFactory, ProxyConnection
+from pydase.utils.helpers import is_property_attribute
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.serializer import SerializedObject, dump
 from pydase.utils.serialization.types import SerializedDataService
@@ -62,8 +63,9 @@ class Client(pydase.DataService):
     def _notify_changed(self, changed_attribute: str, value: Any) -> None:
         if (
             changed_attribute.startswith("proxy.")
+            # do not emit update event for properties which emit that event themselves
+            and not is_property_attribute(self, changed_attribute)
             and all(part[0] != "_" for part in changed_attribute.split("."))
-            and changed_attribute != "proxy.connected"
         ):
             logger.debug(f"{changed_attribute}: {value}")
 
