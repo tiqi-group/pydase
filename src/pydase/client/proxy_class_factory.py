@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import Callable
 from copy import copy
@@ -20,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 class ProxyClassMixin:
-    _sio: socketio.Client
+    _sio: socketio.AsyncClient
+    _loop: asyncio.AbstractEventLoop
 
     def __setattr__(self, key: str, value: Any) -> None:
         # prevent overriding of proxy attributes
@@ -44,18 +46,18 @@ class ProxyConnection(pydase.components.DeviceConnection, ProxyClassMixin):
         self._initialised = False
         self._reconnection_wait_time = 1.0
 
-    @property
-    def connected(self) -> bool:
-        return self._sio.connected
-
 
 class ProxyClassFactory:
-    def __init__(self, sio_client: socketio.Client) -> None:
+    def __init__(
+        self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
+    ) -> None:
         self.sio_client = sio_client
+        self.loop = loop
 
     def create_proxy(self, data: SerializedObject) -> ProxyConnection:
         proxy_class = self._deserialize_component_type(data, ProxyConnection)
         proxy_class._sio = self.sio_client
+        proxy_class._loop = self.loop
         proxy_class._initialised = True
         return proxy_class  # type: ignore
 
@@ -87,6 +89,7 @@ class ProxyClassFactory:
                 serialized_object, component_class
             )
             proxy_class._sio = self.sio_client
+            proxy_class._loop = self.loop
             proxy_class._initialised = True
             return proxy_class
         return None
@@ -95,18 +98,21 @@ class ProxyClassFactory:
         self, serialized_object: SerializedMethod
     ) -> Callable[..., Any]:
         def method_proxy(self: ProxyBaseClass, *args: Any, **kwargs: Any) -> Any:
-            serialized_response = cast(
-                dict[str, Any],
-                self._sio.call(
+            async def trigger_method() -> Any:
+                return await self._sio.call(
                     "trigger_method",
                     {
                         "access_path": serialized_object["full_access_path"],
                         "args": dump(list(args)),
                         "kwargs": dump(kwargs),
                     },
-                ),
-            )
-            return loads(serialized_response)  # type: ignore
+                )
+
+            result = asyncio.run_coroutine_threadsafe(
+                trigger_method(),
+                loop=self._loop,
+            ).result()
+            return loads(result)
 
         return method_proxy
 
@@ -160,27 +166,34 @@ class ProxyClassFactory:
         return create_proxy_class(serialized_object)()
 
     def _create_attr_property(self, serialized_attr: SerializedObject) -> property:
-        def get(self: ProxyBaseClass) -> Any:  # type: ignore
-            return loads(
-                cast(
-                    SerializedObject,
-                    self._sio.call("get_value", serialized_attr["full_access_path"]),
+        def get(self: ProxyBaseClass) -> Any:
+            async def get_result() -> Any:
+                return await self._sio.call(
+                    "get_value", serialized_attr["full_access_path"]
                 )
-            )
+
+            result = asyncio.run_coroutine_threadsafe(
+                get_result(),
+                loop=self._loop,
+            ).result()
+            return loads(result)
 
         get.__doc__ = serialized_attr["doc"]
 
-        def set(self: ProxyBaseClass, value: Any) -> None:  # type: ignore
-            result = cast(
-                SerializedObject | None,
-                self._sio.call(
+        def set(self: ProxyBaseClass, value: Any) -> None:
+            async def set_result() -> Any:
+                return await self._sio.call(
                     "update_value",
                     {
                         "access_path": serialized_attr["full_access_path"],
                         "value": dump(value),
                     },
-                ),
-            )
+                )
+
+            result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
+                set_result(),
+                loop=self._loop,
+            ).result()
             if result is not None:
                 loads(result)
 
