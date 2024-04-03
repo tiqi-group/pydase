@@ -5,7 +5,7 @@ from typing import Any, TypedDict, cast
 
 import socketio  # type: ignore
 
-import pydase
+import pydase.data_service
 from pydase.client.proxy_class_factory import ProxyClassFactory, ProxyConnection
 from pydase.utils.helpers import is_property_attribute
 from pydase.utils.serialization.deserializer import loads
@@ -24,7 +24,7 @@ class NotifyDict(TypedDict):
     data: NotifyDataDict
 
 
-class Client(pydase.DataService):
+class Client(pydase.data_service.DataService):
     def __init__(self, hostname: str, port: int):
         super().__init__()
         self._hostname = hostname
@@ -93,7 +93,6 @@ class Client(pydase.DataService):
             and not is_property_attribute(self, changed_attribute)
             and all(part[0] != "_" for part in changed_attribute.split("."))
         ):
-            logger.debug(f"{changed_attribute}: {value}")
 
             async def update_value() -> None:
                 await self._sio.call(

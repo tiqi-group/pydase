@@ -6,8 +6,8 @@ from typing import Any, cast
 
 import socketio  # type: ignore
 
-import pydase
 import pydase.components
+import pydase.data_service
 import pydase.observer_pattern.observer
 from pydase.utils.helpers import is_property_attribute
 from pydase.utils.serialization.deserializer import Deserializer, loads
@@ -36,7 +36,7 @@ class ProxyClassMixin:
         super().__setattr__(key, value)
 
 
-class ProxyBaseClass(pydase.DataService, ProxyClassMixin):
+class ProxyBaseClass(pydase.data_service.DataService, ProxyClassMixin):
     pass
 
 
@@ -118,7 +118,7 @@ class ProxyClassFactory:
 
     def _deserialize_component_type(
         self, serialized_object: SerializedObject, base_class: type
-    ) -> pydase.DataService:
+    ) -> pydase.data_service.DataService:
         def add_prefix_to_last_path_element(s: str, prefix: str) -> str:
             parts = s.split(".")
             parts[-1] = f"{prefix}_{parts[-1]}"

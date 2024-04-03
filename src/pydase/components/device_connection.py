@@ -1,9 +1,9 @@
 import asyncio
 
-import pydase
+import pydase.data_service
 
 
-class DeviceConnection(pydase.DataService):
+class DeviceConnection(pydase.data_service.DataService):
     """
     Base class for device connection management within the pydase framework.
 
