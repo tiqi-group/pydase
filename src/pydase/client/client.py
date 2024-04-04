@@ -68,6 +68,14 @@ class Client:
             ProxyLoader.update_data_service_proxy(
                 self.proxy, serialized_object=serialized_object
             )
+            serialized_object["type"] = "DeviceConnection"
+            self.proxy._notify_changed("", loads(serialized_object))
+            self.proxy._connected = True
+
+        @self._sio.event
+        async def disconnect() -> None:
+            logger.debug("Disconnected from '%s:%s' ...", self._hostname, self._port)
+            self.proxy._connected = False
 
         @self._sio.event
         async def notify(data: NotifyDict) -> None:
