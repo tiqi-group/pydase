@@ -4,7 +4,7 @@ import pydase
 import pydase.components
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.serialization import dump
+from pydase.utils.serialization.serializer import dump
 from pytest import LogCaptureFixture
 
 logger = logging.getLogger(__name__)
