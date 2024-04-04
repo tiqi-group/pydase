@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import socketio  # type: ignore
 
-import pydase.components
-import pydase.data_service
-from pydase.utils.serialization.deserializer import loads
+from pydase.utils.serialization.deserializer import Deserializer, loads
 from pydase.utils.serialization.serializer import dump
 from pydase.utils.serialization.types import SerializedObject
 
@@ -56,14 +54,18 @@ class ProxyList(list[Any]):
 
 
 class ProxyClassMixin:
-    def __init__(
+    def __init__(self) -> None:
+        self._proxy_getters: dict[str, Callable[..., Any]] = {}
+        self._proxy_setters: dict[str, Callable[..., Any]] = {}
+        self._proxy_methods: dict[str, Callable[..., Any]] = {}
+        # declare before DataService init to avoid warning messaged
+        self._observers: dict[str, Any] = {}
+
+    def _initialise(
         self,
         sio_client: socketio.AsyncClient,
         loop: asyncio.AbstractEventLoop,
     ) -> None:
-        self._proxy_getters: dict[str, Callable[..., Any]] = {}
-        self._proxy_setters: dict[str, Callable[..., Any]] = {}
-        self._proxy_methods: dict[str, Callable[..., Any]] = {}
         self._loop = loop
         self._sio = sio_client
 
@@ -189,19 +191,6 @@ class ProxyClassMixin:
         self._proxy_getters[attr_name] = getter_proxy
 
 
-class ProxyClass(pydase.data_service.DataService, ProxyClassMixin):
-    def __init__(
-        self,
-        sio_client: socketio.AsyncClient,
-        loop: asyncio.AbstractEventLoop,
-    ) -> None:
-        # declare before ProxyClassMixin init to avoid warning messaged
-        self._observers = {}
-
-        ProxyClassMixin.__init__(self, sio_client=sio_client, loop=loop)
-        pydase.DataService.__init__(self)
-
-
 class ProxyLoader:
     @staticmethod
     def load_list_proxy(
@@ -267,11 +256,25 @@ class ProxyLoader:
         sio_client: socketio.AsyncClient,
         loop: asyncio.AbstractEventLoop,
     ) -> Any:
-        proxy_class = ProxyClass(sio_client=sio_client, loop=loop)
-        ProxyLoader.update_data_service_proxy(
-            proxy_class=proxy_class, serialized_object=serialized_object
+        # Custom types like Components or DataService classes
+        component_class = cast(
+            type, Deserializer.get_component_class(serialized_object["type"])
         )
-        return proxy_class
+        class_bases = (
+            ProxyClassMixin,
+            component_class,
+        )
+        proxy_base_class: type[ProxyClassMixin] = type(
+            serialized_object["name"],  # type: ignore
+            class_bases,
+            {},
+        )
+        proxy_class_instance = proxy_base_class()
+        proxy_class_instance._initialise(sio_client=sio_client, loop=loop)
+        ProxyLoader.update_data_service_proxy(
+            proxy_class=proxy_class_instance, serialized_object=serialized_object
+        )
+        return proxy_class_instance
 
     @staticmethod
     def load_default(

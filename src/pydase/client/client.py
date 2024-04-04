@@ -5,7 +5,8 @@ from typing import TypedDict, cast
 
 import socketio  # type: ignore
 
-from pydase.client.proxy_loader import ProxyClass, ProxyLoader
+import pydase.components
+from pydase.client.proxy_loader import ProxyClassMixin, ProxyLoader
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.types import SerializedDataService, SerializedObject
 
@@ -24,6 +25,15 @@ class NotifyDict(TypedDict):
 def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
     loop.run_forever()
+
+
+class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
+    def __init__(
+        self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
+    ) -> None:
+        ProxyClassMixin.__init__(self)
+        pydase.components.DeviceConnection.__init__(self)
+        self._initialise(sio_client=sio_client, loop=loop)
 
 
 class Client:
