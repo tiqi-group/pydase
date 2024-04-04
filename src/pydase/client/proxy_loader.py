@@ -55,11 +55,12 @@ class ProxyList(list[Any]):
 
 class ProxyClassMixin:
     def __init__(self) -> None:
+        # declare before DataService init to avoid warning messaged
+        self._observers: dict[str, Any] = {}
+
         self._proxy_getters: dict[str, Callable[..., Any]] = {}
         self._proxy_setters: dict[str, Callable[..., Any]] = {}
         self._proxy_methods: dict[str, Callable[..., Any]] = {}
-        # declare before DataService init to avoid warning messaged
-        self._observers: dict[str, Any] = {}
 
     def _initialise(
         self,
