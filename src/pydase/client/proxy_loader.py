@@ -195,6 +195,9 @@ class ProxyClass(pydase.data_service.DataService, ProxyClassMixin):
         sio_client: socketio.AsyncClient,
         loop: asyncio.AbstractEventLoop,
     ) -> None:
+        # declare before ProxyClassMixin init to avoid warning messaged
+        self._observers = {}
+
         ProxyClassMixin.__init__(self, sio_client=sio_client, loop=loop)
         pydase.DataService.__init__(self)
 
