@@ -89,7 +89,12 @@ class Deserializer:
 
     @classmethod
     def deserialize_exception(cls, serialized_object: SerializedObject) -> NoReturn:
-        exception = type(serialized_object["name"], (Exception,), {})  # type: ignore
+        import builtins
+
+        try:
+            exception = getattr(builtins, serialized_object["name"])  # type: ignore
+        except AttributeError:
+            exception = type(serialized_object["name"], (Exception,), {})  # type: ignore
         raise exception(serialized_object["value"])
 
     @staticmethod
