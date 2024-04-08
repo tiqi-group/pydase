@@ -140,7 +140,7 @@ class ProxyClassMixin:
             ).result()
             return loads(result)
 
-        self._proxy_methods[attr_name] = method_proxy
+        dict.__setitem__(self._proxy_methods, attr_name, method_proxy)
 
     def _add_attr_proxy(
         self, attr_name: str, serialized_object: SerializedObject
@@ -172,7 +172,7 @@ class ProxyClassMixin:
                 if result is not None:
                     ProxyLoader.loads_proxy(result, self._sio, self._loop)
 
-            self._proxy_setters[attr_name] = setter_proxy
+            dict.__setitem__(self._proxy_setters, attr_name, setter_proxy)  # type: ignore
 
     def _add_getattr_proxy(
         self, attr_name: str, serialized_object: SerializedObject
@@ -189,7 +189,7 @@ class ProxyClassMixin:
             ).result()
             return ProxyLoader.loads_proxy(result, self._sio, self._loop)
 
-        self._proxy_getters[attr_name] = getter_proxy
+        dict.__setitem__(self._proxy_getters, attr_name, getter_proxy)  # type: ignore
 
 
 class ProxyLoader:
