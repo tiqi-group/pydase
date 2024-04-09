@@ -37,7 +37,22 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
 
 
 class Client:
-    def __init__(self, hostname: str = "localhost", port: int = 8001):
+    """
+    Args:
+        hostname: str
+            Hostname of the exposed service this client attempts to connect to.
+            Default: "localhost"
+        port: int
+            Port of the exposed service this client attempts to connect on.
+            Default: 8001
+        blocking: bool
+            If the constructor should wait until the connection to the service has been
+            established. Default: True
+    """
+
+    def __init__(
+        self, hostname: str = "localhost", port: int = 8001, blocking: bool = True
+    ):
         self._hostname = hostname
         self._port = port
         self._sio = socketio.AsyncClient()
@@ -47,7 +62,11 @@ class Client:
             target=asyncio_loop_thread, args=(self._loop,), daemon=True
         )
         self._thread.start()
-        asyncio.run_coroutine_threadsafe(self._connect(), self._loop)
+        connection_future = asyncio.run_coroutine_threadsafe(
+            self._connect(), self._loop
+        )
+        if blocking:
+            connection_future.result()
 
     async def _connect(self) -> None:
         logger.debug("Connecting to server '%s:%s' ...", self._hostname, self._port)
