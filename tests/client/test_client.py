@@ -1,5 +1,4 @@
 import threading
-import time
 from collections.abc import Generator
 from typing import Any
 
@@ -19,6 +18,7 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
             self._name = "MyService"
             self._my_property = 12.1
             self.sub_service = SubService()
+            self.list_attr = [1, 2]
 
         @property
         def my_property(self) -> float:
@@ -40,8 +40,6 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
     thread.start()
 
     client = pydase.Client(port=9999)
-    while not client.proxy.connected:
-        time.sleep(0.001)  # Wait for the client to connect
 
     yield client
 
@@ -79,3 +77,25 @@ def test_nested_service(pydase_client: pydase.Client) -> None:
     assert pydase_client.proxy.sub_service.name == "SubService"
     pydase_client.proxy.sub_service.name = "New name"
     assert pydase_client.proxy.sub_service.name == "New name"
+
+
+def test_list(pydase_client: pydase.Client) -> None:
+    assert pydase_client.proxy.list_attr == [1, 2]
+
+    pydase_client.proxy.list_attr.append(1)
+    assert pydase_client.proxy.list_attr == [1, 2, 1]
+
+    pydase_client.proxy.list_attr.extend([123, 2.1])
+    assert pydase_client.proxy.list_attr == [1, 2, 1, 123, 2.1]
+
+    pydase_client.proxy.list_attr.insert(1, 1.2)
+    assert pydase_client.proxy.list_attr == [1, 1.2, 2, 1, 123, 2.1]
+
+    assert pydase_client.proxy.list_attr.pop() == 2.1
+    assert pydase_client.proxy.list_attr == [1, 1.2, 2, 1, 123]
+
+    pydase_client.proxy.list_attr.remove(1.2)
+    assert pydase_client.proxy.list_attr == [1, 2, 1, 123]
+
+    pydase_client.proxy.list_attr.clear()
+    assert pydase_client.proxy.list_attr == []
