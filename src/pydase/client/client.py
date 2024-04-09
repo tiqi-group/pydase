@@ -47,7 +47,7 @@ class Client:
             target=asyncio_loop_thread, args=(self._loop,), daemon=True
         )
         self._thread.start()
-        asyncio.run_coroutine_threadsafe(self._connect(), self._loop).result()
+        asyncio.run_coroutine_threadsafe(self._connect(), self._loop)
 
     async def _connect(self) -> None:
         logger.debug("Connecting to server '%s:%s' ...", self._hostname, self._port)
@@ -56,6 +56,7 @@ class Client:
             f"ws://{self._hostname}:{self._port}",
             socketio_path="/ws/socket.io",
             transports=["websocket"],
+            retry=True,
         )
 
     async def _setup_events(self) -> None:
