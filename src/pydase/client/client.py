@@ -79,27 +79,28 @@ class Client:
         )
 
     async def _setup_events(self) -> None:
-        @self._sio.event
-        async def connect() -> None:
-            logger.debug("Connected to '%s:%s' ...", self._hostname, self._port)
-            serialized_object = cast(
-                SerializedDataService, await self._sio.call("service_serialization")
-            )
-            ProxyLoader.update_data_service_proxy(
-                self.proxy, serialized_object=serialized_object
-            )
-            serialized_object["type"] = "DeviceConnection"
-            self.proxy._notify_changed("", loads(serialized_object))
-            self.proxy._connected = True
+        self._sio.on("connect", self._handle_connect)
+        self._sio.on("disconnect", self._handle_disconnect)
+        self._sio.on("notify", self._handle_update)
 
-        @self._sio.event
-        async def disconnect() -> None:
-            logger.debug("Disconnected from '%s:%s' ...", self._hostname, self._port)
-            self.proxy._connected = False
+    async def _handle_connect(self) -> None:
+        logger.debug("Connected to '%s:%s' ...", self._hostname, self._port)
+        serialized_object = cast(
+            SerializedDataService, await self._sio.call("service_serialization")
+        )
+        ProxyLoader.update_data_service_proxy(
+            self.proxy, serialized_object=serialized_object
+        )
+        serialized_object["type"] = "DeviceConnection"
+        self.proxy._notify_changed("", loads(serialized_object))
+        self.proxy._connected = True
 
-        @self._sio.event
-        async def notify(data: NotifyDict) -> None:
-            self.proxy._notify_changed(
-                data["data"]["full_access_path"],
-                loads(data["data"]["value"]),
-            )
+    async def _handle_disconnect(self) -> None:
+        logger.debug("Disconnected from '%s:%s' ...", self._hostname, self._port)
+        self.proxy._connected = False
+
+    async def _handle_update(self, data: NotifyDict) -> None:
+        self.proxy._notify_changed(
+            data["data"]["full_access_path"],
+            loads(data["data"]["value"]),
+        )
