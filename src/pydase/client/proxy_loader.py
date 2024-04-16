@@ -50,6 +50,31 @@ def trigger_method(
     return None
 
 
+def update_value(
+    sio_client: socketio.AsyncClient,
+    loop: asyncio.AbstractEventLoop,
+    access_path: str,
+    value: Any,
+) -> Any:
+    async def set_result() -> Any:
+        return await sio_client.call(
+            "update_value",
+            {
+                "access_path": access_path,
+                "value": dump(value),
+            },
+        )
+
+    result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
+        set_result(),
+        loop=loop,
+    ).result()
+    if result is not None:
+        ProxyLoader.loads_proxy(
+            serialized_object=result, sio_client=sio_client, loop=loop
+        )
+
+
 class ProxyList(list[Any]):
     def __init__(
         self,
@@ -66,23 +91,7 @@ class ProxyList(list[Any]):
     def __setitem__(self, key: int, value: Any) -> None:  # type: ignore[override]
         full_access_path = f"{self._parent_path}[{key}]"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "update_value",
-                {
-                    "access_path": full_access_path,
-                    "value": dump(value),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        update_value(self._sio, self._loop, full_access_path, value)
 
     def append(self, __object: Any) -> None:
         full_access_path = f"{self._parent_path}.append"
@@ -210,21 +219,9 @@ class ProxyClassMixin:
         if not serialized_object["readonly"]:
 
             def setter_proxy(value: Any) -> None:
-                async def set_result() -> Any:
-                    return await self._sio.call(
-                        "update_value",
-                        {
-                            "access_path": serialized_object["full_access_path"],
-                            "value": dump(value),
-                        },
-                    )
-
-                result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-                    set_result(),
-                    loop=self._loop,
-                ).result()
-                if result is not None:
-                    ProxyLoader.loads_proxy(result, self._sio, self._loop)
+                update_value(
+                    self._sio, self._loop, serialized_object["full_access_path"], value
+                )
 
             dict.__setitem__(self._proxy_setters, attr_name, setter_proxy)  # type: ignore
 
