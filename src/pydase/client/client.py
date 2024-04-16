@@ -49,7 +49,9 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
 
 
         class MyService(pydase.DataService):
-            proxy = pydase.Client(hostname="...", port=8001).proxy
+            proxy = pydase.Client(
+                hostname="...", port=8001, block_until_connected=False
+            ).proxy
 
 
         if __name__ == "__main__":
