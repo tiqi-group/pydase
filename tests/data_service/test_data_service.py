@@ -37,8 +37,7 @@ def test_unexpected_type_change_warning(caplog: LogCaptureFixture) -> None:
 
 
 def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
-    class SubService(DataService):
-        ...
+    class SubService(DataService): ...
 
     class SomeEnum(Enum):
         HI = 0
@@ -58,11 +57,9 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         def name(self) -> str:
             return self._name
 
-        def some_method(self) -> None:
-            ...
+        def some_method(self) -> None: ...
 
-        async def some_task(self) -> None:
-            ...
+        async def some_task(self) -> None: ...
 
     ServiceClass()
 
@@ -135,3 +132,15 @@ def test_exposing_methods() -> None:
             @frontend
             def some_method(self, *args: Any) -> str:
                 return "some method"
+
+
+def test_dynamically_added_attribute(caplog: LogCaptureFixture) -> None:
+    class MyService(DataService):
+        pass
+
+    service_instance = MyService()
+    pydase.Server(service_instance)
+
+    service_instance.dynamically_added_attr = 1.0
+
+    assert ("'dynamically_added_attr' changed to '1.0'") in caplog.text
