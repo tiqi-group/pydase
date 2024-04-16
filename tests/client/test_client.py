@@ -97,5 +97,8 @@ def test_list(pydase_client: pydase.Client) -> None:
     pydase_client.proxy.list_attr.remove(1.2)
     assert pydase_client.proxy.list_attr == [1, 2, 1, 123]
 
+    pydase_client.proxy.list_attr[1] = 1337
+    assert pydase_client.proxy.list_attr == [1, 1337, 1, 123]
+
     pydase_client.proxy.list_attr.clear()
     assert pydase_client.proxy.list_attr == []
