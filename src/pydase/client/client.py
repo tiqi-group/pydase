@@ -38,20 +38,34 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
 
 class Client:
     """
+    A client for connecting to a remote pydase service using socket.io. This client
+    handles asynchronous communication with a service, manages events such as
+    connection, disconnection, and updates, and ensures that the proxy object is
+    up-to-date with the server state.
+
+    Attributes:
+        proxy (ProxyClass):
+            A proxy object representing the remote service, facilitating interaction as
+            if it were local.
+
     Args:
-        hostname: str
+        hostname (str):
             Hostname of the exposed service this client attempts to connect to.
-            Default: "localhost"
-        port: int
+            Default is "localhost".
+        port (int):
             Port of the exposed service this client attempts to connect on.
-            Default: 8001
-        blocking: bool
-            If the constructor should wait until the connection to the service has been
-            established. Default: True
+            Default is 8001.
+        block_until_connected (bool):
+            If set to True, the constructor will block until the connection to the
+            service has been established. This is useful for ensuring the client is
+            ready to use immediately after instantiation. Default is True.
     """
 
     def __init__(
-        self, hostname: str = "localhost", port: int = 8001, blocking: bool = True
+        self,
+        hostname: str,
+        port: int,
+        block_until_connected: bool = True,
     ):
         self._hostname = hostname
         self._port = port
@@ -65,7 +79,7 @@ class Client:
         connection_future = asyncio.run_coroutine_threadsafe(
             self._connect(), self._loop
         )
-        if blocking:
+        if block_until_connected:
             connection_future.result()
 
     async def _connect(self) -> None:
