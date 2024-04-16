@@ -28,6 +28,36 @@ def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
 
 
 class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
+    """
+    A proxy class that serves as the interface for interacting with device connections
+    via a socket.io client in an asyncio environment.
+
+    Args:
+        sio_client (socketio.AsyncClient):
+            The socket.io client instance used for asynchronous communication with the
+            pydase service server.
+        loop (asyncio.AbstractEventLoop):
+            The event loop in which the client operations are managed and executed.
+
+    This class is used to create a proxy object that behaves like a local representation
+    of a remote pydase service, facilitating direct interaction as if it were local
+    while actually communicating over network protocols.
+    It can also be used as an attribute of a pydase service itself, e.g.
+
+        ```python
+        import pydase
+
+
+        class MyService(pydase.DataService):
+            proxy = pydase.Client(hostname="...", port=8001).proxy
+
+
+        if __name__ == "__main__":
+            service = MyService()
+            server = pydase.Server(service, web_port=8002).run()
+        ```
+    """
+
     def __init__(
         self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
     ) -> None:
