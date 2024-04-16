@@ -20,7 +20,7 @@ def test_image_functions(caplog: LogCaptureFixture) -> None:
     state_manager = StateManager(service_instance)
     DataServiceObserver(state_manager)
 
-    service_instance.my_image.load_from_url("https://cataas.com/cat")
+    service_instance.my_image.load_from_url("https://picsum.photos/200")
 
     caplog.clear()
 
