@@ -31,8 +31,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     def __init__(
         self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
     ) -> None:
-        ProxyClassMixin.__init__(self)
-        pydase.components.DeviceConnection.__init__(self)
+        super().__init__()
         self._initialise(sio_client=sio_client, loop=loop)
 
 
