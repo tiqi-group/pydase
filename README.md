@@ -11,7 +11,9 @@
   - [Defining a DataService](#defining-a-dataservice)
   - [Running the Server](#running-the-server)
   - [Accessing the Web Interface](#accessing-the-web-interface)
-  - [Connecting to the Service using rpyc](#connecting-to-the-service-using-rpyc)
+  - [Connecting to the Service via Python Client](#connecting-to-the-service-via-python-client)
+    - [Tab Completion Support](#tab-completion-support)
+    - [Integration within Another Service](#integration-within-another-service)
 - [Understanding the Component System](#understanding-the-component-system)
   - [Built-in Type and Enum Components](#built-in-type-and-enum-components)
   - [Method Components](#method-components)
@@ -44,7 +46,7 @@
 <!-- no toc -->
 - [Simple data service definition through class-based interface](#defining-a-dataService)
 - [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
-- [Support for `rpyc` connections, allowing for programmatic control and interaction with your service](#connecting-to-the-service-using-rpyc)
+- [Support for programmatic control and interaction with your service](#connecting-to-the-service-via-python-client)
 - [Component system bridging Python backend with frontend visual representation](#understanding-the-component-system)
 - [Customizable styling for the web interface through user-defined CSS](#customizing-web-interface-style)
 - [Saving and restoring the service state for service persistence](#understanding-service-persistence)
@@ -74,11 +76,11 @@ pip install pydase
 
 <!--usage-start-->
 
-Using `pydase` involves three main steps: defining a `DataService` subclass, running the server, and then connecting to the service either programmatically using `rpyc` or through the web interface.
+Using `pydase` involves three main steps: defining a `DataService` subclass, running the server, and then connecting to the service either programmatically using `pydase.Client` or through the web interface.
 
 ### Defining a DataService
 
-To use pydase, you'll first need to create a class that inherits from `DataService`. This class represents your custom data service, which will be exposed via RPC (using rpyc) and a web server. Your class can implement class / instance attributes and synchronous and asynchronous tasks.
+To use pydase, you'll first need to create a class that inherits from `DataService`. This class represents your custom data service, which will be exposed via a web server. Your class can implement class / instance attributes and synchronous and asynchronous tasks.
 
 Here's an example:
 
@@ -159,23 +161,51 @@ Once the server is running, you can access the web interface in a browser:
 
 In this interface, you can interact with the properties of your `Device` service.
 
-### Connecting to the Service using rpyc
+### Connecting to the Service via Python Client
 
-You can also connect to the service using `rpyc`. Here's an example on how to establish a connection and interact with the service:
+You can connect to the service using the `pydase.Client`. Below is an example of how to establish a connection to a service and interact with it:
 
 ```python
-import rpyc
+import pydase
 
-# Connect to the service
-conn = rpyc.connect("<ip_addr>", 18871)
-client = conn.root
+# Replace the hostname and port with the IP address and the port of the machine where 
+# the service is running, respectively
+client_proxy = pydase.Client(hostname="<ip_addr>", port=8001).proxy
 
-# Interact with the service
-client.voltage = 5.0
-print(client.voltage)  # prints 5.0
+# After the connection, interact with the service attributes as if they were local
+client_proxy.voltage = 5.0
+print(client_proxy.voltage)  # Expected output: 5.0
 ```
 
-In this example, replace `<ip_addr>` with the IP address of the machine where the service is running. After establishing a connection, you can interact with the service attributes as if they were local attributes.
+This example demonstrates setting and retrieving the `voltage` attribute through the client proxy.
+The proxy acts as a local representative of the remote service, enabling straightforward interaction.
+
+The proxy class dynamically synchronizes with the server's exposed attributes. This synchronization allows the proxy to be automatically updated with any attributes or methods that the server exposes, essentially mirroring the server's API. This dynamic updating enables users to interact with the remote service as if they were working with a local object.
+
+#### Tab Completion Support
+
+In interactive environments such as Python interpreters and Jupyter notebooks, the proxy class supports tab completion, which allows users to explore available methods and attributes.
+
+#### Integration within Another Service
+
+You can also integrate a client proxy within another service. Here's how you can set it up:
+
+```python
+import pydase
+
+class MyService(pydase.DataService):
+    # Initialize the client without blocking the constructor
+    proxy = pydase.Client(hostname="<ip_addr>", port=8001, block_until_connected=False).proxy
+
+if __name__ == "__main__":
+    service = MyService()
+    # Create a server that exposes this service; adjust the web_port as needed
+    server = pydase.Server(service, web_port=8002). run()
+```
+
+In this setup, the `MyService` class has a `proxy` attribute that connects to a `pydase` service located at `<ip_addr>:8001`.
+The `block_until_connected=False` argument allows the service to start up even if the initial connection attempt fails.
+This configuration is particularly useful in distributed systems where services may start in any order.
 
 <!--usage-end-->
 
