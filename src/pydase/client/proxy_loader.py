@@ -20,6 +20,36 @@ logger = logging.getLogger(__name__)
 class ProxyAttributeError(Exception): ...
 
 
+def trigger_method(
+    sio_client: socketio.AsyncClient,
+    loop: asyncio.AbstractEventLoop,
+    access_path: str,
+    args: list[Any],
+    kwargs: dict[str, Any],
+) -> Any:
+    async def async_trigger_method() -> Any:
+        return await sio_client.call(
+            "trigger_method",
+            {
+                "access_path": access_path,
+                "args": dump(args),
+                "kwargs": dump(kwargs),
+            },
+        )
+
+    result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
+        async_trigger_method(),
+        loop=loop,
+    ).result()
+
+    if result is not None:
+        return ProxyLoader.loads_proxy(
+            serialized_object=result, sio_client=sio_client, loop=loop
+        )
+
+    return None
+
+
 class ProxyList(list[Any]):
     def __init__(
         self,
@@ -57,135 +87,32 @@ class ProxyList(list[Any]):
     def append(self, __object: Any) -> None:
         full_access_path = f"{self._parent_path}.append"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([__object]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        trigger_method(self._sio, self._loop, full_access_path, [__object], {})
 
     def clear(self) -> None:
         full_access_path = f"{self._parent_path}.clear"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        trigger_method(self._sio, self._loop, full_access_path, [], {})
 
     def extend(self, __iterable: Iterable[Any]) -> None:
         full_access_path = f"{self._parent_path}.extend"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([__iterable]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        trigger_method(self._sio, self._loop, full_access_path, [__iterable], {})
 
     def insert(self, __index: SupportsIndex, __object: Any) -> None:
         full_access_path = f"{self._parent_path}.insert"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([__index, __object]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        trigger_method(self._sio, self._loop, full_access_path, [__index, __object], {})
 
     def pop(self, __index: SupportsIndex = -1) -> Any:
         full_access_path = f"{self._parent_path}.pop"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([__index]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            return ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
-        return None
+        return trigger_method(self._sio, self._loop, full_access_path, [__index], {})
 
     def remove(self, __value: Any) -> None:
         full_access_path = f"{self._parent_path}.remove"
 
-        async def set_result() -> Any:
-            return await self._sio.call(
-                "trigger_method",
-                {
-                    "access_path": full_access_path,
-                    "args": dump([__value]),
-                    "kwargs": dump({}),
-                },
-            )
-
-        result: SerializedObject | None = asyncio.run_coroutine_threadsafe(
-            set_result(),
-            loop=self._loop,
-        ).result()
-        if result is not None:
-            ProxyLoader.loads_proxy(
-                serialized_object=result, sio_client=self._sio, loop=self._loop
-            )
+        trigger_method(self._sio, self._loop, full_access_path, [__value], {})
 
 
 class ProxyClassMixin:
@@ -259,21 +186,13 @@ class ProxyClassMixin:
         self, attr_name: str, serialized_object: SerializedObject
     ) -> None:
         def method_proxy(*args: Any, **kwargs: Any) -> Any:
-            async def trigger_method() -> Any:
-                return await self._sio.call(
-                    "trigger_method",
-                    {
-                        "access_path": serialized_object["full_access_path"],
-                        "args": dump(list(args)),
-                        "kwargs": dump(kwargs),
-                    },
-                )
-
-            result = asyncio.run_coroutine_threadsafe(
-                trigger_method(),
-                loop=self._loop,
-            ).result()
-            return loads(result)
+            return trigger_method(
+                self._sio,
+                self._loop,
+                serialized_object["full_access_path"],
+                list(args),
+                kwargs,
+            )
 
         dict.__setitem__(self._proxy_methods, attr_name, method_proxy)
 
