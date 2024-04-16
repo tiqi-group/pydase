@@ -102,3 +102,17 @@ def test_list(pydase_client: pydase.Client) -> None:
 
     pydase_client.proxy.list_attr.clear()
     assert pydase_client.proxy.list_attr == []
+
+
+def test_tab_completion(pydase_client: pydase.Client) -> None:
+    # Tab completion gets its suggestions from the __dir__ class method
+    assert all(
+        x in pydase_client.proxy.__dir__()
+        for x in [
+            "list_attr",
+            "my_method",
+            "my_property",
+            "name",
+            "sub_service",
+        ]
+    )
