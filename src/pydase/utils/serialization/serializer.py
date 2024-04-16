@@ -4,12 +4,7 @@ import inspect
 import logging
 import sys
 from enum import Enum
-from typing import TYPE_CHECKING, Any, TypedDict, cast
-
-if sys.version_info < (3, 11):
-    from typing_extensions import NotRequired
-else:
-    from typing import NotRequired
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
@@ -21,11 +16,32 @@ from pydase.utils.helpers import (
     parse_list_attr_and_index,
     render_in_frontend,
 )
+from pydase.utils.serialization.types import (
+    DataServiceTypes,
+    SerializedBool,
+    SerializedDataService,
+    SerializedDict,
+    SerializedEnum,
+    SerializedException,
+    SerializedFloat,
+    SerializedInteger,
+    SerializedList,
+    SerializedMethod,
+    SerializedNoneType,
+    SerializedObject,
+    SerializedQuantity,
+    SerializedString,
+    SignatureDict,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
+
+
+class SerializationError(Exception):
+    pass
 
 
 class SerializationPathError(Exception):
@@ -36,84 +52,96 @@ class SerializationValueError(Exception):
     pass
 
 
-class SignatureDict(TypedDict):
-    parameters: dict[str, dict[str, Any]]
-    return_annotation: dict[str, Any]
-
-
-SerializedObject = TypedDict(
-    "SerializedObject",
-    {
-        "name": NotRequired[str],
-        "value": "list[SerializedObject] | float | int | str | bool | dict[str, Any] | None",  # noqa: E501
-        "type": str | None,
-        "doc": str | None,
-        "readonly": bool,
-        "enum": NotRequired[dict[str, Any]],
-        "async": NotRequired[bool],
-        "signature": NotRequired[SignatureDict],
-        "frontend_render": NotRequired[bool],
-    },
-)
-
-
 class Serializer:
     @staticmethod
-    def serialize_object(obj: Any) -> SerializedObject:
+    def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
         result: SerializedObject
-        if isinstance(obj, AbstractDataService):
-            result = Serializer._serialize_data_service(obj)
+
+        if isinstance(obj, Exception):
+            result = Serializer._serialize_exception(obj)
+
+        elif isinstance(obj, AbstractDataService):
+            result = Serializer._serialize_data_service(obj, access_path=access_path)
 
         elif isinstance(obj, list):
-            result = Serializer._serialize_list(obj)
+            result = Serializer._serialize_list(obj, access_path=access_path)
 
         elif isinstance(obj, dict):
-            result = Serializer._serialize_dict(obj)
+            result = Serializer._serialize_dict(obj, access_path=access_path)
 
         # Special handling for u.Quantity
         elif isinstance(obj, u.Quantity):
-            result = Serializer._serialize_quantity(obj)
+            result = Serializer._serialize_quantity(obj, access_path=access_path)
 
         # Handling for Enums
         elif isinstance(obj, Enum):
-            result = Serializer._serialize_enum(obj)
+            result = Serializer._serialize_enum(obj, access_path=access_path)
 
         # Methods and coroutines
         elif inspect.isfunction(obj) or inspect.ismethod(obj):
-            result = Serializer._serialize_method(obj)
+            result = Serializer._serialize_method(obj, access_path=access_path)
 
-        else:
-            obj_type = type(obj).__name__
-            value = obj
-            readonly = False
-            doc = get_attribute_doc(obj)
-            result = {
-                "type": obj_type,
-                "value": value,
-                "readonly": readonly,
-                "doc": doc,
-            }
+        elif isinstance(obj, int | float | bool | str | None):
+            result = Serializer._serialize_primitive(obj, access_path=access_path)
 
-        return result
+        try:
+            return result
+        except UnboundLocalError:
+            raise SerializationError(
+                f"Could not serialized object of type {type(obj)}."
+            )
 
     @staticmethod
-    def _serialize_enum(obj: Enum) -> SerializedObject:
+    def _serialize_primitive(
+        obj: float | bool | str | None,
+        access_path: str,
+    ) -> (
+        SerializedInteger
+        | SerializedFloat
+        | SerializedBool
+        | SerializedString
+        | SerializedNoneType
+    ):
+        doc = get_attribute_doc(obj)
+        return {  # type: ignore
+            "full_access_path": access_path,
+            "doc": doc,
+            "readonly": False,
+            "type": type(obj).__name__,
+            "value": obj,
+        }
+
+    @staticmethod
+    def _serialize_exception(obj: Exception) -> SerializedException:
+        return {
+            "full_access_path": "",
+            "doc": None,
+            "readonly": True,
+            "type": "Exception",
+            "value": obj.args[0],
+            "name": obj.__class__.__name__,
+        }
+
+    @staticmethod
+    def _serialize_enum(obj: Enum, access_path: str = "") -> SerializedEnum:
         import pydase.components.coloured_enum
 
         value = obj.name
-        readonly = False
         doc = obj.__doc__
+        class_name = type(obj).__name__
         if sys.version_info < (3, 11) and doc == "An enumeration.":
             doc = None
         if isinstance(obj, pydase.components.coloured_enum.ColouredEnum):
-            obj_type = "ColouredEnum"
+            obj_type: Literal["ColouredEnum", "Enum"] = "ColouredEnum"
         else:
             obj_type = "Enum"
 
         return {
+            "full_access_path": access_path,
+            "name": class_name,
             "type": obj_type,
             "value": value,
-            "readonly": readonly,
+            "readonly": False,
             "doc": doc,
             "enum": {
                 name: member.value for name, member in obj.__class__.__members__.items()
@@ -121,48 +149,55 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_quantity(obj: u.Quantity) -> SerializedObject:
-        obj_type = "Quantity"
+    def _serialize_quantity(
+        obj: u.Quantity, access_path: str = ""
+    ) -> SerializedQuantity:
+        doc = get_attribute_doc(obj)
+        value: u.QuantityDict = {"magnitude": obj.m, "unit": str(obj.u)}
+        return {
+            "full_access_path": access_path,
+            "type": "Quantity",
+            "value": value,
+            "readonly": False,
+            "doc": doc,
+        }
+
+    @staticmethod
+    def _serialize_dict(obj: dict[str, Any], access_path: str = "") -> SerializedDict:
         readonly = False
         doc = get_attribute_doc(obj)
-        value = {"magnitude": obj.m, "unit": str(obj.u)}
+        value = {
+            key: Serializer.serialize_object(val, access_path=f'{access_path}["{key}"]')
+            for key, val in obj.items()
+        }
         return {
-            "type": obj_type,
+            "full_access_path": access_path,
+            "type": "dict",
             "value": value,
             "readonly": readonly,
             "doc": doc,
         }
 
     @staticmethod
-    def _serialize_dict(obj: dict[str, Any]) -> SerializedObject:
-        obj_type = "dict"
+    def _serialize_list(obj: list[Any], access_path: str = "") -> SerializedList:
         readonly = False
         doc = get_attribute_doc(obj)
-        value = {key: Serializer.serialize_object(val) for key, val in obj.items()}
+        value = [
+            Serializer.serialize_object(o, access_path=f"{access_path}[{i}]")
+            for i, o in enumerate(obj)
+        ]
         return {
-            "type": obj_type,
+            "full_access_path": access_path,
+            "type": "list",
             "value": value,
             "readonly": readonly,
             "doc": doc,
         }
 
     @staticmethod
-    def _serialize_list(obj: list[Any]) -> SerializedObject:
-        obj_type = "list"
-        readonly = False
-        doc = get_attribute_doc(obj)
-        value = [Serializer.serialize_object(o) for o in obj]
-        return {
-            "type": obj_type,
-            "value": value,
-            "readonly": readonly,
-            "doc": doc,
-        }
-
-    @staticmethod
-    def _serialize_method(obj: Callable[..., Any]) -> SerializedObject:
-        obj_type = "method"
-        value = None
+    def _serialize_method(
+        obj: Callable[..., Any], access_path: str = ""
+    ) -> SerializedMethod:
         readonly = True
         doc = get_attribute_doc(obj)
         frontend_render = render_in_frontend(obj)
@@ -174,14 +209,19 @@ class Serializer:
         signature: SignatureDict = {"parameters": {}, "return_annotation": {}}
 
         for k, v in sig.parameters.items():
+            default_value = cast(
+                dict[str, Any], {} if v.default == inspect._empty else dump(v.default)
+            )
+            default_value.pop("full_access_path", None)
             signature["parameters"][k] = {
                 "annotation": str(v.annotation),
-                "default": {} if v.default == inspect._empty else dump(v.default),
+                "default": default_value,
             }
 
         return {
-            "type": obj_type,
-            "value": value,
+            "full_access_path": access_path,
+            "type": "method",
+            "value": None,
             "readonly": readonly,
             "doc": doc,
             "async": inspect.iscoroutinefunction(obj),
@@ -190,10 +230,12 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_data_service(obj: AbstractDataService) -> SerializedObject:
+    def _serialize_data_service(
+        obj: AbstractDataService, access_path: str = ""
+    ) -> SerializedDataService:
         readonly = False
         doc = get_attribute_doc(obj)
-        obj_type = "DataService"
+        obj_type: DataServiceTypes = "DataService"
         obj_name = obj.__class__.__name__
 
         # Get component base class if any
@@ -201,7 +243,7 @@ class Serializer:
             (cls for cls in get_component_classes() if isinstance(obj, cls)), None
         )
         if component_base_cls:
-            obj_type = component_base_cls.__name__
+            obj_type = component_base_cls.__name__  # type: ignore
 
         # Get the set of DataService class attributes
         data_service_attr_set = set(dir(get_data_service_class_reference()))
@@ -229,11 +271,14 @@ class Serializer:
 
             val = getattr(obj, key)
 
-            value[key] = Serializer.serialize_object(val)
+            path = f"{access_path}.{key}" if access_path else key
+            serialized_object = Serializer.serialize_object(val, access_path=path)
 
             # If there's a running task for this method
-            if key in obj._task_manager.tasks:
-                value[key]["value"] = TaskStatus.RUNNING.name
+            if serialized_object["type"] == "method" and key in obj._task_manager.tasks:
+                serialized_object["value"] = TaskStatus.RUNNING.name
+
+            value[key] = serialized_object
 
             # If the DataService attribute is a property
             if isinstance(getattr(obj.__class__, key, None), property):
@@ -242,6 +287,7 @@ class Serializer:
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc
 
         return {
+            "full_access_path": access_path,
             "name": obj_name,
             "type": obj_type,
             "value": value,
@@ -297,17 +343,15 @@ def set_nested_value_by_path(
 
     if next_level_serialized_object["type"] == "method":  # state change of task
         next_level_serialized_object["value"] = (
-            value.name if isinstance(value, Enum) else None
+            "RUNNING" if isinstance(value, TaskStatus) else None
         )
     else:
-        serialized_value = dump(value)
+        serialized_value = Serializer.serialize_object(value, access_path=path)
+        serialized_value["readonly"] = next_level_serialized_object["readonly"]
+
         keys_to_keep = set(serialized_value.keys())
 
-        # TODO: you might also want to pop "doc" from serialized_value if
-        # it is overwriting the value of the current dict
-        serialized_value.pop("readonly")  # type: ignore
-
-        next_level_serialized_object.update(serialized_value)
+        next_level_serialized_object.update(serialized_value)  # type: ignore
 
         # removes keys that are not present in the serialized new value
         for key in list(next_level_serialized_object.keys()):
@@ -377,8 +421,9 @@ def get_next_level_dict_by_key(
             # Appending to list
             cast(list[SerializedObject], serialization_dict[attr_name]["value"]).append(
                 {
+                    "full_access_path": "",
                     "value": None,
-                    "type": None,
+                    "type": "None",
                     "doc": None,
                     "readonly": False,
                 }
@@ -391,11 +436,20 @@ def get_next_level_dict_by_key(
                 f"Error occured trying to change '{attr_name}[{index}]': {e}"
             )
     except KeyError:
-        raise SerializationPathError(
-            f"Error occured trying to access the key '{attr_name}': it is either "
-            "not present in the current dictionary or its value does not contain "
-            "a 'value' key."
-        )
+        if not allow_append:
+            raise SerializationPathError(
+                f"Error occured trying to access the key '{attr_name}': it is either "
+                "not present in the current dictionary or its value does not contain "
+                "a 'value' key."
+            )
+        serialization_dict[attr_name] = {
+            "full_access_path": "",
+            "value": None,
+            "type": "None",
+            "doc": None,
+            "readonly": False,
+        }
+        next_level_serialized_object = serialization_dict[attr_name]
 
     if not isinstance(next_level_serialized_object, dict):
         raise SerializationValueError(

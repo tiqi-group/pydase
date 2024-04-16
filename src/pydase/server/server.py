@@ -3,12 +3,10 @@ import logging
 import os
 import signal
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from types import FrameType
 from typing import Any, Protocol, TypedDict
 
-from rpyc import ThreadedServer  # type: ignore[import-untyped]
 from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
@@ -51,8 +49,7 @@ class AdditionalServerProtocol(Protocol):
         host: str,
         port: int,
         **kwargs: Any,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def serve(self) -> Any:
         """Starts the server. This method should be implemented as an asynchronous
@@ -81,71 +78,67 @@ class Server:
 
     Args:
         service: DataService
-          The DataService instance that this server will manage.
+            The DataService instance that this server will manage.
         host: str
-          The host address for the server. Default is '0.0.0.0', which means all
-          available network interfaces.
-        rpc_port: int
-          The port number for the RPC server. Default is
-          `pydase.config.ServiceConfig().rpc_port`.
+            The host address for the server. Default is '0.0.0.0', which means all
+            available network interfaces.
         web_port: int
-          The port number for the web server. Default is
-          `pydase.config.ServiceConfig().web_port`.
-        enable_rpc: bool
-          Whether to enable the RPC server. Default is True.
+            The port number for the web server. Default is
+            `pydase.config.ServiceConfig().web_port`.
         enable_web: bool
-          Whether to enable the web server. Default is True.
+            Whether to enable the web server. Default is True.
         filename: str | Path | None
-          Filename of the file managing the service state persistence. Defaults to None.
-        use_forking_server: bool
-          Whether to use ForkingServer for multiprocessing. Default is False.
+            Filename of the file managing the service state persistence.
+            Defaults to None.
         additional_servers : list[AdditionalServer]
-          A list of additional servers to run alongside the main server. Each entry in
-          the list should be a dictionary with the following structure:
-            - server: A class that adheres to the AdditionalServerProtocol. This class
-                should have an `__init__` method that accepts the DataService instance,
-                port, host, and optional keyword arguments, and a `serve` method that is
-                a coroutine responsible for starting the server.
-            - port: The port on which the additional server will be running.
-            - kwargs: A dictionary containing additional keyword arguments that will be
-                passed to the server's `__init__` method.
+            A list of additional servers to run alongside the main server. Each entry in
+            the list should be a dictionary with the following structure:
+                - server: A class that adheres to the AdditionalServerProtocol. This
+                    class should have an `__init__` method that accepts the DataService
+                    instance, port, host, and optional keyword arguments, and a `serve`
+                    method that is a coroutine responsible for starting the server.
+                - port: The port on which the additional server will be running.
+                - kwargs: A dictionary containing additional keyword arguments that will
+                    be passed to the server's `__init__` method.
 
-          Here's an example of how you might define an additional server:
+            Here's an example of how you might define an additional server:
 
+            ```python
+            class MyCustomServer:
+                def __init__(
+                    self,
+                    data_service_observer: DataServiceObserver,
+                    host: str,
+                    port: int,
+                    **kwargs: Any,
+                ) -> None:
+                    self.observer = data_service_observer
+                    self.state_manager = self.observer.state_manager
+                    self.service = self.state_manager.service
+                    self.port = port
+                    self.host = host
+                    # handle any additional arguments...
 
-          >>>     class MyCustomServer:
-          ...         def __init__(
-          ...             self,
-          ...             data_service_observer: DataServiceObserver,
-          ...             host: str,
-          ...             port: int,
-          ...             **kwargs: Any,
-          ...         ) -> None:
-          ...             self.observer = data_service_observer
-          ...             self.state_manager = self.observer.state_manager
-          ...             self.service = self.state_manager.service
-          ...             self.port = port
-          ...             self.host = host
-          ...             # handle any additional arguments...
-          ...
-          ...         async def serve(self):
-          ...             # code to start the server...
+                async def serve(self):
+                    # code to start the server...
+            ```
 
-          And here's how you might add it to the `additional_servers` list when creating
-          a `Server` instance:
+            And here's how you might add it to the `additional_servers` list when
+            creating a `Server` instance:
 
-          >>>    server = Server(
-          ...        service=my_data_service,
-          ...        additional_servers=[
-          ...            {
-          ...                "server": MyCustomServer,
-          ...                "port": 12345,
-          ...                "kwargs": {"some_arg": "some_value"}
-          ...            }
-          ...        ],
-          ...    )
-          ...    server.run()
-
+            ```python
+            server = Server(
+                service=my_data_service,
+                additional_servers=[
+                    {
+                        "server": MyCustomServer,
+                        "port": 12345,
+                        "kwargs": {"some_arg": "some_value"}
+                    }
+                ],
+            )
+            server.run()
+            ```
         **kwargs: Any
           Additional keyword arguments.
     """
@@ -154,9 +147,7 @@ class Server:
         self,
         service: DataService,
         host: str = "0.0.0.0",
-        rpc_port: int = ServiceConfig().rpc_port,
         web_port: int = ServiceConfig().web_port,
-        enable_rpc: bool = True,
         enable_web: bool = True,
         filename: str | Path | None = None,
         additional_servers: list[AdditionalServer] | None = None,
@@ -166,16 +157,13 @@ class Server:
             additional_servers = []
         self._service = service
         self._host = host
-        self._rpc_port = rpc_port
         self._web_port = web_port
-        self._enable_rpc = enable_rpc
         self._enable_web = enable_web
         self._kwargs = kwargs
         self._loop: asyncio.AbstractEventLoop
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
-        self.executor: ThreadPoolExecutor | None = None
         self._state_manager = StateManager(self._service, filename)
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
@@ -207,20 +195,6 @@ class Server:
         self.install_signal_handlers()
         self._service._task_manager.start_autostart_tasks()
 
-        if self._enable_rpc:
-            self.executor = ThreadPoolExecutor()
-            self._rpc_server = ThreadedServer(
-                self._service,
-                port=self._rpc_port,
-                protocol_config={
-                    "allow_all_attrs": True,
-                    "allow_setattr": True,
-                },
-            )
-            future_or_task = self._loop.run_in_executor(
-                executor=self.executor, func=self._rpc_server.start
-            )
-            self.servers["rpyc"] = future_or_task
         for server in self._additional_servers:
             addin_server = server["server"](
                 data_service_observer=self._observer,
@@ -257,10 +231,6 @@ class Server:
 
         await self.__cancel_servers()
         await self.__cancel_tasks()
-
-        if hasattr(self, "_rpc_server") and self._enable_rpc:
-            logger.debug("Closing rpyc server.")
-            self._rpc_server.close()
 
     async def __cancel_servers(self) -> None:
         for server_name, task in self.servers.items():

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydase"
-version = "0.7.4"
+version = "0.8.0"
 description = "A flexible and robust Python library for creating, managing, and interacting with data services, with built-in support for web and RPC servers, and customizable features for diverse use cases."
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
@@ -9,7 +9,6 @@ packages = [{ include = "pydase", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-rpyc = "^5.3.1"
 fastapi = "^0.108.0"
 uvicorn = "^0.27.0"
 toml = "^0.10.2"
@@ -17,6 +16,8 @@ python-socketio = "^5.8.0"
 confz = "^2.0.0"
 pint = "^0.22"
 pillow = "^10.0.0"
+websocket-client = "^1.7.0"
+aiohttp = "^3.9.3"
 
 [tool.poetry.group.dev]
 optional = true

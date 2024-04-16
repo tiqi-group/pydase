@@ -30,13 +30,13 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
 
 
-def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
+def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     """
     Traverse the object tree according to the given path.
 
     Args:
         target_obj: The root object to start the traversal from.
-        path: A list of attribute names representing the path to traverse.
+        path: Access path of the object.
 
     Returns:
         The attribute at the end of the path. If the path includes a list index,
@@ -46,7 +46,8 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
     Raises:
         ValueError: If a list index in the path is not a valid integer.
     """
-    for part in path:
+    path_list = path.split(".") if path != "" else []
+    for part in path_list:
         try:
             # Try to split the part into attribute and index
             attr, index_str = part.split("[", maxsplit=1)
@@ -61,49 +62,6 @@ def get_object_attr_from_path_list(target_obj: Any, path: list[str]) -> Any:
             logger.debug("Attribute % does not exist in the object.", part)
             return None
     return target_obj
-
-
-def convert_arguments_to_hinted_types(
-    args: dict[str, Any], type_hints: dict[str, Any]
-) -> dict[str, Any] | str:
-    """
-    Convert the given arguments to their types hinted in the type_hints dictionary.
-
-    This function attempts to convert each argument in the args dictionary to the type
-    specified for the argument in the type_hints dictionary. If the conversion is
-    successful, the function replaces the original argument in the args dictionary with
-    the converted argument.
-
-    If a ValueError is raised during the conversion of an argument, the function logs
-    an error message and returns the error message as a string.
-
-    Args:
-        args: A dictionary of arguments to be converted. The keys are argument names
-              and the values are the arguments themselves.
-        type_hints: A dictionary of type hints for the arguments. The keys are
-                    argument names and the values are the hinted types.
-
-    Returns:
-        A dictionary of the converted arguments if all conversions are successful,
-        or an error message string if a ValueError is raised during a conversion.
-    """
-
-    # Convert arguments to their hinted types
-    for arg_name, arg_value in args.items():
-        if arg_name in type_hints:
-            arg_type = type_hints[arg_name]
-            if isinstance(arg_type, type):
-                # Attempt to convert the argument to its hinted type
-                try:
-                    args[arg_name] = arg_type(arg_value)
-                except ValueError:
-                    msg = (
-                        f"Failed to convert argument '{arg_name}' to type "
-                        f"{arg_type.__name__}"
-                    )
-                    logger.error(msg)
-                    return msg
-    return args
 
 
 def update_value_if_changed(
@@ -195,7 +153,12 @@ def get_data_service_class_reference() -> Any:
     return getattr(pydase.data_service.data_service, "DataService")
 
 
-def is_property_attribute(target_obj: Any, attr_name: str) -> bool:
+def is_property_attribute(target_obj: Any, access_path: str) -> bool:
+    parent_path, attr_name = (
+        ".".join(access_path.split(".")[:-1]),
+        access_path.split(".")[-1],
+    )
+    target_obj = get_object_attr_from_path(target_obj, parent_path)
     return isinstance(getattr(type(target_obj), attr_name, None), property)
 
 

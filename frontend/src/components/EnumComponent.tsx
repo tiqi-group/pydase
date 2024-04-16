@@ -1,52 +1,47 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { InputGroup, Form, Row, Col } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
+import { SerializedValue } from './GenericComponent';
 import { LevelName } from './NotificationsComponent';
 
-type EnumComponentProps = {
+export type EnumSerialization = {
+  type: 'Enum' | 'ColouredEnum';
+  full_access_path: string;
   name: string;
-  parentPath: string;
   value: string;
-  docString?: string;
-  readOnly: boolean;
-  enumDict: Record<string, string>;
+  readonly: boolean;
+  doc?: string | null;
+  enum: Record<string, string>;
+};
+
+type EnumComponentProps = {
+  attribute: EnumSerialization;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (
-    value: unknown,
-    attributeName?: string,
-    prefix?: string,
-    callback?: (ack: unknown) => void
-  ) => void;
   displayName: string;
   id: string;
+  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
 };
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
+  const { attribute, addNotification, displayName, id } = props;
   const {
-    name,
+    full_access_path: fullAccessPath,
     value,
-    docString,
-    enumDict,
-    addNotification,
-    displayName,
-    id,
-    readOnly
-  } = props;
+    doc: docString,
+    enum: enumDict,
+    readonly: readOnly
+  } = attribute;
 
   let { changeCallback } = props;
   if (changeCallback === undefined) {
-    changeCallback = (value: string) => {
+    changeCallback = (value: SerializedValue) => {
       setEnumValue(() => {
-        return value;
+        return String(value.value);
       });
     };
   }
   const renderCount = useRef(0);
   const [enumValue, setEnumValue] = useState(value);
-
-  const fullAccessPath = [props.parentPath, props.name]
-    .filter((element) => element)
-    .join('.');
 
   useEffect(() => {
     renderCount.current++;
@@ -54,10 +49,10 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
 
   useEffect(() => {
     setEnumValue(() => {
-      return props.value;
+      return value;
     });
     addNotification(`${fullAccessPath} changed to ${value}.`);
-  }, [props.value]);
+  }, [value]);
 
   return (
     <div className={'component enumComponent'} id={id}>
@@ -73,17 +68,36 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
 
           {readOnly ? (
             // Display the Form.Control when readOnly is true
-            <Form.Control value={enumDict[enumValue]} name={name} disabled={true} />
+            <Form.Control
+              value={enumDict[enumValue]}
+              name={fullAccessPath}
+              disabled={true}
+            />
           ) : (
             // Display the Form.Select when readOnly is false
             <Form.Select
               aria-label="example-select"
               value={enumValue}
-              name={name}
-              onChange={(event) => changeCallback(event.target.value)}>
+              name={fullAccessPath}
+              style={
+                attribute.type == 'ColouredEnum'
+                  ? { backgroundColor: enumDict[enumValue] }
+                  : {}
+              }
+              onChange={(event) =>
+                changeCallback({
+                  type: attribute.type,
+                  name: attribute.name,
+                  enum: enumDict,
+                  value: event.target.value,
+                  full_access_path: fullAccessPath,
+                  readonly: attribute.readonly,
+                  doc: attribute.doc
+                })
+              }>
               {Object.entries(enumDict).map(([key, val]) => (
                 <option key={key} value={key}>
-                  {val}
+                  {attribute.type == 'ColouredEnum' ? key : val}
                 </option>
               ))}
             </Form.Select>

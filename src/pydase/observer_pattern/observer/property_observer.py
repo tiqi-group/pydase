@@ -49,7 +49,7 @@ class PropertyObserver(Observer):
     def _process_observable_properties(
         self, obj: Observable, deps: dict[str, Any], prefix: str
     ) -> None:
-        for k, value in vars(type(obj)).items():
+        for k, value in inspect.getmembers(type(obj)):
             prefix = (
                 f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
             )

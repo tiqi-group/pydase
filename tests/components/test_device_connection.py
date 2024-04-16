@@ -3,9 +3,8 @@ import logging
 
 import pydase
 import pydase.components.device_connection
+import pytest
 from pytest import LogCaptureFixture
-
-from tests.utils.test_serializer import pytest
 
 logger = logging.getLogger(__name__)
 

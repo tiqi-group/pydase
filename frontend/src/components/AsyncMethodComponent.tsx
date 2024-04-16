@@ -5,8 +5,7 @@ import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
 type AsyncMethodProps = {
-  name: string;
-  parentPath: string;
+  fullAccessPath: string;
   value: 'RUNNING' | null;
   docString?: string;
   hideOutput?: boolean;
@@ -18,8 +17,7 @@ type AsyncMethodProps = {
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const {
-    name,
-    parentPath,
+    fullAccessPath,
     docString,
     value: runningTask,
     addNotification,
@@ -34,7 +32,8 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
   const renderCount = useRef(0);
   const formRef = useRef(null);
-  const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
+  const name = fullAccessPath.split('.').at(-1);
+  const parentPath = fullAccessPath.slice(0, -(name.length + 1));
 
   useEffect(() => {
     renderCount.current++;
@@ -58,7 +57,8 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       method_name = `start_${name}`;
     }
 
-    runMethod(method_name, parentPath, {});
+    const accessPath = [parentPath, method_name].filter((element) => element).join('.');
+    runMethod(accessPath);
   };
 
   return (
