@@ -69,7 +69,12 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
           {readOnly ? (
             // Display the Form.Control when readOnly is true
             <Form.Control
-              value={enumDict[enumValue]}
+              style={
+                attribute.type == 'ColouredEnum'
+                  ? { backgroundColor: enumDict[enumValue] }
+                  : {}
+              }
+              value={attribute.type == 'ColouredEnum' ? enumValue : enumDict[enumValue]}
               name={fullAccessPath}
               disabled={true}
             />
