@@ -40,7 +40,13 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   }, [props.value]);
 
   const setChecked = (checked: boolean) => {
-    changeCallback(checked);
+    changeCallback({
+      type: 'bool',
+      value: checked,
+      full_access_path: fullAccessPath,
+      readonly: readOnly,
+      doc: docString
+    });
   };
 
   return (
