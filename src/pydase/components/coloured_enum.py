@@ -56,4 +56,9 @@ class ColouredEnum(Enum):
     my_service = StatusExample()
     my_service.status = MyStatus.FAILED
     ```
+
+    Note
+    ----
+    Each enumeration name and value must be unique. This means that you should use
+    different colour formats when you want to use a colour multiple times.
     """
