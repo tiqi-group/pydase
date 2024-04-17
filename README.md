@@ -638,6 +638,9 @@ my_service.status = MyStatus.FAILED
 
 ![ColouredEnum Component](docs/images/ColouredEnum_component.png)
 
+**Note** that each enumeration name and value must be unique.
+This means that you should use different colour formats when you want to use a colour multiple times.
+
 #### Extending with New Components
 
 Users can also extend the library by creating custom components. This involves defining the behavior on the Python backend and the visual representation on the frontend. For those looking to introduce new components, the [guide on adding components](https://pydase.readthedocs.io/en/latest/dev-guide/Adding_Components/) provides detailed steps on achieving this.
