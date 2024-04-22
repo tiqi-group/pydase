@@ -14,6 +14,7 @@ import { LevelName } from './NotificationsComponent';
 import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { WebSettingsContext } from '../WebSettings';
 import { updateValue } from '../socket';
+import { DictComponent } from './DictComponent';
 
 type AttributeType =
   | 'str'
@@ -22,6 +23,7 @@ type AttributeType =
   | 'int'
   | 'Quantity'
   | 'list'
+  | 'dict'
   | 'method'
   | 'DataService'
   | 'DeviceConnection'
@@ -206,6 +208,16 @@ export const GenericComponent = React.memo(
       return (
         <ListComponent
           value={attribute.value as SerializedValue[]}
+          docString={attribute.doc}
+          isInstantUpdate={isInstantUpdate}
+          addNotification={addNotification}
+          id={id}
+        />
+      );
+    } else if (attribute.type === 'dict') {
+      return (
+        <DictComponent
+          value={attribute.value as Record<string, SerializedValue>}
           docString={attribute.doc}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
