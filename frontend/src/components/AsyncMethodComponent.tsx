@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { runMethod } from '../socket';
-import { Form, Button, InputGroup } from 'react-bootstrap';
+import { Form, Button, InputGroup, Spinner } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
 import { LevelName } from './NotificationsComponent';
 
@@ -32,6 +32,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
   const renderCount = useRef(0);
   const formRef = useRef(null);
+  const [spinning, setSpinning] = useState(false);
   const name = fullAccessPath.split('.').at(-1);
   const parentPath = fullAccessPath.slice(0, -(name.length + 1));
 
@@ -45,6 +46,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       message = `${fullAccessPath} was started.`;
     }
     addNotification(message);
+    setSpinning(false);
   }, [props.value]);
 
   const execute = async (event: React.FormEvent) => {
@@ -58,6 +60,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     }
 
     const accessPath = [parentPath, method_name].filter((element) => element).join('.');
+    setSpinning(true);
     runMethod(accessPath);
   };
 
@@ -73,7 +76,13 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
             <DocStringComponent docString={docString} />
           </InputGroup.Text>
           <Button id={`button-${id}`} type="submit">
-            {runningTask === 'RUNNING' ? 'Stop ' : 'Start '}
+            {spinning ? (
+              <Spinner size="sm" role="status" aria-hidden="true" />
+            ) : runningTask === 'RUNNING' ? (
+              'Stop '
+            ) : (
+              'Start '
+            )}
           </Button>
         </InputGroup>
       </Form>
