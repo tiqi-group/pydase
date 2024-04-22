@@ -26,10 +26,10 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
         <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
-      {value.map((item, index) => {
+      {value.map((item) => {
         return (
           <GenericComponent
-            key={`${name}[${index}]`}
+            key={item.full_access_path}
             attribute={item}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}
