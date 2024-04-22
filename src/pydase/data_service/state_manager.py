@@ -9,7 +9,7 @@ from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
     get_object_attr_from_path,
     is_property_attribute,
-    parse_list_attr_and_index,
+    parse_keyed_attribute,
 )
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.serializer import (
@@ -240,7 +240,7 @@ class StateManager:
 
         # If attr_name corresponds to a list entry, extract the attr_name and the
         # index
-        attr_name, index = parse_list_attr_and_index(attr_name)
+        attr_name, index = parse_keyed_attribute(attr_name)
 
         # Update path to reflect the attribute without list indices
         path = f"{parent_path}.{attr_name}" if parent_path != "" else attr_name

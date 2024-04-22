@@ -13,7 +13,7 @@ from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
-    parse_list_attr_and_index,
+    parse_keyed_attribute,
     render_in_frontend,
 )
 from pydase.utils.serialization.types import (
@@ -402,7 +402,7 @@ def get_next_level_dict_by_key(
         SerializationValueError: If the expected nested structure is not a dictionary.
     """
     # Check if the key contains an index part like 'attr_name[<index>]'
-    attr_name, index = parse_list_attr_and_index(attr_name)
+    attr_name, index = parse_keyed_attribute(attr_name)
 
     try:
         if index is not None:

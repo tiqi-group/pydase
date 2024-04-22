@@ -101,39 +101,51 @@ def update_value_if_changed(
         logger.error("Incompatible arguments: %s, %s.", target, attr_name_or_index)
 
 
-def parse_list_attr_and_index(attr_string: str) -> tuple[str, int | None]:
+def parse_keyed_attribute(attr_string: str) -> tuple[str, str | float | int | None]:
     """
-    Parses an attribute string and extracts a potential list attribute name and its
-    index.
-    Logs an error if the index is not a valid digit.
+    Parses an attribute string and extracts a potential attribute name and its key.
+    The key can be a string (for dictionary keys) or an integer (for list indices).
 
     Args:
         attr_string (str):
             The attribute string to parse. Can be a regular attribute name (e.g.,
-            'attr_name') or a list attribute with an index (e.g., 'list_attr[2]').
+            'attr_name'), a list attribute with an index (e.g., 'list_attr[2]'), or
+            a dictionary attribute with a key (e.g., 'dict_attr["key"]' or
+            'dict_attr[0]').
 
     Returns:
-        tuple[str, Optional[int]]:
-            A tuple containing the attribute name as a string and the index as an
-            integer if present, otherwise None.
+        tuple[str, str | float | int | None]:
+            A tuple containing the attribute name and the key as either a string,
+            an integer if it's a digit, or None if no key is present.
 
     Examples:
-        >>> parse_attribute_and_index('list_attr[2]')
-        ('list_attr', 2)
-        >>> parse_attribute_and_index('attr_name')
-        ('attr_name', None)
+        ```python
+        >>> parse_keyed_attribute('list_attr[2]')
+        ("list_attr", 2)
+        >>> parse_keyed_attribute('attr_name')
+        ("attr_name", None)
+        >>> parse_keyed_attribute('dict_attr["key"]')
+        ("dict_attr", 'key')
+        >>> parse_keyed_attribute("dict_attr["0"]")
+        ("dict_attr", "0")
+        >>> parse_keyed_attribute("dict_attr[0]")
+        ("dict_attr", 0)
+        ```
     """
 
-    index = None
+    key = None
     attr_name = attr_string
     if "[" in attr_string and attr_string.endswith("]"):
-        attr_name, index_part = attr_string.split("[", 1)
-        index_part = index_part.rstrip("]")
-        if index_part.isdigit():
-            index = int(index_part)
+        attr_name, key_part = attr_string.split("[", 1)
+        key_part = key_part.rstrip("]")
+        # Remove quotes if present (supports both single and double quotes)
+        if key_part.startswith('"') and key_part.endswith('"'):
+            key = key_part[1:-1]
+        elif "." in key_part:
+            key = float(key_part)
         else:
-            logger.error("Invalid index format in key: %s", attr_name)
-    return attr_name, index
+            key = int(key_part)
+    return attr_name, key
 
 
 def get_component_classes() -> list[type]:
