@@ -272,6 +272,9 @@ class StateManager:
         if attr_cache_type == "list":
             list_obj = get_object_attr_from_path(target_obj, attr_name)
             list_obj[index] = value
+        elif attr_cache_type == "dict":
+            dict_obj = get_object_attr_from_path(target_obj, attr_name)
+            dict_obj[index] = value
         else:
             setattr(target_obj, attr_name, value)
 
