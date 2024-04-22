@@ -40,9 +40,18 @@ def test_is_property_attribute(attr_name: str, expected: bool) -> None:
         ("list_attr[2]", ("list_attr", 2)),
         ('dict_attr["2"]', ("dict_attr", "2")),
         ('dict_attr["some_key"]', ("dict_attr", "some_key")),
+        ("dict_attr['some_key']", ("dict_attr", "some_key")),
         ("dict_attr[2]", ("dict_attr", 2)),
         ("dict_attr[2.1]", ("dict_attr", 2.1)),
     ],
 )
 def test_parse_keyed_attributes(attr_name: str, expected: tuple[str, Any]) -> None:
     assert parse_keyed_attribute(attr_name) == expected
+
+
+# def test_get_nested_dict_by_path() -> None:
+#     obj = {"2.1": "foo", 2.1: "bar"}
+#     serialized_object = {
+#         "dict_attr": dump(obj=obj),
+#     }
+#     assert get_nested_dict_by_path(serialized_object, 'dict_attr["2.1"]') == {}

@@ -125,7 +125,9 @@ def parse_keyed_attribute(attr_string: str) -> tuple[str, str | float | int | No
         >>> parse_keyed_attribute('attr_name')
         ("attr_name", None)
         >>> parse_keyed_attribute('dict_attr["key"]')
-        ("dict_attr", 'key')
+        ("dict_attr", "key")
+        >>> parse_keyed_attribute("dict_attr['key']")
+        ("dict_attr", "key")
         >>> parse_keyed_attribute("dict_attr["0"]")
         ("dict_attr", "0")
         >>> parse_keyed_attribute("dict_attr[0]")
@@ -139,7 +141,7 @@ def parse_keyed_attribute(attr_string: str) -> tuple[str, str | float | int | No
         attr_name, key_part = attr_string.split("[", 1)
         key_part = key_part.rstrip("]")
         # Remove quotes if present (supports both single and double quotes)
-        if key_part.startswith('"') and key_part.endswith('"'):
+        if key_part.startswith(('"', "'")) and key_part.endswith(('"', "'")):
             key = key_part[1:-1]
         elif "." in key_part:
             key = float(key_part)
