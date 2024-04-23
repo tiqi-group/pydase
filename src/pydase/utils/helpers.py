@@ -48,15 +48,12 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     """
     path_list = path.split(".") if path != "" else []
     for part in path_list:
+        attr, key = parse_keyed_attribute(part)
         try:
-            # Try to split the part into attribute and index
-            attr, index_str = part.split("[", maxsplit=1)
-            index_str = index_str.replace("]", "")
-            index = int(index_str)
-            target_obj = getattr(target_obj, attr)[index]
-        except ValueError:
-            # No index, so just get the attribute
-            target_obj = getattr(target_obj, part)
+            if key is not None:
+                target_obj = getattr(target_obj, attr)[key]
+            else:
+                target_obj = getattr(target_obj, attr)
         except AttributeError:
             # The attribute doesn't exist
             logger.debug("Attribute % does not exist in the object.", part)
