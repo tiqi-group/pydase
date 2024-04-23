@@ -49,7 +49,7 @@ function getNextLevelDictByKey(
   attrName: string,
   allowAppend: boolean = false
 ): SerializedValue {
-  const [key, index] = parseListAttrAndIndex(attrName);
+  const [key, index] = parseKeyedAttribute(attrName);
   let currentDict: SerializedValue;
 
   try {
@@ -87,21 +87,39 @@ function getNextLevelDictByKey(
   return currentDict;
 }
 
-function parseListAttrAndIndex(attrString: string): [string, number | null] {
-  let index: number | null = null;
+function parseKeyedAttribute(attrString: string): [string, string | number | null] {
+  let key: string | number | null = null;
   let attrName = attrString;
 
   if (attrString.includes('[') && attrString.endsWith(']')) {
     const parts = attrString.split('[');
     attrName = parts[0];
-    const indexPart = parts[1].slice(0, -1); // Removes the closing ']'
+    const keyPart = parts[1].slice(0, -1); // Removes the closing ']'
 
-    if (!isNaN(parseInt(indexPart))) {
-      index = parseInt(indexPart);
+    // Check if keyPart is enclosed in quotes
+    if (
+      (keyPart.startsWith('"') && keyPart.endsWith('"')) ||
+      (keyPart.startsWith("'") && keyPart.endsWith("'"))
+    ) {
+      key = keyPart.slice(1, -1); // Remove the quotes
+    } else if (keyPart.includes('.')) {
+      // Check for a floating-point number
+      const parsedFloat = parseFloat(keyPart);
+      if (!isNaN(parsedFloat)) {
+        key = parsedFloat;
+      } else {
+        console.error(`Invalid float format for key: ${keyPart}`);
+      }
     } else {
-      console.error(`Invalid index format in key: ${attrString}`);
+      // Handle integers
+      const parsedInt = parseInt(keyPart);
+      if (!isNaN(parsedInt)) {
+        key = parsedInt;
+      } else {
+        console.error(`Invalid integer format for key: ${keyPart}`);
+      }
     }
   }
 
-  return [attrName, index];
+  return [attrName, key];
 }
