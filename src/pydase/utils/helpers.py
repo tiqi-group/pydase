@@ -181,12 +181,10 @@ def get_data_service_class_reference() -> Any:
 
 
 def is_property_attribute(target_obj: Any, access_path: str) -> bool:
-    parent_path, attr_name = (
-        ".".join(access_path.split(".")[:-1]),
-        access_path.split(".")[-1],
-    )
-    target_obj = get_object_attr_from_path(target_obj, parent_path)
-    return isinstance(getattr(type(target_obj), attr_name, None), property)
+    path_parts = parse_full_access_path(access_path)
+    target_obj = get_object_by_path_parts(target_obj, path_parts[:-1])
+    # TODO: check if target_obj is dict or list
+    return isinstance(getattr(type(target_obj), path_parts[-1], None), property)
 
 
 def function_has_arguments(func: Callable[..., Any]) -> bool:
