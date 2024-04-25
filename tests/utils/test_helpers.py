@@ -4,9 +4,53 @@ import pydase
 import pytest
 from pydase.utils.helpers import (
     get_object_attr_from_path,
+    get_path_from_path_parts,
     is_property_attribute,
+    parse_full_access_path,
     parse_keyed_attribute,
 )
+
+
+@pytest.mark.parametrize(
+    "full_access_path, expected",
+    [
+        ("attr_name", ["attr_name"]),
+        ("parent.attr_name", ["parent", "attr_name"]),
+        ("nested.parent.attr_name", ["nested", "parent", "attr_name"]),
+        ("nested.parent.attr_name", ["nested", "parent", "attr_name"]),
+        ("attr_name[0]", ["attr_name", "[0]"]),
+        ("parent.attr_name[0]", ["parent", "attr_name", "[0]"]),
+        ("attr_name[0][1]", ["attr_name", "[0]", "[1]"]),
+        ('attr_name[0]["some_key"]', ["attr_name", "[0]", '["some_key"]']),
+        (
+            'dict_attr["some_key"].attr_name["other_key"]',
+            ["dict_attr", '["some_key"]', "attr_name", '["other_key"]'],
+        ),
+    ],
+)
+def test_parse_full_access_path(full_access_path: str, expected: list[str]) -> None:
+    assert parse_full_access_path(full_access_path) == expected
+
+
+@pytest.mark.parametrize(
+    "path_parts, expected",
+    [
+        (["attr_name"], "attr_name"),
+        (["parent", "attr_name"], "parent.attr_name"),
+        (["nested", "parent", "attr_name"], "nested.parent.attr_name"),
+        (["nested", "parent", "attr_name"], "nested.parent.attr_name"),
+        (["attr_name", "[0]"], "attr_name[0]"),
+        (["parent", "attr_name", "[0]"], "parent.attr_name[0]"),
+        (["attr_name", "[0]", "[1]"], "attr_name[0][1]"),
+        (["attr_name", "[0]", '["some_key"]'], 'attr_name[0]["some_key"]'),
+        (
+            ["dict_attr", '["some_key"]', "attr_name", '["other_key"]'],
+            'dict_attr["some_key"].attr_name["other_key"]',
+        ),
+    ],
+)
+def test_get_path_from_path_parts(path_parts: list[str], expected: str) -> None:
+    assert get_path_from_path_parts(path_parts) == expected
 
 
 @pytest.mark.parametrize(

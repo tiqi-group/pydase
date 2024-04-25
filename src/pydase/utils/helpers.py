@@ -1,10 +1,57 @@
 import inspect
 import logging
+import re
 from collections.abc import Callable
 from itertools import chain
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+def parse_full_access_path(path: str) -> list[str]:
+    """
+    Splits a full access path into its atomic parts, separating attribute names, numeric
+    indices, and string keys within indices.
+
+    The reverse function is given by `get_path_from_path_parts`.
+
+    Args:
+        path: str
+            The full access path string to be split into components.
+
+    Returns:
+        list[str]
+            A list of components that make up the path, including attribute names,
+            numeric indices, and string keys as separate elements.
+    """
+    # <word_with_underscore> | [<any number of digits>]
+    #                        | ["<anything except ">"]
+    #                        | ['<anything except '>']
+    pattern = r'\w+|\[\d+\]|\["[^"]*"\]|\[\'[^\']*\']'
+    return re.findall(pattern, path)
+
+
+def get_path_from_path_parts(path_parts: list[str]) -> str:
+    """Creates the full access path from its atomic parts.
+
+    The reverse function is given by `parse_full_access_path`.
+
+    Args:
+        path_parts: list[str]
+            A list of components that make up the path, including attribute names,
+            numeric indices and string keys enclosed in square brackets as separate
+            elements.
+    Returns:
+        str
+            The full access path corresponding to the path_parts.
+    """
+
+    path = ""
+    for path_part in path_parts:
+        if not path_part.startswith("[") and path != "":
+            path += "."
+        path += path_part
+    return path
 
 
 def get_attribute_doc(attr: Any) -> str | None:
