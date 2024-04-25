@@ -122,19 +122,8 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     Raises:
         ValueError: If a list index in the path is not a valid integer.
     """
-    path_list = path.split(".") if path != "" else []
-    for part in path_list:
-        attr, key = parse_keyed_attribute(part)
-        try:
-            if key is not None:
-                target_obj = getattr(target_obj, attr)[key]
-            else:
-                target_obj = getattr(target_obj, attr)
-        except AttributeError:
-            # The attribute doesn't exist
-            logger.debug("Attribute % does not exist in the object.", part)
-            return None
-    return target_obj
+    path_parts = parse_full_access_path(path)
+    return get_object_by_path_parts(target_obj, path_parts)
 
 
 def update_value_if_changed(
@@ -172,55 +161,6 @@ def update_value_if_changed(
             setattr(target, attr_name_or_index, new_value)
     else:
         logger.error("Incompatible arguments: %s, %s.", target, attr_name_or_index)
-
-
-def parse_keyed_attribute(attr_string: str) -> tuple[str, str | float | int | None]:
-    """
-    Parses an attribute string and extracts a potential attribute name and its key.
-    The key can be a string (for dictionary keys) or an integer (for list indices).
-
-    Args:
-        attr_string (str):
-            The attribute string to parse. Can be a regular attribute name (e.g.,
-            'attr_name'), a list attribute with an index (e.g., 'list_attr[2]'), or
-            a dictionary attribute with a key (e.g., 'dict_attr["key"]' or
-            'dict_attr[0]').
-
-    Returns:
-        tuple[str, str | float | int | None]:
-            A tuple containing the attribute name and the key as either a string,
-            an integer if it's a digit, or None if no key is present.
-
-    Examples:
-        ```python
-        >>> parse_keyed_attribute('list_attr[2]')
-        ("list_attr", 2)
-        >>> parse_keyed_attribute('attr_name')
-        ("attr_name", None)
-        >>> parse_keyed_attribute('dict_attr["key"]')
-        ("dict_attr", "key")
-        >>> parse_keyed_attribute("dict_attr['key']")
-        ("dict_attr", "key")
-        >>> parse_keyed_attribute("dict_attr["0"]")
-        ("dict_attr", "0")
-        >>> parse_keyed_attribute("dict_attr[0]")
-        ("dict_attr", 0)
-        ```
-    """
-
-    key: str | float | int | None = None
-    attr_name = attr_string
-    if "[" in attr_string and attr_string.endswith("]"):
-        attr_name, key_part = attr_string.split("[", 1)
-        key_part = key_part.rstrip("]")
-        # Remove quotes if present (supports both single and double quotes)
-        if key_part.startswith(('"', "'")) and key_part.endswith(('"', "'")):
-            key = key_part[1:-1]
-        elif "." in key_part:
-            key = float(key_part)
-        else:
-            key = int(key_part)
-    return attr_name, key
 
 
 def get_component_classes() -> list[type]:
