@@ -4,6 +4,7 @@ import pydase
 import pytest
 from pydase.utils.helpers import (
     get_object_attr_from_path,
+    get_object_by_path_parts,
     get_path_from_path_parts,
     is_property_attribute,
     parse_full_access_path,
@@ -51,6 +52,39 @@ def test_parse_full_access_path(full_access_path: str, expected: list[str]) -> N
 )
 def test_get_path_from_path_parts(path_parts: list[str], expected: str) -> None:
     assert get_path_from_path_parts(path_parts) == expected
+
+
+class SubService(pydase.DataService):
+    name = "SubService"
+    some_int = 1
+    some_float = 1.0
+
+
+class MyService(pydase.DataService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.some_float = 1.0
+        self.subservice = SubService()
+        self.list_attr = [1.0, SubService()]
+        self.dict_attr = {"foo": SubService()}
+
+
+service_instance = MyService()
+
+
+@pytest.mark.parametrize(
+    "path_parts, expected",
+    [
+        (["some_float"], service_instance.some_float),
+        (["subservice"], service_instance.subservice),
+        (["list_attr", "[0]"], service_instance.list_attr[0]),
+        (["list_attr", "[1]"], service_instance.list_attr[1]),
+        (["dict_attr", '["foo"]'], service_instance.dict_attr["foo"]),
+        (["dict_attr", '["foo"]', "name"], service_instance.dict_attr["foo"].name),
+    ],
+)
+def test_get_object_by_path_parts(path_parts: list[str], expected: Any) -> None:
+    assert get_object_by_path_parts(service_instance, path_parts) == expected
 
 
 @pytest.mark.parametrize(

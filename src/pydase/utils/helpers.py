@@ -8,6 +8,21 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
+def parse_serialized_key(serialized_key: str) -> str | int | float:
+    processed_key: int | float | str = serialized_key
+    if serialized_key.startswith("["):
+        assert serialized_key.endswith("]")
+        processed_key = serialized_key[1:-1]
+        if '"' in processed_key or "'" in processed_key:
+            processed_key = processed_key[1:-1]
+        elif "." in processed_key:
+            processed_key = float(processed_key)
+        else:
+            processed_key = int(processed_key)
+
+    return processed_key
+
+
 def parse_full_access_path(path: str) -> list[str]:
     """
     Splits a full access path into its atomic parts, separating attribute names, numeric
@@ -75,6 +90,20 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
     """
 
     return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
+
+
+def get_object_by_path_parts(target_obj: Any, path_parts: list[str]) -> Any:
+    for part in path_parts:
+        if part.startswith("["):
+            deserialized_part = parse_serialized_key(part)
+            target_obj = target_obj[deserialized_part]
+        else:
+            try:
+                target_obj = getattr(target_obj, part)
+            except AttributeError:
+                logger.debug("Attribute % does not exist in the object.", part)
+                return None
+    return target_obj
 
 
 def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
