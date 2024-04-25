@@ -465,13 +465,13 @@ def get_next_level_dict_by_key(
 
     # Implementation remains the same as the earlier code snippet
     # Check if the key contains an index part like 'attr_name[<key>]'
-    attr_name, key = parse_keyed_attribute(attr_name)
+    attr_name_base, key = parse_keyed_attribute(attr_name)
 
     # Add the attr_name key to the serialized object if it does not exist AND the key
     # is None. Otherwise, we are trying to add a key-value pair/item to a non-existing
     # object
     serialized_object = ensure_exists(
-        serialization_dict, attr_name, allow_add_key=allow_append and key is None
+        serialization_dict, attr_name_base, allow_add_key=allow_append and key is None
     )
 
     if key is not None:
@@ -481,12 +481,12 @@ def get_next_level_dict_by_key(
             )
         except (KeyError, IndexError) as e:
             raise SerializationPathError(
-                f"Error occured trying to change 'attr_list[10]': {e}"
+                f"Error occured trying to change '{attr_name}': {e}"
             )
 
     if not isinstance(serialized_object, dict):
         raise SerializationValueError(
-            f"Expected a dictionary at '{attr_name}', but found type "
+            f"Expected a dictionary at '{attr_name_base}', but found type "
             f"'{type(serialized_object).__name__}' instead."
         )
 
