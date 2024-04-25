@@ -13,8 +13,8 @@ from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializedObject,
     dump,
+    get_container_item_by_key,
     get_nested_dict_by_path,
-    get_next_level_dict_by_key,
     serialized_dict_is_nested_object,
     set_nested_value_by_path,
 )
@@ -25,6 +25,25 @@ class MyEnum(enum.Enum):
 
     RUNNING = "running"
     FINISHED = "finished"
+
+
+class MySubclass(pydase.DataService):
+    attr3 = 1.0
+    list_attr: ClassVar[list[Any]] = [1.0, 1]
+
+
+class ServiceClass(pydase.DataService):
+    attr1 = 1.0
+    attr2 = MySubclass()
+    enum_attr = MyEnum.RUNNING
+    attr_list: ClassVar[list[Any]] = [0, 1, MySubclass()]
+    dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0}
+
+    def my_task(self) -> None:
+        pass
+
+
+service_instance = ServiceClass()
 
 
 @pytest.mark.parametrize(
@@ -468,27 +487,14 @@ def test_derived_data_service_serialization() -> None:
 
 @pytest.fixture
 def setup_dict() -> dict[str, Any]:
-    class MySubclass(pydase.DataService):
-        attr3 = 1.0
-        list_attr: ClassVar[list[Any]] = [1.0, 1]
-
-    class ServiceClass(pydase.DataService):
-        attr1 = 1.0
-        attr2 = MySubclass()
-        enum_attr = MyEnum.RUNNING
-        attr_list: ClassVar[list[Any]] = [0, 1, MySubclass()]
-        dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0}
-
-        def my_task(self) -> None:
-            pass
-
     return ServiceClass().serialize()["value"]  # type: ignore
 
 
 @pytest.mark.parametrize(
-    "attr_name, allow_append, expected",
+    "serialized_object, attr_name, allow_append, expected",
     [
         (
+            dump(service_instance)["value"],
             "attr1",
             False,
             {
@@ -500,18 +506,20 @@ def setup_dict() -> dict[str, Any]:
             },
         ),
         (
-            "attr_list[0]",
+            dump(service_instance.attr_list)["value"],
+            "[0]",
             False,
             {
                 "doc": None,
-                "full_access_path": "attr_list[0]",
+                "full_access_path": "[0]",
                 "readonly": False,
                 "type": "int",
                 "value": 0,
             },
         ),
         (
-            "attr_list[3]",
+            dump(service_instance.attr_list)["value"],
+            "[3]",
             True,
             {
                 # we do not know the full_access_path of this entry within the
@@ -524,15 +532,17 @@ def setup_dict() -> dict[str, Any]:
             },
         ),
         (
-            "attr_list[3]",
+            dump(service_instance.attr_list)["value"],
+            "[3]",
             False,
             SerializationPathError,
         ),
         (
-            "dict_attr['foo']",
+            dump(service_instance.dict_attr)["value"],
+            "['foo']",
             False,
             {
-                "full_access_path": 'dict_attr["foo"]',
+                "full_access_path": '["foo"]',
                 "value": 1.0,
                 "type": "float",
                 "doc": None,
@@ -540,7 +550,8 @@ def setup_dict() -> dict[str, Any]:
             },
         ),
         (
-            "dict_attr['unset_key']",
+            dump(service_instance.dict_attr)["value"],
+            "['unset_key']",
             True,
             {
                 # we do not know the full_access_path of this entry within the
@@ -553,11 +564,13 @@ def setup_dict() -> dict[str, Any]:
             },
         ),
         (
-            "dict_attr['unset_key']",
+            dump(service_instance.dict_attr)["value"],
+            "['unset_key']",
             False,
             SerializationPathError,
         ),
         (
+            dump(service_instance)["value"],
             "invalid_path",
             True,
             {
@@ -571,32 +584,35 @@ def setup_dict() -> dict[str, Any]:
             },
         ),
         (
+            dump(service_instance)["value"],
             "invalid_path",
             False,
             SerializationPathError,
         ),
-        # you should not be able to set an item of a thing that does not exist
-        (
-            'invalid_path["some_key"]',
-            True,
-            SerializationPathError,
-        ),
-        (
-            "invalid_path[0]",  # no way of knowing if that should be a dict / list
-            True,
-            SerializationPathError,
-        ),
+        # # you should not be able to set an item of a thing that does not exist
+        # (
+        #     'invalid_path["some_key"]',
+        #     True,
+        #     SerializationPathError,
+        # ),
+        # (
+        #     "invalid_path[0]",  # no way of knowing if that should be a dict / list
+        #     True,
+        #     SerializationPathError,
+        # ),
     ],
 )
-def test_get_next_level_dict_by_key(
-    setup_dict: dict[str, Any], attr_name: str, allow_append: bool, expected: Any
+def test_get_container_item_by_key(
+    serialized_object: dict[str, Any], attr_name: str, allow_append: bool, expected: Any
 ) -> None:
     if isinstance(expected, type) and issubclass(expected, Exception):
         with pytest.raises(expected):
-            get_next_level_dict_by_key(setup_dict, attr_name, allow_append=allow_append)
+            get_container_item_by_key(
+                serialized_object, attr_name, allow_append=allow_append
+            )
     else:
-        nested_dict = get_next_level_dict_by_key(
-            setup_dict, attr_name, allow_append=allow_append
+        nested_dict = get_container_item_by_key(
+            serialized_object, attr_name, allow_append=allow_append
         )
         assert nested_dict == expected
 
@@ -682,8 +698,8 @@ def test_update_invalid_list_index(
 ) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[10]", 30)
     assert (
-        "Error occured trying to change 'attr_list[10]': list index "
-        "out of range" in caplog.text
+        "Error occured trying to change 'attr_list[10]': Index '10': list index out of "
+        "range" in caplog.text
     )
 
 

@@ -13,7 +13,7 @@ from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
-    parse_keyed_attribute,
+    parse_full_access_path,
     render_in_frontend,
 )
 from pydase.utils.serialization.types import (
@@ -301,7 +301,7 @@ def dump(obj: Any) -> SerializedObject:
 
 
 def set_nested_value_by_path(
-    serialization_dict: dict[str, SerializedObject], path: str, value: Any
+    serialization_dict: dict[Any, SerializedObject], path: str, value: Any
 ) -> None:
     """
     Set a value in a nested dictionary structure, which conforms to the serialization
@@ -322,23 +322,24 @@ def set_nested_value_by_path(
           serialized representation of the 'value' to the list.
     """
 
-    parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
-    current_dict: dict[str, SerializedObject] = serialization_dict
+    path_parts = parse_full_access_path(path)
+    current_dict: dict[Any, SerializedObject] = serialization_dict
 
     try:
-        for path_part in parent_path_parts:
-            next_level_serialized_object = get_next_level_dict_by_key(
+        for path_part in path_parts[:-1]:
+            next_level_serialized_object = get_container_item_by_key(
                 current_dict, path_part, allow_append=False
             )
             current_dict = cast(
-                dict[str, SerializedObject], next_level_serialized_object["value"]
+                dict[Any, SerializedObject],
+                next_level_serialized_object["value"],
             )
 
-        next_level_serialized_object = get_next_level_dict_by_key(
-            current_dict, attr_name, allow_append=True
+        next_level_serialized_object = get_container_item_by_key(
+            current_dict, path_parts[-1], allow_append=True
         )
     except (SerializationPathError, SerializationValueError, KeyError) as e:
-        logger.error(e)
+        logger.error("Error occured trying to change %a: %s", path, e)
         return
 
     if next_level_serialized_object["type"] == "method":  # state change of task
@@ -360,20 +361,21 @@ def set_nested_value_by_path(
 
 
 def get_nested_dict_by_path(
-    serialization_dict: dict[str, SerializedObject],
+    serialization_dict: dict[Any, SerializedObject],
     path: str,
 ) -> SerializedObject:
-    parent_path_parts, attr_name = path.split(".")[:-1], path.split(".")[-1]
-    current_dict: dict[str, SerializedObject] = serialization_dict
+    path_parts = parse_full_access_path(path)
+    current_dict: dict[Any, SerializedObject] = serialization_dict
 
-    for path_part in parent_path_parts:
-        next_level_serialized_object = get_next_level_dict_by_key(
+    for path_part in path_parts[:-1]:
+        next_level_serialized_object = get_container_item_by_key(
             current_dict, path_part, allow_append=False
         )
         current_dict = cast(
-            dict[str, SerializedObject], next_level_serialized_object["value"]
+            dict[Any, SerializedObject],
+            next_level_serialized_object["value"],
         )
-    return get_next_level_dict_by_key(current_dict, attr_name, allow_append=False)
+    return get_container_item_by_key(current_dict, path_parts[-1], allow_append=False)
 
 
 def create_empty_serialized_object() -> SerializedObject:
@@ -388,61 +390,50 @@ def create_empty_serialized_object() -> SerializedObject:
     }
 
 
-def ensure_exists(
-    container: dict[str, SerializedObject], key: str, *, allow_add_key: bool
+def get_or_create_item_in_container(
+    container: dict[Any, SerializedObject] | list[SerializedObject],
+    key: Any,
+    *,
+    allow_add_key: bool,
 ) -> SerializedObject:
     """Ensure the key exists in the dictionary, append if necessary and allowed."""
 
     try:
         return container[key]
-    except KeyError:
-        if not allow_add_key:
-            raise SerializationPathError(f"Key '{key}' does not exist.")
-        container[key] = create_empty_serialized_object()
-        return container[key]
-
-
-def get_nested_value(
-    obj: SerializedObject, key: Any, allow_append: bool
-) -> SerializedObject:
-    """Retrieve or append the nested value based on the key."""
-
-    value = cast(list[SerializedObject] | dict[Any, SerializedObject], obj["value"])
-    try:
-        return value[key]
-    except KeyError:
-        if allow_append:
-            value[key] = create_empty_serialized_object()
-            return value[key]
-        raise
     except IndexError:
-        if allow_append and key == len(value):
-            cast(list[SerializedObject], value).append(create_empty_serialized_object())
-            return value[key]
+        if allow_add_key and key == len(container):
+            cast(list[SerializedObject], container).append(
+                create_empty_serialized_object()
+            )
+            return container[key]
+        raise
+    except KeyError:
+        if allow_add_key:
+            container[key] = create_empty_serialized_object()
+            return container[key]
         raise
 
 
-def get_next_level_dict_by_key(
-    serialization_dict: dict[str, SerializedObject],
-    attr_name: str,
+def get_container_item_by_key(
+    container: dict[Any, SerializedObject] | list[SerializedObject],
+    key: str,
     *,
     allow_append: bool = False,
 ) -> SerializedObject:
     """
-    Retrieve a nested dictionary entry or list item from a serialized data structure.
+    Retrieve an item from a container specified by the passed key. Add an item to the
+    container if allow_append is set to True.
 
-    This function supports deep retrieval from a nested serialization structure
-    based on an attribute name that may specify direct keys or indexed list elements.
-    If specified keys or indexes do not exist, the function can append new elements
-    to lists if `allow_append` is True and the missing element is exactly the next
-    sequential index.
+    If specified keys or indexes do not exist, the function can append new elements to
+    dictionaries and to lists if `allow_append` is True and the missing element is
+    exactly the next sequential index (for lists).
 
     Args:
-        serialization_dict: dict[str, SerializedObject]
-            The base dictionary representing serialized data.
-        attr_name: str
+        container: dict[str, SerializedObject] | list[SerializedObject]
+            The container representing serialized data.
+        key: str
             The key name representing the attribute in the dictionary, which may include
-            direct keys or indexes (e.g., 'list_attr[0]', 'dict_attr["key"]' or 'attr').
+            direct keys or indexes (e.g., 'attr_name', '["key"]' or '[0]').
         allow_append: bool
             Flag to allow appending a new entry if the specified index is out of range
             by exactly one position.
@@ -462,35 +453,26 @@ def get_next_level_dict_by_key(
             but is not, indicating a mismatch between expected and actual serialized
             data structure.
     """
+    processed_key: int | float | str = key
 
-    # Implementation remains the same as the earlier code snippet
-    # Check if the key contains an index part like 'attr_name[<key>]'
-    attr_name_base, key = parse_keyed_attribute(attr_name)
+    if key.startswith("["):
+        assert key.endswith("]")
+        processed_key = key[1:-1]
+        if '"' in processed_key or "'" in processed_key:
+            processed_key = processed_key[1:-1]
+        elif "." in processed_key:
+            processed_key = float(processed_key)
+        else:
+            processed_key = int(processed_key)
 
-    # Add the attr_name key to the serialized object if it does not exist AND the key
-    # is None. Otherwise, we are trying to add a key-value pair/item to a non-existing
-    # object
-    serialized_object = ensure_exists(
-        serialization_dict, attr_name_base, allow_add_key=allow_append and key is None
-    )
-
-    if key is not None:
-        try:
-            serialized_object = get_nested_value(
-                serialized_object, key, allow_append=allow_append
-            )
-        except (KeyError, IndexError) as e:
-            raise SerializationPathError(
-                f"Error occured trying to change '{attr_name}': {e}"
-            )
-
-    if not isinstance(serialized_object, dict):
-        raise SerializationValueError(
-            f"Expected a dictionary at '{attr_name_base}', but found type "
-            f"'{type(serialized_object).__name__}' instead."
+    try:
+        return get_or_create_item_in_container(
+            container, processed_key, allow_add_key=allow_append
         )
-
-    return serialized_object
+    except IndexError as e:
+        raise SerializationPathError(f"Index '{processed_key}': {e}")
+    except KeyError as e:
+        raise SerializationPathError(f"Key '{processed_key}': {e}")
 
 
 def generate_serialized_data_paths(
@@ -530,6 +512,7 @@ def generate_serialized_data_paths(
                             )
                         )
                 continue
+            # TODO: add dict?
             paths.extend(generate_serialized_data_paths(value["value"], new_path))
     return paths
 
