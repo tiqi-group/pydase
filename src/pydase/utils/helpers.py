@@ -132,7 +132,7 @@ def parse_keyed_attribute(attr_string: str) -> tuple[str, str | float | int | No
         ```
     """
 
-    key = None
+    key: str | float | int | None = None
     attr_name = attr_string
     if "[" in attr_string and attr_string.endswith("]"):
         attr_name, key_part = attr_string.split("[", 1)
