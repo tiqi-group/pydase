@@ -7,9 +7,10 @@ from typing import TYPE_CHECKING, Any, cast
 
 from pydase.data_service.data_service_cache import DataServiceCache
 from pydase.utils.helpers import (
-    get_object_attr_from_path,
+    get_object_by_path_parts,
     is_property_attribute,
-    parse_keyed_attribute,
+    parse_full_access_path,
+    parse_serialized_key,
 )
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.serializer import (
@@ -236,47 +237,32 @@ class StateManager:
     def __update_attribute_by_path(
         self, path: str, serialized_value: SerializedObject
     ) -> None:
-        parent_path, attr_name = ".".join(path.split(".")[:-1]), path.split(".")[-1]
-
-        # If attr_name corresponds to a list entry, extract the attr_name and the
-        # index
-        attr_name, index = parse_keyed_attribute(attr_name)
-
-        # Update path to reflect the attribute without list indices
-        path = f"{parent_path}.{attr_name}" if parent_path != "" else attr_name
+        path_parts = parse_full_access_path(path)
+        target_obj = get_object_by_path_parts(self.service, path_parts[:-1])
 
         attr_cache_type = get_nested_dict_by_path(self.cache_value, path)["type"]
 
-        # Traverse the object according to the path parts
-        target_obj = get_object_attr_from_path(self.service, parent_path)
-
+        # De-serialize the value
         if attr_cache_type in ("ColouredEnum", "Enum"):
-            enum_attr = get_object_attr_from_path(target_obj, attr_name)
+            enum_attr = get_object_by_path_parts(target_obj, [path_parts[-1]])
             # take the value of the existing enum class
             if serialized_value["type"] in ("ColouredEnum", "Enum"):
                 try:
-                    setattr(
-                        target_obj,
-                        attr_name,
-                        enum_attr.__class__[serialized_value["value"]],
-                    )
-                    return
+                    value = enum_attr.__class__[serialized_value["value"]]
                 except KeyError:
                     # This error will arise when setting an enum from another enum class
                     # In this case, we resort to loading the enum and setting it
                     # directly
-                    pass
-
-        value = loads(serialized_value)
-
-        if attr_cache_type == "list":
-            list_obj = get_object_attr_from_path(target_obj, attr_name)
-            list_obj[index] = value
-        elif attr_cache_type == "dict":
-            dict_obj = get_object_attr_from_path(target_obj, attr_name)
-            dict_obj[index] = value
+                    value = loads(serialized_value)
         else:
-            setattr(target_obj, attr_name, value)
+            value = loads(serialized_value)
+
+        # set the value
+        if isinstance(target_obj, list | dict):
+            processed_key = parse_serialized_key(path_parts[-1])
+            target_obj[processed_key] = value  # type: ignore
+        else:
+            setattr(target_obj, path_parts[-1], value)
 
     def __is_loadable_state_attribute(self, full_access_path: str) -> bool:
         """Checks if an attribute defined by a dot-separated path should be loaded from
@@ -286,20 +272,17 @@ class StateManager:
         attributes default to being loadable.
         """
 
-        parent_path, attr_name = (
-            ".".join(full_access_path.split(".")[:-1]),
-            full_access_path.split(".")[-1],
-        )
-        parent_object = get_object_attr_from_path(self.service, parent_path)
+        path_parts = parse_full_access_path(full_access_path)
+        parent_object = get_object_by_path_parts(self.service, path_parts[:-1])
 
-        if is_property_attribute(parent_object, attr_name):
-            prop = getattr(type(parent_object), attr_name)
+        if is_property_attribute(parent_object, path_parts[-1]):
+            prop = getattr(type(parent_object), path_parts[-1])
             has_decorator = has_load_state_decorator(prop)
             if not has_decorator:
                 logger.debug(
                     "Property '%s' has no '@load_state' decorator. "
                     "Ignoring value from JSON file...",
-                    attr_name,
+                    path_parts[-1],
                 )
             return has_decorator
 
@@ -317,6 +300,6 @@ class StateManager:
             logger.debug(
                 "Path %a could not be loaded. It does not correspond to an attribute of"
                 " the class. Ignoring value from JSON file...",
-                attr_name,
+                path_parts[-1],
             )
             return False
