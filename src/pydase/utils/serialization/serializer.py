@@ -14,6 +14,7 @@ from pydase.utils.helpers import (
     get_component_classes,
     get_data_service_class_reference,
     parse_full_access_path,
+    parse_serialized_key,
     render_in_frontend,
 )
 from pydase.utils.serialization.types import (
@@ -453,17 +454,7 @@ def get_container_item_by_key(
             but is not, indicating a mismatch between expected and actual serialized
             data structure.
     """
-    processed_key: int | float | str = key
-
-    if key.startswith("["):
-        assert key.endswith("]")
-        processed_key = key[1:-1]
-        if '"' in processed_key or "'" in processed_key:
-            processed_key = processed_key[1:-1]
-        elif "." in processed_key:
-            processed_key = float(processed_key)
-        else:
-            processed_key = int(processed_key)
+    processed_key = parse_serialized_key(key)
 
     try:
         return get_or_create_item_in_container(
