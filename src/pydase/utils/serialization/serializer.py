@@ -376,6 +376,52 @@ def get_nested_dict_by_path(
     return get_next_level_dict_by_key(current_dict, attr_name, allow_append=False)
 
 
+def create_empty_serialized_object() -> SerializedObject:
+    """Create a new empty serialized object."""
+
+    return {
+        "full_access_path": "",
+        "value": None,
+        "type": "None",
+        "doc": None,
+        "readonly": False,
+    }
+
+
+def ensure_exists(
+    container: dict[str, SerializedObject], key: str, *, allow_add_key: bool
+) -> SerializedObject:
+    """Ensure the key exists in the dictionary, append if necessary and allowed."""
+
+    try:
+        return container[key]
+    except KeyError:
+        if not allow_add_key:
+            raise SerializationPathError(f"Key '{key}' does not exist.")
+        container[key] = create_empty_serialized_object()
+        return container[key]
+
+
+def get_nested_value(
+    obj: SerializedObject, key: Any, allow_append: bool
+) -> SerializedObject:
+    """Retrieve or append the nested value based on the key."""
+
+    value = cast(list[SerializedObject] | dict[Any, SerializedObject], obj["value"])
+    try:
+        return value[key]
+    except KeyError:
+        if allow_append:
+            value[key] = create_empty_serialized_object()
+            return value[key]
+        raise
+    except IndexError:
+        if allow_append and key == len(value):
+            cast(list[SerializedObject], value).append(create_empty_serialized_object())
+            return value[key]
+        raise
+
+
 def get_next_level_dict_by_key(
     serialization_dict: dict[str, SerializedObject],
     attr_name: str,
@@ -383,81 +429,68 @@ def get_next_level_dict_by_key(
     allow_append: bool = False,
 ) -> SerializedObject:
     """
-    Retrieve a nested dictionary entry or list item from a data structure serialized
-    with `pydase.utils.serializer.Serializer`.
+    Retrieve a nested dictionary entry or list item from a serialized data structure.
+
+    This function supports deep retrieval from a nested serialization structure
+    based on an attribute name that may specify direct keys or indexed list elements.
+    If specified keys or indexes do not exist, the function can append new elements
+    to lists if `allow_append` is True and the missing element is exactly the next
+    sequential index.
 
     Args:
-        serialization_dict: The base dictionary representing serialized data.
-        attr_name: The key name representing the attribute in the dictionary,
-            e.g. 'list_attr[0]' or 'attr'
-        allow_append: Flag to allow appending a new entry if `index` is out of range by
-            one.
+        serialization_dict: dict[str, SerializedObject]
+            The base dictionary representing serialized data.
+        attr_name: str
+            The key name representing the attribute in the dictionary, which may include
+            direct keys or indexes (e.g., 'list_attr[0]', 'dict_attr["key"]' or 'attr').
+        allow_append: bool
+            Flag to allow appending a new entry if the specified index is out of range
+            by exactly one position.
 
     Returns:
-        The dictionary or list item corresponding to the attribute and index.
+        SerializedObject
+            The dictionary or list item corresponding to the specified attribute and
+            index.
 
     Raises:
-        SerializationPathError: If the path composed of `attr_name` and `index` is
-                                invalid or leads to an IndexError or KeyError.
-        SerializationValueError: If the expected nested structure is not a dictionary.
+        SerializationPathError:
+            If the path composed of `attr_name` and any specified index is invalid, or
+            leads to an IndexError or KeyError. This error is also raised if an attempt
+            to access a nonexistent key or index occurs without permission to append.
+        SerializationValueError:
+            If the retrieval results in an object that is expected to be a dictionary
+            but is not, indicating a mismatch between expected and actual serialized
+            data structure.
     """
-    # Check if the key contains an index part like 'attr_name[<index>]'
-    attr_name, index = parse_keyed_attribute(attr_name)
 
-    try:
-        if index is not None:
-            next_level_serialized_object = cast(
-                list[SerializedObject], serialization_dict[attr_name]["value"]
-            )[index]
-        else:
-            next_level_serialized_object = serialization_dict[attr_name]
-    except IndexError as e:
-        if (
-            index is not None
-            and allow_append
-            and index
-            == len(cast(list[SerializedObject], serialization_dict[attr_name]["value"]))
-        ):
-            # Appending to list
-            cast(list[SerializedObject], serialization_dict[attr_name]["value"]).append(
-                {
-                    "full_access_path": "",
-                    "value": None,
-                    "type": "None",
-                    "doc": None,
-                    "readonly": False,
-                }
-            )
-            next_level_serialized_object = cast(
-                list[SerializedObject], serialization_dict[attr_name]["value"]
-            )[index]
-        else:
-            raise SerializationPathError(
-                f"Error occured trying to change '{attr_name}[{index}]': {e}"
-            )
-    except KeyError:
-        if not allow_append:
-            raise SerializationPathError(
-                f"Error occured trying to access the key '{attr_name}': it is either "
-                "not present in the current dictionary or its value does not contain "
-                "a 'value' key."
-            )
-        serialization_dict[attr_name] = {
-            "full_access_path": "",
-            "value": None,
-            "type": "None",
-            "doc": None,
-            "readonly": False,
-        }
-        next_level_serialized_object = serialization_dict[attr_name]
+    # Implementation remains the same as the earlier code snippet
+    # Check if the key contains an index part like 'attr_name[<key>]'
+    attr_name, key = parse_keyed_attribute(attr_name)
 
-    if not isinstance(next_level_serialized_object, dict):
+    # Add the attr_name key to the serialized object if it does not exist AND the key
+    # is None. Otherwise, we are trying to add a key-value pair/item to a non-existing
+    # object
+    serialized_object = ensure_exists(
+        serialization_dict, attr_name, allow_add_key=allow_append and key is None
+    )
+
+    if key is not None:
+        try:
+            serialized_object = get_nested_value(
+                serialized_object, key, allow_append=allow_append
+            )
+        except (KeyError, IndexError) as e:
+            raise SerializationPathError(
+                f"Error occured trying to change 'attr_list[10]': {e}"
+            )
+
+    if not isinstance(serialized_object, dict):
         raise SerializationValueError(
             f"Expected a dictionary at '{attr_name}', but found type "
-            f"'{type(next_level_serialized_object).__name__}' instead."
+            f"'{type(serialized_object).__name__}' instead."
         )
 
-    return next_level_serialized_object
+    return serialized_object
 
 
 def generate_serialized_data_paths(
