@@ -1,7 +1,7 @@
 import asyncio
 import enum
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 import pydase
 import pydase.units as u
@@ -470,18 +470,135 @@ def test_derived_data_service_serialization() -> None:
 def setup_dict() -> dict[str, Any]:
     class MySubclass(pydase.DataService):
         attr3 = 1.0
-        list_attr = [1.0, 1]
+        list_attr: ClassVar[list[Any]] = [1.0, 1]
 
     class ServiceClass(pydase.DataService):
         attr1 = 1.0
         attr2 = MySubclass()
         enum_attr = MyEnum.RUNNING
-        attr_list = [0, 1, MySubclass()]
+        attr_list: ClassVar[list[Any]] = [0, 1, MySubclass()]
+        dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0}
 
         def my_task(self) -> None:
             pass
 
     return ServiceClass().serialize()["value"]  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "attr_name, allow_append, expected",
+    [
+        (
+            "attr1",
+            False,
+            {
+                "doc": None,
+                "full_access_path": "attr1",
+                "readonly": False,
+                "type": "float",
+                "value": 1.0,
+            },
+        ),
+        (
+            "attr_list[0]",
+            False,
+            {
+                "doc": None,
+                "full_access_path": "attr_list[0]",
+                "readonly": False,
+                "type": "int",
+                "value": 0,
+            },
+        ),
+        (
+            "attr_list[3]",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            "attr_list[3]",
+            False,
+            SerializationPathError,
+        ),
+        (
+            "dict_attr['foo']",
+            False,
+            {
+                "full_access_path": 'dict_attr["foo"]',
+                "value": 1.0,
+                "type": "float",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            "dict_attr['unset_key']",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            "dict_attr['unset_key']",
+            False,
+            SerializationPathError,
+        ),
+        (
+            "invalid_path",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            "invalid_path",
+            False,
+            SerializationPathError,
+        ),
+        # you should not be able to set an item of a thing that does not exist
+        (
+            'invalid_path["some_key"]',
+            True,
+            SerializationPathError,
+        ),
+        (
+            "invalid_path[0]",  # no way of knowing if that should be a dict / list
+            True,
+            SerializationPathError,
+        ),
+    ],
+)
+def test_get_next_level_dict_by_key(
+    setup_dict: dict[str, Any], attr_name: str, allow_append: bool, expected: Any
+) -> None:
+    if isinstance(expected, type) and issubclass(expected, Exception):
+        with pytest.raises(expected):
+            get_next_level_dict_by_key(setup_dict, attr_name, allow_append=allow_append)
+    else:
+        nested_dict = get_next_level_dict_by_key(
+            setup_dict, attr_name, allow_append=allow_append
+        )
+        assert nested_dict == expected
 
 
 def test_update_attribute(setup_dict: dict[str, Any]) -> None:
@@ -578,26 +695,6 @@ def test_update_list_inside_class(setup_dict: dict[str, Any]) -> None:
 def test_update_class_attribute_inside_list(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50  # noqa
-
-
-def test_get_next_level_attribute_nested_dict(setup_dict: dict[str, Any]) -> None:
-    nested_dict = get_next_level_dict_by_key(setup_dict, "attr1")
-    assert nested_dict == setup_dict["attr1"]
-
-
-def test_get_next_level_list_entry_nested_dict(setup_dict: dict[str, Any]) -> None:
-    nested_dict = get_next_level_dict_by_key(setup_dict, "attr_list[0]")
-    assert nested_dict == setup_dict["attr_list"]["value"][0]
-
-
-def test_get_next_level_invalid_path_nested_dict(setup_dict: dict[str, Any]) -> None:
-    with pytest.raises(SerializationPathError):
-        get_next_level_dict_by_key(setup_dict, "invalid_path")
-
-
-def test_get_next_level_invalid_list_index(setup_dict: dict[str, Any]) -> None:
-    with pytest.raises(SerializationPathError):
-        get_next_level_dict_by_key(setup_dict, "attr_list[10]")
 
 
 def test_get_attribute(setup_dict: dict[str, Any]) -> None:
