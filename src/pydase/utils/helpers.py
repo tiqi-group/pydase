@@ -50,9 +50,7 @@ def parse_serialized_key(serialized_key: str) -> str | int | float:
 def parse_full_access_path(path: str) -> list[str]:
     """
     Splits a full access path into its atomic parts, separating attribute names, numeric
-    indices, and string keys within indices.
-
-    The reverse function is given by `get_path_from_path_parts`.
+    indices (including floating points), and string keys within indices.
 
     Args:
         path: str
@@ -63,10 +61,13 @@ def parse_full_access_path(path: str) -> list[str]:
             A list of components that make up the path, including attribute names,
             numeric indices, and string keys as separate elements.
     """
-    # <word_with_underscore> | [<any number of digits>]
-    #                        | ["<anything except ">"]
-    #                        | ['<anything except '>']
-    pattern = r'\w+|\[\d+\]|\["[^"]*"\]|\[\'[^\']*\']'
+    # Matches:
+    # \w+ - Words
+    # \[\d+\.\d+\] - Floating point numbers inside brackets
+    # \[\d+\] - Integers inside brackets
+    # \["[^"]*"\] - Double-quoted strings inside brackets
+    # \['[^']*'\] - Single-quoted strings inside brackets
+    pattern = r'\w+|\[\d+\.\d+\]|\[\d+\]|\["[^"]*"\]|\[\'[^\']*\']'
     return re.findall(pattern, path)
 
 
