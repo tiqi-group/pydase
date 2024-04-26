@@ -41,6 +41,7 @@ def test_parse_serialized_key(serialized_key: str, expected: str) -> None:
             'dict_attr["some_key"].attr_name["other_key"]',
             ["dict_attr", '["some_key"]', "attr_name", '["other_key"]'],
         ),
+        ("dict_attr[2.1]", ["dict_attr", "[2.1]"]),
     ],
 )
 def test_parse_full_access_path(full_access_path: str, expected: list[str]) -> None:
@@ -62,6 +63,7 @@ def test_parse_full_access_path(full_access_path: str, expected: list[str]) -> N
             ["dict_attr", '["some_key"]', "attr_name", '["other_key"]'],
             'dict_attr["some_key"].attr_name["other_key"]',
         ),
+        (["dict_attr", "[2.1]"], "dict_attr[2.1]"),
     ],
 )
 def test_get_path_from_path_parts(path_parts: list[str], expected: str) -> None:
@@ -80,7 +82,7 @@ class MyService(pydase.DataService):
         self.some_float = 1.0
         self.subservice = SubService()
         self.list_attr = [1.0, SubService()]
-        self.dict_attr = {"foo": SubService()}
+        self.dict_attr = {"foo": SubService(), 2.1: "float_as_key"}
 
 
 service_instance = MyService()
@@ -94,7 +96,8 @@ service_instance = MyService()
         (["list_attr", "[0]"], service_instance.list_attr[0]),
         (["list_attr", "[1]"], service_instance.list_attr[1]),
         (["dict_attr", '["foo"]'], service_instance.dict_attr["foo"]),
-        (["dict_attr", '["foo"]', "name"], service_instance.dict_attr["foo"].name),
+        (["dict_attr", '["foo"]', "name"], service_instance.dict_attr["foo"].name),  # type: ignore
+        (["dict_attr", "[2.1]"], service_instance.dict_attr[2.1]),
     ],
 )
 def test_get_object_by_path_parts(path_parts: list[str], expected: Any) -> None:
@@ -143,35 +146,16 @@ def test_is_property_attribute(attr_name: str, expected: bool) -> None:
     assert is_property_attribute(dummy, attr_name) == expected
 
 
-def test_get_object_attr_from_path() -> None:
-    class SubService(pydase.DataService):
-        name = "SubService"
-        some_int = 1
-        some_float = 1.0
-
-    class MyService(pydase.DataService):
-        def __init__(self) -> None:
-            super().__init__()
-            self.some_float = 1.0
-            self.subservice = SubService()
-            self.list_attr = [1.0, SubService()]
-            self.dict_attr = {"foo": SubService()}
-
-    service_instance = MyService()
-
-    for attr_name, obj in [
+@pytest.mark.parametrize(
+    "path, expected",
+    [
         ("some_float", service_instance.some_float),
         ("subservice", service_instance.subservice),
         ("list_attr[0]", service_instance.list_attr[0]),
         ("list_attr[1]", service_instance.list_attr[1]),
         ("dict_attr['foo']", service_instance.dict_attr["foo"]),
-    ]:
-        assert get_object_attr_from_path(service_instance, attr_name) == obj
-
-
-# def test_get_nested_dict_by_path() -> None:
-#     obj = {"2.1": "foo", 2.1: "bar"}
-#     serialized_object = {
-#         "dict_attr": dump(obj=obj),
-#     }
-#     assert get_nested_dict_by_path(serialized_object, 'dict_attr["2.1"]') == {}
+        ("dict_attr[2.1]", service_instance.dict_attr[2.1]),
+    ],
+)
+def test_get_object_attr_from_path(path: str, expected: Any) -> None:
+    assert get_object_attr_from_path(service_instance, path) == expected
