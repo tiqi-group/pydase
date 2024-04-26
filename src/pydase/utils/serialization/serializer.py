@@ -9,13 +9,13 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
 from pydase.data_service.task_manager import TaskStatus
+from pydase.utils.decorators import render_in_frontend
 from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
     parse_full_access_path,
     parse_serialized_key,
-    render_in_frontend,
 )
 from pydase.utils.serialization.types import (
     DataServiceTypes,

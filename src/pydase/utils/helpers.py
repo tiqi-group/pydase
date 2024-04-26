@@ -150,43 +150,6 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     return get_object_by_path_parts(target_obj, path_parts)
 
 
-def update_value_if_changed(
-    target: Any, attr_name_or_index: str | int, new_value: Any
-) -> None:
-    """
-    Updates the value of an attribute or a list element on a target object if the new
-    value differs from the current one.
-
-    This function supports updating both attributes of an object and elements of a list.
-
-    - For objects, the function first checks the current value of the attribute. If the
-      current value differs from the new value, the function updates the attribute.
-
-    - For lists, the function checks the current value at the specified index. If the
-      current value differs from the new value, the function updates the list element
-      at the given index.
-
-    Args:
-        target (Any):
-            The target object that has the attribute or the list.
-        attr_name_or_index (str | int):
-            The name of the attribute or the index of the list element.
-        new_value (Any):
-            The new value for the attribute or the list element.
-    """
-
-    if isinstance(target, list) and isinstance(attr_name_or_index, int):
-        if target[attr_name_or_index] != new_value:
-            target[attr_name_or_index] = new_value
-    elif isinstance(attr_name_or_index, str):
-        # If the type matches and the current value is different from the new value,
-        # update the attribute.
-        if getattr(target, attr_name_or_index) != new_value:
-            setattr(target, attr_name_or_index, new_value)
-    else:
-        logger.error("Incompatible arguments: %s, %s.", target, attr_name_or_index)
-
-
 def get_component_classes() -> list[type]:
     """
     Returns references to the component classes in a list.
@@ -221,17 +184,3 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
     if len(parameters) > 0:
         return True
     return False
-
-
-def render_in_frontend(func: Callable[..., Any]) -> bool:
-    """Determines if the method should be rendered in the frontend.
-
-    It checks if the "@frontend" decorator was used or the method is a coroutine."""
-
-    if inspect.iscoroutinefunction(func):
-        return True
-
-    try:
-        return func._display_in_frontend  # type: ignore
-    except AttributeError:
-        return False

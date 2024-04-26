@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Callable
 from typing import Any
 
@@ -25,3 +26,17 @@ def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
     # Mark the function for frontend display.
     func._display_in_frontend = True  # type: ignore
     return func
+
+
+def render_in_frontend(func: Callable[..., Any]) -> bool:
+    """Determines if the method should be rendered in the frontend.
+
+    It checks if the "@frontend" decorator was used or the method is a coroutine."""
+
+    if inspect.iscoroutinefunction(func):
+        return True
+
+    try:
+        return func._display_in_frontend  # type: ignore
+    except AttributeError:
+        return False
