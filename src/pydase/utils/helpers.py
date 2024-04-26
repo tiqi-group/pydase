@@ -9,18 +9,42 @@ logger = logging.getLogger(__name__)
 
 
 def parse_serialized_key(serialized_key: str) -> str | int | float:
-    processed_key: int | float | str = serialized_key
-    if serialized_key.startswith("["):
-        assert serialized_key.endswith("]")
-        processed_key = serialized_key[1:-1]
-        if '"' in processed_key or "'" in processed_key:
-            processed_key = processed_key[1:-1]
-        elif "." in processed_key:
-            processed_key = float(processed_key)
-        else:
-            processed_key = int(processed_key)
+    """
+    Parse a serialized key and convert it to an appropriate type (int, float, or str).
 
-    return processed_key
+    Args:
+        serialized_key: str
+            The serialized key, which might be enclosed in brackets and quotes.
+
+    Returns:
+        int | float | str:
+            The processed key as an integer, float, or unquoted string.
+
+    Examples:
+        ```python
+        print(parse_serialized_key("attr_name"))  # Outputs: attr_name  (str)
+        print(parse_serialized_key("[123]"))  # Outputs: 123  (int)
+        print(parse_serialized_key("[12.3]"))  # Outputs: 12.3  (float)
+        print(parse_serialized_key("['hello']"))  # Outputs: hello  (str)
+        print(parse_serialized_key('["12.34"]'))  # Outputs: 12.34  (str)
+        print(parse_serialized_key('["complex"]'))  # Outputs: complex  (str)
+        ```
+    """
+
+    # Strip outer brackets if present
+    if serialized_key.startswith("[") and serialized_key.endswith("]"):
+        serialized_key = serialized_key[1:-1]
+
+    # Strip quotes if the resulting string is quoted
+    if serialized_key.startswith(("'", '"')) and serialized_key.endswith(("'", '"')):
+        return serialized_key[1:-1]
+
+    # Try converting to float or int if the string is not quoted
+    try:
+        return float(serialized_key) if "." in serialized_key else int(serialized_key)
+    except ValueError:
+        # Return the original string if it's not a valid number
+        return serialized_key
 
 
 def parse_full_access_path(path: str) -> list[str]:

@@ -8,7 +8,22 @@ from pydase.utils.helpers import (
     get_path_from_path_parts,
     is_property_attribute,
     parse_full_access_path,
+    parse_serialized_key,
 )
+
+
+@pytest.mark.parametrize(
+    "serialized_key, expected",
+    [
+        ("attr_name", "attr_name"),
+        ("[0]", 0),
+        ("[0.0]", 0.0),
+        ('["some_key"]', "some_key"),
+        ('["12.34"]', "12.34"),
+    ],
+)
+def test_parse_serialized_key(serialized_key: str, expected: str) -> None:
+    assert parse_serialized_key(serialized_key) == expected
 
 
 @pytest.mark.parametrize(
