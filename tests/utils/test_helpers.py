@@ -103,6 +103,11 @@ def test_get_object_by_path_parts(path_parts: list[str], expected: Any) -> None:
     assert get_object_by_path_parts(service_instance, path_parts) == expected
 
 
+def test_get_object_by_path_parts_error(caplog: pytest.LogCaptureFixture) -> None:
+    assert get_object_by_path_parts(service_instance, ["non_existent_attr"]) is None
+    assert "Attribute 'non_existent_attr' does not exist in the object." in caplog.text
+
+
 @pytest.mark.parametrize(
     "attr_name, expected",
     [
