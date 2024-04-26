@@ -126,7 +126,7 @@ def get_object_by_path_parts(target_obj: Any, path_parts: list[str]) -> Any:
             try:
                 target_obj = getattr(target_obj, part)
             except AttributeError:
-                logger.debug("Attribute % does not exist in the object.", part)
+                logger.debug("Attribute %a does not exist in the object.", part)
                 return None
     return target_obj
 

@@ -3,7 +3,6 @@ from typing import Any
 import pydase
 import pytest
 from pydase.utils.helpers import (
-    get_object_attr_from_path,
     get_object_by_path_parts,
     get_path_from_path_parts,
     is_property_attribute,
@@ -144,18 +143,3 @@ def test_is_property_attribute(attr_name: str, expected: bool) -> None:
 
     dummy = DummyClass()
     assert is_property_attribute(dummy, attr_name) == expected
-
-
-@pytest.mark.parametrize(
-    "path, expected",
-    [
-        ("some_float", service_instance.some_float),
-        ("subservice", service_instance.subservice),
-        ("list_attr[0]", service_instance.list_attr[0]),
-        ("list_attr[1]", service_instance.list_attr[1]),
-        ("dict_attr['foo']", service_instance.dict_attr["foo"]),
-        ("dict_attr[2.1]", service_instance.dict_attr[2.1]),
-    ],
-)
-def test_get_object_attr_from_path(path: str, expected: Any) -> None:
-    assert get_object_attr_from_path(service_instance, path) == expected
