@@ -170,7 +170,9 @@ def get_data_service_class_reference() -> Any:
 def is_property_attribute(target_obj: Any, access_path: str) -> bool:
     path_parts = parse_full_access_path(access_path)
     target_obj = get_object_by_path_parts(target_obj, path_parts[:-1])
-    # TODO: check if target_obj is dict or list
+
+    # don't have to check if target_obj is dict or list as their content cannot be
+    # properties -> always return False then
     return isinstance(getattr(type(target_obj), path_parts[-1], None), property)
 
 

@@ -108,13 +108,29 @@ def test_get_object_by_path_parts(path_parts: list[str], expected: Any) -> None:
         ("my_property", True),
         ("my_method", False),
         ("non_existent_attr", False),
+        ("nested_class_instance", False),
+        ("nested_class_instance.my_property", True),
+        ("list_attr", False),
+        ("list_attr[0]", False),
+        ("list_attr[0].my_property", True),
+        ("dict_attr", False),
+        ("dict_attr['foo']", False),
+        ("dict_attr['foo'].my_property", True),
     ],
 )
 def test_is_property_attribute(attr_name: str, expected: bool) -> None:
+    class NestedClass:
+        @property
+        def my_property(self) -> str:
+            return "I'm a nested property"
+
     # Test Suite
     class DummyClass:
         def __init__(self) -> None:
             self.regular_attribute = "I'm just an attribute"
+            self.nested_class_instance = NestedClass()
+            self.list_attr = [NestedClass()]
+            self.dict_attr = {"foo": NestedClass()}
 
         @property
         def my_property(self) -> str:
