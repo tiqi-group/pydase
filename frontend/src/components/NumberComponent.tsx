@@ -352,6 +352,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
           type="text"
           value={inputString}
           disabled={readOnly}
+          onChange={() => {}}
           name={fullAccessPath}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
