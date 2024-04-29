@@ -7,19 +7,129 @@ export type State = {
   doc: string | null;
 };
 
+/**
+ * Splits a full access path into its atomic parts, separating attribute names, numeric
+ * indices (including floating points), and string keys within indices.
+ *
+ * @param path The full access path string to be split into components.
+ * @returns An array of components that make up the path, including attribute names,
+ *          numeric indices, and string keys as separate elements.
+ */
+function parseFullAccessPath(path: string): string[] {
+  // The pattern matches:
+  // \w+ - Words
+  // \[\d+\.\d+\] - Floating point numbers inside brackets
+  // \[\d+\] - Integers inside brackets
+  // \["[^"]*"\] - Double-quoted strings inside brackets
+  // \['[^']*'\] - Single-quoted strings inside brackets
+  const pattern = /\w+|\[\d+\.\d+\]|\[\d+\]|\["[^"]*"\]|\['[^']*'\]/g;
+  const matches = path.match(pattern);
+
+  return matches ?? []; // Return an empty array if no matches found
+}
+
+/**
+ * Parse a serialized key and convert it to an appropriate type (number or string).
+ *
+ * @param serializedKey The serialized key, which might be enclosed in brackets and quotes.
+ * @returns The processed key as a number or an unquoted string.
+ *
+ * Examples:
+ * console.log(parseSerializedKey("attr_name"));  // Outputs: attr_name  (string)
+ * console.log(parseSerializedKey("[123]"));      // Outputs: 123  (number)
+ * console.log(parseSerializedKey("[12.3]"));     // Outputs: 12.3  (number)
+ * console.log(parseSerializedKey("['hello']"));  // Outputs: hello  (string)
+ * console.log(parseSerializedKey('["12.34"]'));  // Outputs: "12.34"  (string)
+ * console.log(parseSerializedKey('["complex"]'));// Outputs: "complex"  (string)
+ */
+function parseSerializedKey(serializedKey: string): string | number {
+  // Strip outer brackets if present
+  if (serializedKey.startsWith('[') && serializedKey.endsWith(']')) {
+    serializedKey = serializedKey.slice(1, -1);
+  }
+
+  // Strip quotes if the resulting string is quoted
+  if (
+    (serializedKey.startsWith("'") && serializedKey.endsWith("'")) ||
+    (serializedKey.startsWith('"') && serializedKey.endsWith('"'))
+  ) {
+    return serializedKey.slice(1, -1);
+  }
+
+  // Try converting to a number if the string is not quoted
+  const parsedNumber = parseFloat(serializedKey);
+  if (!isNaN(parsedNumber)) {
+    return parsedNumber;
+  }
+
+  // Return the original string if it's not a valid number
+  return serializedKey;
+}
+
+function getOrCreateItemInContainer(
+  container: Record<string | number, SerializedValue> | SerializedValue[],
+  key: string | number,
+  allowAddKey: boolean
+): SerializedValue {
+  // Check if the key exists and return the item if it does
+  if (key in container) {
+    return container[key];
+  }
+
+  // Handling the case where the key does not exist
+  if (Array.isArray(container)) {
+    // Handling arrays
+    if (allowAddKey && key === container.length) {
+      container.push(createEmptySerializedObject());
+      return container[key];
+    }
+    throw new Error(`Index out of bounds: ${key}`);
+  } else {
+    // Handling objects
+    if (allowAddKey) {
+      container[key] = createEmptySerializedObject();
+      return container[key];
+    }
+    throw new Error(`Key not found: ${key}`);
+  }
+}
+
+/**
+ * Retrieve an item from a container specified by the passed key. Add an item to the
+ * container if allowAppend is set to True.
+ *
+ * @param container Either a dictionary or list of serialized objects.
+ * @param key The key name or index (as a string) representing the attribute in the container.
+ * @param allowAppend Whether to allow appending a new entry if the specified index is out of range by exactly one position.
+ * @returns The serialized object corresponding to the specified key.
+ * @throws SerializationPathError If the key is invalid or leads to an access error without append permissions.
+ * @throws SerializationValueError If the expected structure is incorrect.
+ */
+function getContainerItemByKey(
+  container: Record<string, SerializedValue> | SerializedValue[],
+  key: string,
+  allowAppend: boolean = false
+): SerializedValue {
+  const processedKey = parseSerializedKey(key);
+
+  try {
+    return getOrCreateItemInContainer(container, processedKey, allowAppend);
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new Error(`Index '${processedKey}': ${error.message}`);
+    } else if (error instanceof Error) {
+      throw new Error(`Key '${processedKey}': ${error.message}`);
+    }
+    throw error; // Re-throw if it's not a known error type
+  }
+}
+
 export function setNestedValueByPath(
   serializationDict: Record<string, SerializedValue>,
   path: string,
   serializedValue: SerializedValue
 ): Record<string, SerializedValue> {
-  const parentPathParts = path.split('.').slice(0, -1);
-  const attrName = path.split('.').pop();
-
-  if (!attrName) {
-    throw new Error('Invalid path');
-  }
-
-  let currentSerializedValue: SerializedValue;
+  const pathParts = parseFullAccessPath(path);
   const newSerializationDict: Record<string, SerializedValue> = JSON.parse(
     JSON.stringify(serializationDict)
   );
@@ -27,99 +137,36 @@ export function setNestedValueByPath(
   let currentDict = newSerializationDict;
 
   try {
-    for (const pathPart of parentPathParts) {
-      currentSerializedValue = getNextLevelDictByKey(currentDict, pathPart, false);
-      // @ts-expect-error The value will be of type SerializedValue as we are still
-      // looping through the parent parts
-      currentDict = currentSerializedValue['value'];
+    for (let i = 0; i < pathParts.length - 1; i++) {
+      const pathPart = pathParts[i];
+      const nextLevelSerializedObject = getContainerItemByKey(
+        currentDict,
+        pathPart,
+        false
+      );
+      currentDict = nextLevelSerializedObject['value'] as Record<
+        string,
+        SerializedValue
+      >;
     }
 
-    currentSerializedValue = getNextLevelDictByKey(currentDict, attrName, true);
+    const finalPart = pathParts[pathParts.length - 1];
+    const finalObject = getContainerItemByKey(currentDict, finalPart, true);
 
-    Object.assign(currentSerializedValue, serializedValue);
+    Object.assign(finalObject, serializedValue);
+
     return newSerializationDict;
   } catch (error) {
-    console.error(error);
-    return currentDict;
+    console.error(`Error occurred trying to change ${path}: ${error}`);
   }
 }
 
-function getNextLevelDictByKey(
-  serializationDict: Record<string, SerializedValue>,
-  attrName: string,
-  allowAppend: boolean = false
-): SerializedValue {
-  const [key, index] = parseKeyedAttribute(attrName);
-  let currentDict: SerializedValue;
-
-  try {
-    if (index !== null) {
-      if (!serializationDict[key] || !Array.isArray(serializationDict[key]['value'])) {
-        throw new Error(`Expected an array at '${key}', but found something else.`);
-      }
-
-      if (index < serializationDict[key]['value'].length) {
-        currentDict = serializationDict[key]['value'][index];
-      } else if (allowAppend && index === serializationDict[key]['value'].length) {
-        // Appending to list
-        // @ts-expect-error When the index is not null, I expect an array
-        serializationDict[key]['value'].push({});
-        currentDict = serializationDict[key]['value'][index];
-      } else {
-        throw new Error(`Index out of range for '${key}[${index}]'.`);
-      }
-    } else {
-      if (!serializationDict[key]) {
-        throw new Error(`Key '${key}' not found.`);
-      }
-      currentDict = serializationDict[key];
-    }
-  } catch (error) {
-    throw new Error(`Error occurred trying to access '${attrName}': ${error}`);
-  }
-
-  if (typeof currentDict !== 'object' || currentDict === null) {
-    throw new Error(
-      `Expected a dictionary at '${attrName}', but found type '${typeof currentDict}' instead.`
-    );
-  }
-
-  return currentDict;
-}
-
-function parseKeyedAttribute(attrString: string): [string, string | number | null] {
-  let key: string | number | null = null;
-  let attrName = attrString;
-
-  if (attrString.includes('[') && attrString.endsWith(']')) {
-    const parts = attrString.split('[');
-    attrName = parts[0];
-    const keyPart = parts[1].slice(0, -1); // Removes the closing ']'
-
-    // Check if keyPart is enclosed in quotes
-    if (
-      (keyPart.startsWith('"') && keyPart.endsWith('"')) ||
-      (keyPart.startsWith("'") && keyPart.endsWith("'"))
-    ) {
-      key = keyPart.slice(1, -1); // Remove the quotes
-    } else if (keyPart.includes('.')) {
-      // Check for a floating-point number
-      const parsedFloat = parseFloat(keyPart);
-      if (!isNaN(parsedFloat)) {
-        key = parsedFloat;
-      } else {
-        console.error(`Invalid float format for key: ${keyPart}`);
-      }
-    } else {
-      // Handle integers
-      const parsedInt = parseInt(keyPart);
-      if (!isNaN(parsedInt)) {
-        key = parsedInt;
-      } else {
-        console.error(`Invalid integer format for key: ${keyPart}`);
-      }
-    }
-  }
-
-  return [attrName, key];
+function createEmptySerializedObject(): SerializedValue {
+  return {
+    full_access_path: '',
+    value: undefined,
+    type: 'None',
+    doc: null,
+    readonly: false
+  };
 }
