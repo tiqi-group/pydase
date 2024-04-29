@@ -22,6 +22,7 @@ type AttributeType =
   | 'float'
   | 'int'
   | 'Quantity'
+  | 'None'
   | 'list'
   | 'dict'
   | 'method'
