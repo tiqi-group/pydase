@@ -16,6 +16,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
+from pydase.utils.helpers import get_path_from_path_parts, parse_full_access_path
 from pydase.utils.serialization.serializer import generate_serialized_data_paths
 from pydase.version import __version__
 
@@ -131,8 +132,18 @@ class WebServer:
             if path in current_web_settings:
                 continue
 
+            # Creating the display name by reversely looping through the path parts
+            # until an item does not start with a square bracket, and putting the parts
+            # back together again. This allows for display names like
+            #       >>> 'dict_attr["some.dotted.key"]'
+            display_name_parts: list[str] = []
+            for item in parse_full_access_path(path)[::-1]:
+                display_name_parts.insert(0, item)
+                if not item.startswith("["):
+                    break
+
             current_web_settings[path] = {
-                "displayName": path.split(".")[-1],
+                "displayName": get_path_from_path_parts(display_name_parts),
                 "display": True,
             }
 
