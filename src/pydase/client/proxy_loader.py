@@ -97,6 +97,14 @@ class ProxyDict(dict[str | float, Any]):
 
         update_value(self._sio, self._loop, full_access_path, value)
 
+    def pop(self, key: str) -> Any:
+        """Removes the element from the dictionary on the server. It does not return
+        any proxy as the corresponding object on the server does not live anymore."""
+
+        full_access_path = f"{self._parent_path}.pop"
+
+        trigger_method(self._sio, self._loop, full_access_path, [key], {})
+
 
 class ProxyList(list[Any]):
     def __init__(
