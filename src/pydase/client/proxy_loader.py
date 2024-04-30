@@ -75,10 +75,10 @@ def update_value(
         )
 
 
-class ProxyDict(dict[str | float, Any]):
+class ProxyDict(dict[str, Any]):
     def __init__(
         self,
-        original_dict: dict[str | float, Any],
+        original_dict: dict[str, Any],
         parent_path: str,
         sio_client: socketio.AsyncClient,
         loop: asyncio.AbstractEventLoop,
@@ -88,7 +88,7 @@ class ProxyDict(dict[str | float, Any]):
         self._loop = loop
         self._sio = sio_client
 
-    def __setitem__(self, key: str | float, value: Any) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         observer_key = key
         if isinstance(key, str):
             observer_key = f'"{key}"'
@@ -97,7 +97,7 @@ class ProxyDict(dict[str | float, Any]):
 
         update_value(self._sio, self._loop, full_access_path, value)
 
-    def pop(self, key: str) -> Any:
+    def pop(self, key: str) -> Any:  # type: ignore
         """Removes the element from the dictionary on the server. It does not return
         any proxy as the corresponding object on the server does not live anymore."""
 
@@ -301,7 +301,7 @@ class ProxyLoader:
             {
                 key: ProxyLoader.loads_proxy(value, sio_client, loop)
                 for key, value in cast(
-                    dict[str | float, SerializedObject], serialized_object["value"]
+                    dict[str, SerializedObject], serialized_object["value"]
                 ).items()
             },
             parent_path=serialized_object["full_access_path"],
