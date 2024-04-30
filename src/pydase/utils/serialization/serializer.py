@@ -468,50 +468,82 @@ def get_container_item_by_key(
         raise SerializationPathError(f"Key '{processed_key}': {e}")
 
 
-def generate_serialized_data_paths(
-    data: dict[str, Any], parent_path: str = ""
+def get_data_paths_from_serialized_object(  # noqa: C901
+    serialized_obj: SerializedObject,
+    parent_path: str = "",
 ) -> list[str]:
     """
-    Generate a list of access paths for all attributes in a dictionary representing
-    data serialized with `pydase.utils.serializer.Serializer`, excluding those that are
-    methods. This function handles nested structures, including lists, by generating
-    paths for each element in the nested lists.
+    Recursively extracts full access paths from a serialized object.
 
     Args:
-        data (dict[str, Any]): The dictionary representing serialized data, typically
-            produced by `pydase.utils.serializer.Serializer`.
-        parent_path (str, optional): The base path to prepend to the keys in the `data`
-            dictionary to form the access paths. Defaults to an empty string.
+        serialized_obj (SerializedObject):
+            The dictionary representing the serialization of an object. Produced by
+            `pydase.utils.serializer.Serializer`.
 
     Returns:
-        list[str]: A list of strings where each string is a dot-notation access path
-        to an attribute in the serialized data. For list elements, the path includes
-        the index in square brackets.
+        list[str]:
+            A list of strings, each representing a full access path in the serialized
+            object.
     """
 
     paths: list[str] = []
+
+    if isinstance(serialized_obj["value"], list):
+        for index, value in enumerate(serialized_obj["value"]):
+            new_path = f"{parent_path}[{index}]"
+            paths.append(new_path)
+            if serialized_dict_is_nested_object(value):
+                paths.extend(get_data_paths_from_serialized_object(value, new_path))
+
+    elif serialized_dict_is_nested_object(serialized_obj):
+        for key, value in cast(
+            dict[str, SerializedObject], serialized_obj["value"]
+        ).items():
+            # Serialized dictionaries need to have a different new_path than nested
+            # classes
+            if serialized_obj["type"] == "dict":
+                processed_key = key
+                if isinstance(key, str):
+                    processed_key = f'"{key}"'
+                new_path = f"{parent_path}[{processed_key}]"
+            else:
+                new_path = f"{parent_path}.{key}" if parent_path != "" else key
+
+            paths.append(new_path)
+            if serialized_dict_is_nested_object(value):
+                paths.extend(get_data_paths_from_serialized_object(value, new_path))
+
+    return paths
+
+
+def generate_serialized_data_paths(
+    data: dict[str, SerializedObject],
+) -> list[str]:
+    """
+    Recursively extracts full access paths from a serialized DataService class instance.
+
+    Args:
+        data (dict[str, SerializedObject]):
+            The value of the "value" key of a serialized DataService class instance.
+
+    Returns:
+        list[str]:
+            A list of strings, each representing a full access path in the serialized
+            object.
+    """
+
+    paths: list[str] = []
+
     for key, value in data.items():
-        new_path = f"{parent_path}.{key}" if parent_path else key
-        paths.append(new_path)
+        paths.append(key)
+
         if serialized_dict_is_nested_object(value):
-            if isinstance(value["value"], list):
-                for index, item in enumerate(value["value"]):
-                    indexed_key_path = f"{new_path}[{index}]"
-                    paths.append(indexed_key_path)
-                    if serialized_dict_is_nested_object(item):
-                        paths.extend(
-                            generate_serialized_data_paths(
-                                item["value"], indexed_key_path
-                            )
-                        )
-                continue
-            # TODO: add dict?
-            paths.extend(generate_serialized_data_paths(value["value"], new_path))
+            paths.extend(get_data_paths_from_serialized_object(value, key))
     return paths
 
 
 def serialized_dict_is_nested_object(serialized_dict: SerializedObject) -> bool:
-    return (
-        serialized_dict["type"] != "Quantity"
-        and isinstance(serialized_dict["value"], dict)
-    ) or isinstance(serialized_dict["value"], list)
+    value = serialized_dict["value"]
+    # We are excluding Quantity here as the value corresponding to the "value" key is
+    # a dictionary of the form {"magnitude": ..., "unit": ...}
+    return serialized_dict["type"] != "Quantity" and (isinstance(value, dict | list))
