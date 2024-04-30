@@ -81,7 +81,7 @@ class MyService(pydase.DataService):
         self.some_float = 1.0
         self.subservice = SubService()
         self.list_attr = [1.0, SubService()]
-        self.dict_attr = {"foo": SubService(), 2.1: "float_as_key"}
+        self.dict_attr = {"foo": SubService(), "dotted.key": "float_as_key"}
 
 
 service_instance = MyService()
@@ -96,7 +96,7 @@ service_instance = MyService()
         (["list_attr", "[1]"], service_instance.list_attr[1]),
         (["dict_attr", '["foo"]'], service_instance.dict_attr["foo"]),
         (["dict_attr", '["foo"]', "name"], service_instance.dict_attr["foo"].name),  # type: ignore
-        (["dict_attr", "[2.1]"], service_instance.dict_attr[2.1]),
+        (["dict_attr", '["dotted.key"]'], service_instance.dict_attr["dotted.key"]),
     ],
 )
 def test_get_object_by_path_parts(path_parts: list[str], expected: Any) -> None:
