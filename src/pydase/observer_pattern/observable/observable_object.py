@@ -239,11 +239,10 @@ class _ObservableDict(dict[str, Any], ObservableObject):
 
     def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):
-            logger.warning(
-                "Dictionary key %s is not a string. Converting to string...",
-                key,
+            raise ValueError(
+                f"Invalid key type: {key} ({type(key).__name__}). In pydase services, "
+                "dictionary keys must be strings."
             )
-            key = str(key)
 
         if hasattr(self, "_observers"):
             self._remove_observer_if_observable(f'["{key}"]')
