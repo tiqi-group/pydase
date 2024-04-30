@@ -90,7 +90,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
         </InputGroup.Text>
         <Form.Control
           type="text"
-          name={fullAccessPath}
+          name={id}
           value={inputString}
           disabled={readOnly}
           onChange={handleChange}

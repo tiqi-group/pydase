@@ -73,7 +73,7 @@ class DataService(AbstractDataService):
 
         if not issubclass(
             value_class,
-            (int | float | bool | str | list | Enum | u.Quantity | Observable),
+            (int | float | bool | str | list | dict | Enum | u.Quantity | Observable),
         ):
             logger.warning(
                 "Class '%s' does not inherit from DataService. This may lead to"

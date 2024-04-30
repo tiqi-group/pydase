@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
+from pydase.utils.helpers import parse_serialized_key
+
 if TYPE_CHECKING:
     from pydase.observer_pattern.observer.observer import Observer
 
@@ -81,7 +83,7 @@ class ObservableObject(ABC):
                 )
                 observer._notify_change_start(extended_attr_path)
 
-    def _initialise_new_objects(self, attr_name_or_key: Any, value: Any) -> Any:
+    def _initialise_new_objects(self, attr_name_or_key: str, value: Any) -> Any:
         new_value = value
         if isinstance(value, list):
             if id(value) in self._list_mapping:
@@ -93,14 +95,14 @@ class ObservableObject(ABC):
                 self._list_mapping[id(value)] = new_value
         elif isinstance(value, dict):
             if id(value) in self._dict_mapping:
-                # If the list `value` was already referenced somewhere else
+                # If the dict `value` was already referenced somewhere else
                 new_value = self._dict_mapping[id(value)]
             else:
                 # convert the builtin list into a ObservableList
                 new_value = _ObservableDict(original_dict=value)
                 self._dict_mapping[id(value)] = new_value
         if isinstance(new_value, ObservableObject):
-            new_value.add_observer(self, str(attr_name_or_key))
+            new_value.add_observer(self, attr_name_or_key)
         return new_value
 
     @abstractmethod
@@ -224,7 +226,7 @@ class _ObservableList(ObservableObject, list[Any]):
         return instance_attr_name
 
 
-class _ObservableDict(dict[str, Any], ObservableObject):
+class _ObservableDict(ObservableObject, dict[str, Any]):
     def __init__(
         self,
         original_dict: dict[str, Any],
@@ -233,24 +235,26 @@ class _ObservableDict(dict[str, Any], ObservableObject):
         ObservableObject.__init__(self)
         dict.__init__(self)
         for key, value in self._original_dict.items():
-            super().__setitem__(key, self._initialise_new_objects(f"['{key}']", value))
+            self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
 
     def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):
-            logger.warning("Converting non-string dictionary key %s to string.", key)
-            key = str(key)
+            raise ValueError(
+                f"Invalid key type: {key} ({type(key).__name__}). In pydase services, "
+                "dictionary keys must be strings."
+            )
 
         if hasattr(self, "_observers"):
-            self._remove_observer_if_observable(f"['{key}']")
-            value = self._initialise_new_objects(key, value)
-            self._notify_change_start(f"['{key}']")
+            self._remove_observer_if_observable(f'["{key}"]')
+            value = self._initialise_new_objects(f'["{key}"]', value)
+            self._notify_change_start(f'["{key}"]')
 
         super().__setitem__(key, value)
 
-        self._notify_changed(f"['{key}']", value)
+        self._notify_changed(f'["{key}"]', value)
 
     def _remove_observer_if_observable(self, name: str) -> None:
-        key = name[2:-2]
+        key = str(parse_serialized_key(name))
         current_value = self.get(key, None)
 
         if isinstance(current_value, ObservableObject):
@@ -262,3 +266,11 @@ class _ObservableDict(dict[str, Any], ObservableObject):
         if observer_attr_name != "":
             return f"{observer_attr_name}{instance_attr_name}"
         return instance_attr_name
+
+    def pop(self, key: str) -> Any:  # type: ignore[override]
+        self._remove_observer_if_observable(f'["{key}"]')
+
+        popped_item = super().pop(key)
+
+        self._notify_changed("", self)
+        return popped_item

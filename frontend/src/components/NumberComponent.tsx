@@ -328,9 +328,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   useEffect(() => {
     // Set the cursor position after the component re-renders
-    const inputElement = document.getElementsByName(
-      fullAccessPath
-    )[0] as HTMLInputElement;
+    const inputElement = document.getElementsByName(id)[0] as HTMLInputElement;
     if (inputElement && cursorPosition !== null) {
       inputElement.setSelectionRange(cursorPosition, cursorPosition);
     }
@@ -352,7 +350,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
           type="text"
           value={inputString}
           disabled={readOnly}
-          name={fullAccessPath}
+          onChange={() => {}}
+          name={id}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}

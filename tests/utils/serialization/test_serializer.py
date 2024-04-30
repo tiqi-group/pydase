@@ -1,7 +1,7 @@
 import asyncio
 import enum
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 import pydase
 import pydase.units as u
@@ -13,8 +13,10 @@ from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializedObject,
     dump,
+    generate_serialized_data_paths,
+    get_container_item_by_key,
+    get_data_paths_from_serialized_object,
     get_nested_dict_by_path,
-    get_next_level_dict_by_key,
     serialized_dict_is_nested_object,
     set_nested_value_by_path,
 )
@@ -25,6 +27,26 @@ class MyEnum(enum.Enum):
 
     RUNNING = "running"
     FINISHED = "finished"
+
+
+class MySubclass(pydase.DataService):
+    attr3 = 1.0
+    list_attr: ClassVar[list[Any]] = [1.0, 1]
+    some_quantity: u.Quantity = 1.0 * u.units.A
+
+
+class ServiceClass(pydase.DataService):
+    attr1 = 1.0
+    attr2 = MySubclass()
+    enum_attr = MyEnum.RUNNING
+    attr_list: ClassVar[list[Any]] = [0, 1, MySubclass()]
+    dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0, "bar": {"foo": "bar"}}
+
+    def my_task(self) -> None:
+        pass
+
+
+service_instance = ServiceClass()
 
 
 @pytest.mark.parametrize(
@@ -378,7 +400,7 @@ def test_dict_serialization() -> None:
 
     test_dict = {
         "int_key": 1,
-        "float_key": 1.0,
+        "1.0": 1.0,
         "bool_key": True,
         "Quantity_key": 1.0 * u.units.s,
         "DataService_key": MyClass(),
@@ -420,8 +442,8 @@ def test_dict_serialization() -> None:
                 "type": "bool",
                 "value": True,
             },
-            "float_key": {
-                "full_access_path": '["float_key"]',
+            "1.0": {
+                "full_access_path": '["1.0"]',
                 "doc": None,
                 "readonly": False,
                 "type": "float",
@@ -468,20 +490,123 @@ def test_derived_data_service_serialization() -> None:
 
 @pytest.fixture
 def setup_dict() -> dict[str, Any]:
-    class MySubclass(pydase.DataService):
-        attr3 = 1.0
-        list_attr = [1.0, 1]
-
-    class ServiceClass(pydase.DataService):
-        attr1 = 1.0
-        attr2 = MySubclass()
-        enum_attr = MyEnum.RUNNING
-        attr_list = [0, 1, MySubclass()]
-
-        def my_task(self) -> None:
-            pass
-
     return ServiceClass().serialize()["value"]  # type: ignore
+
+
+@pytest.mark.parametrize(
+    "serialized_object, attr_name, allow_append, expected",
+    [
+        (
+            dump(service_instance)["value"],
+            "attr1",
+            False,
+            {
+                "doc": None,
+                "full_access_path": "attr1",
+                "readonly": False,
+                "type": "float",
+                "value": 1.0,
+            },
+        ),
+        (
+            dump(service_instance.attr_list)["value"],
+            "[0]",
+            False,
+            {
+                "doc": None,
+                "full_access_path": "[0]",
+                "readonly": False,
+                "type": "int",
+                "value": 0,
+            },
+        ),
+        (
+            dump(service_instance.attr_list)["value"],
+            "[3]",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            dump(service_instance.attr_list)["value"],
+            "[3]",
+            False,
+            SerializationPathError,
+        ),
+        (
+            dump(service_instance.dict_attr)["value"],
+            "['foo']",
+            False,
+            {
+                "full_access_path": '["foo"]',
+                "value": 1.0,
+                "type": "float",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            dump(service_instance.dict_attr)["value"],
+            "['unset_key']",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            dump(service_instance.dict_attr)["value"],
+            "['unset_key']",
+            False,
+            SerializationPathError,
+        ),
+        (
+            dump(service_instance)["value"],
+            "invalid_path",
+            True,
+            {
+                # we do not know the full_access_path of this entry within the
+                # serialized object
+                "full_access_path": "",
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            },
+        ),
+        (
+            dump(service_instance)["value"],
+            "invalid_path",
+            False,
+            SerializationPathError,
+        ),
+    ],
+)
+def test_get_container_item_by_key(
+    serialized_object: dict[str, Any], attr_name: str, allow_append: bool, expected: Any
+) -> None:
+    if isinstance(expected, type) and issubclass(expected, Exception):
+        with pytest.raises(expected):
+            get_container_item_by_key(
+                serialized_object, attr_name, allow_append=allow_append
+            )
+    else:
+        nested_dict = get_container_item_by_key(
+            serialized_object, attr_name, allow_append=allow_append
+        )
+        assert nested_dict == expected
 
 
 def test_update_attribute(setup_dict: dict[str, Any]) -> None:
@@ -565,8 +690,8 @@ def test_update_invalid_list_index(
 ) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[10]", 30)
     assert (
-        "Error occured trying to change 'attr_list[10]': list index "
-        "out of range" in caplog.text
+        "Error occured trying to change 'attr_list[10]': Index '10': list index out of "
+        "range" in caplog.text
     )
 
 
@@ -578,26 +703,6 @@ def test_update_list_inside_class(setup_dict: dict[str, Any]) -> None:
 def test_update_class_attribute_inside_list(setup_dict: dict[str, Any]) -> None:
     set_nested_value_by_path(setup_dict, "attr_list[2].attr3", 50)
     assert setup_dict["attr_list"]["value"][2]["value"]["attr3"]["value"] == 50  # noqa
-
-
-def test_get_next_level_attribute_nested_dict(setup_dict: dict[str, Any]) -> None:
-    nested_dict = get_next_level_dict_by_key(setup_dict, "attr1")
-    assert nested_dict == setup_dict["attr1"]
-
-
-def test_get_next_level_list_entry_nested_dict(setup_dict: dict[str, Any]) -> None:
-    nested_dict = get_next_level_dict_by_key(setup_dict, "attr_list[0]")
-    assert nested_dict == setup_dict["attr_list"]["value"][0]
-
-
-def test_get_next_level_invalid_path_nested_dict(setup_dict: dict[str, Any]) -> None:
-    with pytest.raises(SerializationPathError):
-        get_next_level_dict_by_key(setup_dict, "invalid_path")
-
-
-def test_get_next_level_invalid_list_index(setup_dict: dict[str, Any]) -> None:
-    with pytest.raises(SerializationPathError):
-        get_next_level_dict_by_key(setup_dict, "attr_list[10]")
 
 
 def test_get_attribute(setup_dict: dict[str, Any]) -> None:
@@ -871,3 +976,89 @@ def test_dynamically_add_attributes(test_input: Any, expected: dict[str, Any]) -
 
     set_nested_value_by_path(serialized_object, "new_attr", test_input)
     assert serialized_object == expected
+
+
+@pytest.mark.parametrize(
+    "obj, expected",
+    [
+        (
+            service_instance.attr2,
+            [
+                "attr3",
+                "list_attr",
+                "list_attr[0]",
+                "list_attr[1]",
+                "some_quantity",
+            ],
+        ),
+        (
+            service_instance.dict_attr,
+            [
+                '["foo"]',
+                '["bar"]',
+                '["bar"]["foo"]',
+            ],
+        ),
+        (
+            service_instance.attr_list,
+            [
+                "[0]",
+                "[1]",
+                "[2]",
+                "[2].attr3",
+                "[2].list_attr",
+                "[2].list_attr[0]",
+                "[2].list_attr[1]",
+                "[2].some_quantity",
+            ],
+        ),
+    ],
+)
+def test_get_data_paths_from_serialized_object(obj: Any, expected: list[str]) -> None:
+    assert get_data_paths_from_serialized_object(dump(obj=obj)) == expected
+
+
+@pytest.mark.parametrize(
+    "obj, expected",
+    [
+        (
+            service_instance,
+            [
+                "attr1",
+                "attr2",
+                "attr2.attr3",
+                "attr2.list_attr",
+                "attr2.list_attr[0]",
+                "attr2.list_attr[1]",
+                "attr2.some_quantity",
+                "attr_list",
+                "attr_list[0]",
+                "attr_list[1]",
+                "attr_list[2]",
+                "attr_list[2].attr3",
+                "attr_list[2].list_attr",
+                "attr_list[2].list_attr[0]",
+                "attr_list[2].list_attr[1]",
+                "attr_list[2].some_quantity",
+                "dict_attr",
+                'dict_attr["foo"]',
+                'dict_attr["bar"]',
+                'dict_attr["bar"]["foo"]',
+                "enum_attr",
+                "my_task",
+            ],
+        ),
+        (
+            service_instance.attr2,
+            [
+                "attr3",
+                "list_attr",
+                "list_attr[0]",
+                "list_attr[1]",
+                "some_quantity",
+            ],
+        ),
+    ],
+)
+def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
+    assert generate_serialized_data_paths(dump(obj=obj)["value"]) == expected
