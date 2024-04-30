@@ -223,6 +223,7 @@ In `pydase`, components are fundamental building blocks that bridge the Python b
 - `int` and `float`: Manifested as the `NumberComponent`.
 - `bool`: Rendered as a `ButtonComponent`.
 - `list`: Each item displayed individually, named after the list attribute and its index.
+- `dict`: Each key-value pair displayed individually, named after the dictionary attribute and its key. **Note** that the dictionary keys must be strings.
 - `enum.Enum`: Presented as an `EnumComponent`, facilitating dropdown selection.
 
 ### Method Components
