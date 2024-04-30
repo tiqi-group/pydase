@@ -164,16 +164,13 @@ class Serializer:
         }
 
     @staticmethod
-    def _serialize_dict(
-        obj: dict[str | float, Any], access_path: str = ""
-    ) -> SerializedDict:
+    def _serialize_dict(obj: dict[str, Any], access_path: str = "") -> SerializedDict:
         readonly = False
         doc = get_attribute_doc(obj)
         value = {}
         for key, val in obj.items():
-            processed_key = key if not isinstance(key, str) else f'"{key}"'
             value[key] = Serializer.serialize_object(
-                val, access_path=f"{access_path}[{processed_key}]"
+                val, access_path=f'{access_path}["{key}"]'
             )
         return {
             "full_access_path": access_path,
