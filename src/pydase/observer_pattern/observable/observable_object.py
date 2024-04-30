@@ -267,7 +267,7 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
             return f"{observer_attr_name}{instance_attr_name}"
         return instance_attr_name
 
-    def pop(self, key: str) -> Any:
+    def pop(self, key: str) -> Any:  # type: ignore[override]
         self._remove_observer_if_observable(f'["{key}"]')
 
         popped_item = super().pop(key)
