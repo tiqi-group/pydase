@@ -397,7 +397,7 @@ def test_dict_serialization() -> None:
 
     test_dict = {
         "int_key": 1,
-        "float_key": 1.0,
+        1.0: 1.0,
         "bool_key": True,
         "Quantity_key": 1.0 * u.units.s,
         "DataService_key": MyClass(),
@@ -439,8 +439,8 @@ def test_dict_serialization() -> None:
                 "type": "bool",
                 "value": True,
             },
-            "float_key": {
-                "full_access_path": '["float_key"]',
+            1.0: {
+                "full_access_path": "[1.0]",
                 "doc": None,
                 "readonly": False,
                 "type": "float",
