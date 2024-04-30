@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
+from pydase.utils.helpers import parse_serialized_key
+
 if TYPE_CHECKING:
     from pydase.observer_pattern.observer.observer import Observer
 
@@ -81,7 +83,7 @@ class ObservableObject(ABC):
                 )
                 observer._notify_change_start(extended_attr_path)
 
-    def _initialise_new_objects(self, attr_name_or_key: Any, value: Any) -> Any:
+    def _initialise_new_objects(self, attr_name_or_key: str, value: Any) -> Any:
         new_value = value
         if isinstance(value, list):
             if id(value) in self._list_mapping:
@@ -100,7 +102,7 @@ class ObservableObject(ABC):
                 new_value = _ObservableDict(original_dict=value)
                 self._dict_mapping[id(value)] = new_value
         if isinstance(new_value, ObservableObject):
-            new_value.add_observer(self, str(attr_name_or_key))
+            new_value.add_observer(self, attr_name_or_key)
         return new_value
 
     @abstractmethod
@@ -224,33 +226,44 @@ class _ObservableList(ObservableObject, list[Any]):
         return instance_attr_name
 
 
-class _ObservableDict(dict[str, Any], ObservableObject):
+class _ObservableDict(dict[str | float, Any], ObservableObject):
     def __init__(
         self,
-        original_dict: dict[str, Any],
+        original_dict: dict[str | float, Any],
     ) -> None:
         self._original_dict = original_dict
         ObservableObject.__init__(self)
         dict.__init__(self)
         for key, value in self._original_dict.items():
-            super().__setitem__(key, self._initialise_new_objects(f"['{key}']", value))
+            observer_key = key if not isinstance(key, str) else f'"{key}"'
+            super().__setitem__(
+                key, self._initialise_new_objects(f"[{observer_key}]", value)
+            )
 
-    def __setitem__(self, key: str, value: Any) -> None:
-        if not isinstance(key, str):
-            logger.warning("Converting non-string dictionary key %s to string.", key)
+    def __setitem__(self, key: str | float, value: Any) -> None:
+        if not isinstance(key, str | int | float):
+            logger.warning(
+                "Dictionary key %s is neither string nor number. Converting to string"
+                "...",
+                key,
+            )
             key = str(key)
 
+        observer_key = key
+        if isinstance(key, str):
+            observer_key = f'"{key}"'
+
         if hasattr(self, "_observers"):
-            self._remove_observer_if_observable(f"['{key}']")
-            value = self._initialise_new_objects(key, value)
-            self._notify_change_start(f"['{key}']")
+            self._remove_observer_if_observable(f"[{observer_key}]")
+            value = self._initialise_new_objects(f"[{observer_key}]", value)
+            self._notify_change_start(f"[{observer_key}]")
 
         super().__setitem__(key, value)
 
-        self._notify_changed(f"['{key}']", value)
+        self._notify_changed(f"[{observer_key}]", value)
 
     def _remove_observer_if_observable(self, name: str) -> None:
-        key = name[2:-2]
+        key = parse_serialized_key(name)
         current_value = self.get(key, None)
 
         if isinstance(current_value, ObservableObject):
