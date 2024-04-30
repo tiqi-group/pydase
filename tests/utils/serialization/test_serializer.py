@@ -13,7 +13,9 @@ from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializedObject,
     dump,
+    generate_serialized_data_paths,
     get_container_item_by_key,
+    get_data_paths_from_serialized_object,
     get_nested_dict_by_path,
     serialized_dict_is_nested_object,
     set_nested_value_by_path,
@@ -30,6 +32,7 @@ class MyEnum(enum.Enum):
 class MySubclass(pydase.DataService):
     attr3 = 1.0
     list_attr: ClassVar[list[Any]] = [1.0, 1]
+    some_quantity: u.Quantity = 1.0 * u.units.A
 
 
 class ServiceClass(pydase.DataService):
@@ -37,7 +40,7 @@ class ServiceClass(pydase.DataService):
     attr2 = MySubclass()
     enum_attr = MyEnum.RUNNING
     attr_list: ClassVar[list[Any]] = [0, 1, MySubclass()]
-    dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0}
+    dict_attr: ClassVar[dict[Any, Any]] = {"foo": 1.0, "bar": {"foo": "bar"}}
 
     def my_task(self) -> None:
         pass
@@ -589,17 +592,6 @@ def setup_dict() -> dict[str, Any]:
             False,
             SerializationPathError,
         ),
-        # # you should not be able to set an item of a thing that does not exist
-        # (
-        #     'invalid_path["some_key"]',
-        #     True,
-        #     SerializationPathError,
-        # ),
-        # (
-        #     "invalid_path[0]",  # no way of knowing if that should be a dict / list
-        #     True,
-        #     SerializationPathError,
-        # ),
     ],
 )
 def test_get_container_item_by_key(
@@ -984,3 +976,89 @@ def test_dynamically_add_attributes(test_input: Any, expected: dict[str, Any]) -
 
     set_nested_value_by_path(serialized_object, "new_attr", test_input)
     assert serialized_object == expected
+
+
+@pytest.mark.parametrize(
+    "obj, expected",
+    [
+        (
+            service_instance.attr2,
+            [
+                "attr3",
+                "list_attr",
+                "list_attr[0]",
+                "list_attr[1]",
+                "some_quantity",
+            ],
+        ),
+        (
+            service_instance.dict_attr,
+            [
+                '["foo"]',
+                '["bar"]',
+                '["bar"]["foo"]',
+            ],
+        ),
+        (
+            service_instance.attr_list,
+            [
+                "[0]",
+                "[1]",
+                "[2]",
+                "[2].attr3",
+                "[2].list_attr",
+                "[2].list_attr[0]",
+                "[2].list_attr[1]",
+                "[2].some_quantity",
+            ],
+        ),
+    ],
+)
+def test_get_data_paths_from_serialized_object(obj: Any, expected: list[str]) -> None:
+    assert get_data_paths_from_serialized_object(dump(obj=obj)) == expected
+
+
+@pytest.mark.parametrize(
+    "obj, expected",
+    [
+        (
+            service_instance,
+            [
+                "attr1",
+                "attr2",
+                "attr2.attr3",
+                "attr2.list_attr",
+                "attr2.list_attr[0]",
+                "attr2.list_attr[1]",
+                "attr2.some_quantity",
+                "attr_list",
+                "attr_list[0]",
+                "attr_list[1]",
+                "attr_list[2]",
+                "attr_list[2].attr3",
+                "attr_list[2].list_attr",
+                "attr_list[2].list_attr[0]",
+                "attr_list[2].list_attr[1]",
+                "attr_list[2].some_quantity",
+                "dict_attr",
+                'dict_attr["foo"]',
+                'dict_attr["bar"]',
+                'dict_attr["bar"]["foo"]',
+                "enum_attr",
+                "my_task",
+            ],
+        ),
+        (
+            service_instance.attr2,
+            [
+                "attr3",
+                "list_attr",
+                "list_attr[0]",
+                "list_attr[1]",
+                "some_quantity",
+            ],
+        ),
+    ],
+)
+def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
+    assert generate_serialized_data_paths(dump(obj=obj)["value"]) == expected
