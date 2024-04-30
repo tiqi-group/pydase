@@ -12,6 +12,8 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
     class SubService(pydase.DataService):
         name = "SubService"
 
+    subservice_instance = SubService()
+
     class MyService(pydase.DataService):
         def __init__(self) -> None:
             super().__init__()
@@ -19,6 +21,10 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
             self._my_property = 12.1
             self.sub_service = SubService()
             self.list_attr = [1, 2]
+            self.dict_attr = {
+                "foo": subservice_instance,
+                "dotted.key": subservice_instance,
+            }
 
         @property
         def my_property(self) -> float:
@@ -102,6 +108,18 @@ def test_list(pydase_client: pydase.Client) -> None:
 
     pydase_client.proxy.list_attr.clear()
     assert pydase_client.proxy.list_attr == []
+
+
+def test_dict(pydase_client: pydase.Client) -> None:
+    pydase_client.proxy.dict_attr["foo"].name = "foo"
+    assert pydase_client.proxy.dict_attr["foo"].name == "foo"
+    assert pydase_client.proxy.dict_attr["dotted.key"].name == "foo"
+
+    # pop will not return anything as the server object was deleted
+    assert pydase_client.proxy.dict_attr.pop("dotted.key") is None
+
+    # pop will remove the dictionary entry on the server
+    assert list(pydase_client.proxy.dict_attr.keys()) == ["foo"]
 
 
 def test_tab_completion(pydase_client: pydase.Client) -> None:
