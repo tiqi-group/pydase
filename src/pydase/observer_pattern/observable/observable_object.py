@@ -95,7 +95,7 @@ class ObservableObject(ABC):
                 self._list_mapping[id(value)] = new_value
         elif isinstance(value, dict):
             if id(value) in self._dict_mapping:
-                # If the list `value` was already referenced somewhere else
+                # If the dict `value` was already referenced somewhere else
                 new_value = self._dict_mapping[id(value)]
             else:
                 # convert the builtin list into a ObservableList
@@ -226,44 +226,36 @@ class _ObservableList(ObservableObject, list[Any]):
         return instance_attr_name
 
 
-class _ObservableDict(dict[str | float, Any], ObservableObject):
+class _ObservableDict(dict[str, Any], ObservableObject):
     def __init__(
         self,
-        original_dict: dict[str | float, Any],
+        original_dict: dict[str, Any],
     ) -> None:
         self._original_dict = original_dict
         ObservableObject.__init__(self)
         dict.__init__(self)
         for key, value in self._original_dict.items():
-            observer_key = key if not isinstance(key, str) else f'"{key}"'
-            super().__setitem__(
-                key, self._initialise_new_objects(f"[{observer_key}]", value)
-            )
+            self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
 
-    def __setitem__(self, key: str | float, value: Any) -> None:
-        if not isinstance(key, str | int | float):
+    def __setitem__(self, key: str, value: Any) -> None:
+        if not isinstance(key, str):
             logger.warning(
-                "Dictionary key %s is neither string nor number. Converting to string"
-                "...",
+                "Dictionary key %s is not a string. Converting to string...",
                 key,
             )
             key = str(key)
 
-        observer_key = key
-        if isinstance(key, str):
-            observer_key = f'"{key}"'
-
         if hasattr(self, "_observers"):
-            self._remove_observer_if_observable(f"[{observer_key}]")
-            value = self._initialise_new_objects(f"[{observer_key}]", value)
-            self._notify_change_start(f"[{observer_key}]")
+            self._remove_observer_if_observable(f'["{key}"]')
+            value = self._initialise_new_objects(f'["{key}"]', value)
+            self._notify_change_start(f'["{key}"]')
 
         super().__setitem__(key, value)
 
-        self._notify_changed(f"[{observer_key}]", value)
+        self._notify_changed(f'["{key}"]', value)
 
     def _remove_observer_if_observable(self, name: str) -> None:
-        key = parse_serialized_key(name)
+        key = str(parse_serialized_key(name))
         current_value = self.get(key, None)
 
         if isinstance(current_value, ObservableObject):
