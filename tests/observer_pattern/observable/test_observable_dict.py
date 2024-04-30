@@ -193,3 +193,24 @@ def test_dotted_dict_key(caplog: pytest.LogCaptureFixture) -> None:
     instance.dict_attr["dotted.key"] = "Ciao"
 
     assert "'dict_attr[\"dotted.key\"]' changed to 'Ciao'" in caplog.text
+
+
+def test_pop(caplog: pytest.LogCaptureFixture) -> None:
+    class NestedObservable(Observable):
+        def __init__(self) -> None:
+            super().__init__()
+            self.name = "Hello"
+
+    nested_instance = NestedObservable()
+
+    class MyObservable(Observable):
+        def __init__(self) -> None:
+            super().__init__()
+            self.dict_attr = {"nested": nested_instance}
+
+    instance = MyObservable()
+    MyObserver(instance)
+    assert instance.dict_attr.pop("nested") == nested_instance
+    assert nested_instance._observers == {'["nested"]': []}
+
+    assert f"'dict_attr' changed to '{instance.dict_attr}'" in caplog.text

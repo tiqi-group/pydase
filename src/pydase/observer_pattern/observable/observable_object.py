@@ -226,7 +226,7 @@ class _ObservableList(ObservableObject, list[Any]):
         return instance_attr_name
 
 
-class _ObservableDict(dict[str, Any], ObservableObject):
+class _ObservableDict(ObservableObject, dict[str, Any]):
     def __init__(
         self,
         original_dict: dict[str, Any],
@@ -266,3 +266,11 @@ class _ObservableDict(dict[str, Any], ObservableObject):
         if observer_attr_name != "":
             return f"{observer_attr_name}{instance_attr_name}"
         return instance_attr_name
+
+    def pop(self, key: str) -> Any:
+        self._remove_observer_if_observable(f'["{key}"]')
+
+        popped_item = super().pop(key)
+
+        self._notify_changed("", self)
+        return popped_item
