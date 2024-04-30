@@ -15,7 +15,7 @@ export type State = {
  * @returns An array of components that make up the path, including attribute names,
  *          numeric indices, and string keys as separate elements.
  */
-function parseFullAccessPath(path: string): string[] {
+export function parseFullAccessPath(path: string): string[] {
   // The pattern matches:
   // \w+ - Words
   // \[\d+\.\d+\] - Floating point numbers inside brackets

@@ -15,6 +15,7 @@ import { getIdFromFullAccessPath } from '../utils/stringUtils';
 import { WebSettingsContext } from '../WebSettings';
 import { updateValue } from '../socket';
 import { DictComponent } from './DictComponent';
+import { parseFullAccessPath } from '../utils/stateUtils';
 
 type AttributeType =
   | 'str'
@@ -51,12 +52,37 @@ type GenericComponentProps = {
   addNotification: (message: string, levelname?: LevelName) => void;
 };
 
+const getPathFromPathParts = (pathParts: string[]): string => {
+  let path = '';
+  for (const pathPart of pathParts) {
+    if (!pathPart.startsWith('[') && path !== '') {
+      path += '.';
+    }
+    path += pathPart;
+  }
+  return path;
+};
+
+const createDisplayNameFromAccessPath = (fullAccessPath: string): string => {
+  const displayNameParts = [];
+  const parsedFullAccessPath = parseFullAccessPath(fullAccessPath);
+  for (let i = parsedFullAccessPath.length - 1; i >= 0; i--) {
+    const item = parsedFullAccessPath[i];
+    displayNameParts.unshift(item);
+    if (!item.startsWith('[')) {
+      break;
+    }
+  }
+  return getPathFromPathParts(displayNameParts);
+};
+
 export const GenericComponent = React.memo(
   ({ attribute, isInstantUpdate, addNotification }: GenericComponentProps) => {
     const { full_access_path: fullAccessPath } = attribute;
     const id = getIdFromFullAccessPath(fullAccessPath);
     const webSettings = useContext(WebSettingsContext);
-    let displayName = fullAccessPath.split('.').at(-1);
+
+    let displayName = createDisplayNameFromAccessPath(fullAccessPath);
 
     if (webSettings[fullAccessPath]) {
       if (webSettings[fullAccessPath].display === false) {
