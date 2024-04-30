@@ -15,6 +15,7 @@ class Observable(ObservableObject):
             for k in set(type(self).__dict__)
             - set(Observable.__dict__)
             - set(self.__dict__)
+            - {"__annotations__"}
         }
         for name, value in class_attrs.items():
             if isinstance(value, property) or callable(value):
