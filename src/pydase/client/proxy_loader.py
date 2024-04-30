@@ -75,6 +75,29 @@ def update_value(
         )
 
 
+class ProxyDict(dict[str | float, Any]):
+    def __init__(
+        self,
+        original_dict: dict[str | float, Any],
+        parent_path: str,
+        sio_client: socketio.AsyncClient,
+        loop: asyncio.AbstractEventLoop,
+    ) -> None:
+        super().__init__(original_dict)
+        self._parent_path = parent_path
+        self._loop = loop
+        self._sio = sio_client
+
+    def __setitem__(self, key: str | float, value: Any) -> None:
+        observer_key = key
+        if isinstance(key, str):
+            observer_key = f'"{key}"'
+
+        full_access_path = f"{self._parent_path}[{observer_key}]"
+
+        update_value(self._sio, self._loop, full_access_path, value)
+
+
 class ProxyList(list[Any]):
     def __init__(
         self,
@@ -266,7 +289,17 @@ class ProxyLoader:
         sio_client: socketio.AsyncClient,
         loop: asyncio.AbstractEventLoop,
     ) -> Any:
-        return loads(serialized_object)
+        return ProxyDict(
+            {
+                key: ProxyLoader.loads_proxy(value, sio_client, loop)
+                for key, value in cast(
+                    dict[str | float, SerializedObject], serialized_object["value"]
+                ).items()
+            },
+            parent_path=serialized_object["full_access_path"],
+            sio_client=sio_client,
+            loop=loop,
+        )
 
     @staticmethod
     def update_data_service_proxy(
