@@ -107,12 +107,13 @@ class TaskManager:
             method = getattr(self.service, name)
             if inspect.iscoroutinefunction(method):
                 if function_has_arguments(method):
-                    raise TaskDefinitionError(
+                    logger.info(
                         "Asynchronous functions (tasks) should be defined without "
                         f"arguments. The task '{method.__name__}' has at least one "
                         "argument. Please remove the argument(s) from this function to "
-                        "use it."
-                    )
+                        "use it in the frontend."
+                        )
+                    continue
 
                 # create start and stop methods for each coroutine
                 setattr(
