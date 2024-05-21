@@ -81,10 +81,20 @@ def test_removed_observer_on_class_list_attr(caplog: pytest.LogCaptureFixture) -
 
     instance = MyObservable()
     MyObserver(instance)
+
+    assert nested_instance._observers == {
+        "[0]": [instance.changed_list_attr],
+        "nested_attr": [instance],
+    }
+
     instance.changed_list_attr[0] = "Ciao"
 
     assert "'changed_list_attr[0]' changed to 'Ciao'" in caplog.text
     caplog.clear()
+
+    assert nested_instance._observers == {
+        "nested_attr": [instance],
+    }
 
     instance.nested_attr.name = "Hi"
 
@@ -114,6 +124,10 @@ def test_removed_observer_on_instance_list_attr(
 
     assert "'changed_list_attr[0]' changed to 'Ciao'" in caplog.text
     caplog.clear()
+
+    assert nested_instance._observers == {
+        "nested_attr": [instance],
+    }
 
     instance.nested_attr.name = "Hi"
 
