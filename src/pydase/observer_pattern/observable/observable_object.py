@@ -32,6 +32,10 @@ class ObservableObject(ABC):
         if attribute in self._observers:
             self._observers[attribute].remove(observer)
 
+            # remove attribute key from observers dict if list of observers is empty
+            if not self._observers[attribute]:
+                del self._observers[attribute]
+
     @abstractmethod
     def _remove_observer_if_observable(self, name: str) -> None:
         """Removes the current object as an observer from an observable attribute.
