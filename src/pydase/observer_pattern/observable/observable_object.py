@@ -1,10 +1,10 @@
 import logging
+import weakref
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
 from pydase.utils.helpers import parse_serialized_key
-import weakref
 
 if TYPE_CHECKING:
     from pydase.observer_pattern.observer.observer import Observer
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 class ObservableObject(ABC):
-    _list_mapping: ClassVar[dict[int, "_ObservableList"]] = {}
-    _dict_mapping: ClassVar[dict[int, "_ObservableDict"]] = {}
+    _list_mapping: ClassVar[dict[int, weakref.ReferenceType["_ObservableList"]]] = {}
+    _dict_mapping: ClassVar[dict[int, weakref.ReferenceType["_ObservableDict"]]] = {}
 
     def __init__(self) -> None:
         if not hasattr(self, "_observers"):
@@ -139,7 +139,7 @@ class _ObservableList(ObservableObject, list[Any]):
             super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
         self._list_mapping[id(self._original_list)] = weakref.ref(self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._list_mapping.pop(id(self._original_list))
 
     def __setitem__(self, key: int, value: Any) -> None:  # type: ignore[override]
@@ -241,7 +241,7 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
             self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
         self._dict_mapping[id(self._original_dict)] = weakref.ref(self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self._dict_mapping.pop(id(self._original_dict))
 
     def __setitem__(self, key: str, value: Any) -> None:
