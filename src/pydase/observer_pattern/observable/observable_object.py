@@ -93,6 +93,9 @@ class ObservableObject(ABC):
             else:
                 # convert the builtin list into a ObservableList
                 new_value = _ObservableList(original_list=value)
+
+                # Use weakref to allow the GC to collect unused objects
+                self._list_mapping[id(value)] = weakref.ref(new_value)
         elif isinstance(value, dict):
             if id(value) in self._dict_mapping:
                 # If the dict `value` was already referenced somewhere else
@@ -100,6 +103,9 @@ class ObservableObject(ABC):
             else:
                 # convert the builtin dict into a ObservableDict
                 new_value = _ObservableDict(original_dict=value)
+
+                # Use weakref to allow the GC to collect unused objects
+                self._dict_mapping[id(value)] = weakref.ref(new_value)
         if isinstance(new_value, ObservableObject):
             new_value.add_observer(self, attr_name_or_key)
         return new_value
@@ -137,7 +143,6 @@ class _ObservableList(ObservableObject, list[Any]):
         list.__init__(self, self._original_list)
         for i, item in enumerate(self._original_list):
             super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
-        self._list_mapping[id(self._original_list)] = weakref.ref(self)
 
     def __del__(self) -> None:
         self._list_mapping.pop(id(self._original_list))
@@ -239,7 +244,6 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
         dict.__init__(self)
         for key, value in self._original_dict.items():
             self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
-        self._dict_mapping[id(self._original_dict)] = weakref.ref(self)
 
     def __del__(self) -> None:
         self._dict_mapping.pop(id(self._original_dict))
