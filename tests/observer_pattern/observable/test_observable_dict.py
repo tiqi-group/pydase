@@ -138,7 +138,6 @@ def test_removed_observer_on_class_dict_attr(caplog: pytest.LogCaptureFixture) -
     caplog.clear()
 
     assert nested_instance._observers == {
-        '["nested"]': [],
         "nested_attr": [instance],
     }
 
@@ -172,7 +171,6 @@ def test_removed_observer_on_instance_dict_attr(
     caplog.clear()
 
     assert nested_instance._observers == {
-        '["nested"]': [],
         "nested_attr": [instance],
     }
 
@@ -211,6 +209,6 @@ def test_pop(caplog: pytest.LogCaptureFixture) -> None:
     instance = MyObservable()
     MyObserver(instance)
     assert instance.dict_attr.pop("nested") == nested_instance
-    assert nested_instance._observers == {'["nested"]': []}
+    assert nested_instance._observers == {}
 
     assert f"'dict_attr' changed to '{instance.dict_attr}'" in caplog.text
