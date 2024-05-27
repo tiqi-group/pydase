@@ -81,10 +81,20 @@ def test_removed_observer_on_class_list_attr(caplog: pytest.LogCaptureFixture) -
 
     instance = MyObservable()
     MyObserver(instance)
+
+    assert nested_instance._observers == {
+        "[0]": [instance.changed_list_attr],
+        "nested_attr": [instance],
+    }
+
     instance.changed_list_attr[0] = "Ciao"
 
     assert "'changed_list_attr[0]' changed to 'Ciao'" in caplog.text
     caplog.clear()
+
+    assert nested_instance._observers == {
+        "nested_attr": [instance],
+    }
 
     instance.nested_attr.name = "Hi"
 
@@ -114,6 +124,10 @@ def test_removed_observer_on_instance_list_attr(
 
     assert "'changed_list_attr[0]' changed to 'Ciao'" in caplog.text
     caplog.clear()
+
+    assert nested_instance._observers == {
+        "nested_attr": [instance],
+    }
 
     instance.nested_attr.name = "Hi"
 
@@ -311,3 +325,51 @@ def test_list_remove(caplog: pytest.LogCaptureFixture) -> None:
     # checks if observer key was updated correctly (was index 1)
     other_observable_instance_2.greeting = "Ciao"
     assert "'my_list[0].greeting' changed to 'Ciao'" in caplog.text
+
+
+def test_list_garbage_collection() -> None:
+    """Makes sure that the GC collects lists that are not referenced anymore."""
+
+    import gc
+    import json
+
+    list_json = """
+    [1]
+    """
+
+    class MyObservable(Observable):
+        def __init__(self) -> None:
+            super().__init__()
+            self.list_attr = json.loads(list_json)
+
+    observable = MyObservable()
+    list_mapping_length = len(observable._list_mapping)
+    observable.list_attr = json.loads(list_json)
+
+    gc.collect()
+    assert len(observable._list_mapping) <= list_mapping_length
+
+
+def test_dict_garbage_collection() -> None:
+    """Makes sure that the GC collects dicts that are not referenced anymore."""
+
+    import gc
+    import json
+
+    dict_json = """
+    {
+        "foo": "bar"
+    }
+    """
+
+    class MyObservable(Observable):
+        def __init__(self) -> None:
+            super().__init__()
+            self.dict_attr = json.loads(dict_json)
+
+    observable = MyObservable()
+    dict_mapping_length = len(observable._dict_mapping)
+    observable.dict_attr = json.loads(dict_json)
+
+    gc.collect()
+    assert len(observable._dict_mapping) <= dict_mapping_length

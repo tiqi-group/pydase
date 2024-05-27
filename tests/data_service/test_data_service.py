@@ -36,7 +36,8 @@ def test_unexpected_type_change_warning(caplog: LogCaptureFixture) -> None:
 
 
 def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
-    class SubService(DataService): ...
+    class SubService(DataService):
+        ...
 
     class SomeEnum(Enum):
         HI = 0
@@ -56,9 +57,11 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         def name(self) -> str:
             return self._name
 
-        def some_method(self) -> None: ...
+        def some_method(self) -> None:
+            ...
 
-        async def some_task(self) -> None: ...
+        async def some_task(self) -> None:
+            ...
 
     ServiceClass()
 

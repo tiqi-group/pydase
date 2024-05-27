@@ -16,6 +16,7 @@ def test_inherited_property_dependency_resolution() -> None:
         _name = "DerivedObservable"
 
     class MyObserver(PropertyObserver):
-        def on_change(self, full_access_path: str, value: Any) -> None: ...
+        def on_change(self, full_access_path: str, value: Any) -> None:
+            ...
 
     assert MyObserver(DerivedObservable()).property_deps_dict == {"_name": ["name"]}

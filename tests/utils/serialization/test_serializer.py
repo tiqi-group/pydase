@@ -476,7 +476,8 @@ def test_derived_data_service_serialization() -> None:
         def name(self, value: str) -> None:
             self._name = value
 
-    class DerivedService(BaseService): ...
+    class DerivedService(BaseService):
+        ...
 
     base_service_serialization = dump(BaseService())
     derived_service_serialization = dump(DerivedService())

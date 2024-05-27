@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import weakref
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
@@ -15,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class ObservableObject(ABC):
-    _list_mapping: ClassVar[dict[int, _ObservableList]] = {}
-    _dict_mapping: ClassVar[dict[int, _ObservableDict]] = {}
+    _list_mapping: ClassVar[dict[int, weakref.ReferenceType[_ObservableList]]] = {}
+    _dict_mapping: ClassVar[dict[int, weakref.ReferenceType[_ObservableDict]]] = {}
 
     def __init__(self) -> None:
         if not hasattr(self, "_observers"):
@@ -33,6 +34,10 @@ class ObservableObject(ABC):
     def _remove_observer(self, observer: ObservableObject, attribute: str) -> None:
         if attribute in self._observers:
             self._observers[attribute].remove(observer)
+
+            # remove attribute key from observers dict if list of observers is empty
+            if not self._observers[attribute]:
+                del self._observers[attribute]
 
     @abstractmethod
     def _remove_observer_if_observable(self, name: str) -> None:
@@ -91,19 +96,23 @@ class ObservableObject(ABC):
         if isinstance(value, list):
             if id(value) in self._list_mapping:
                 # If the list `value` was already referenced somewhere else
-                new_value = self._list_mapping[id(value)]
+                new_value = self._list_mapping[id(value)]()
             else:
                 # convert the builtin list into a ObservableList
                 new_value = _ObservableList(original_list=value)
-                self._list_mapping[id(value)] = new_value
+
+                # Use weakref to allow the GC to collect unused objects
+                self._list_mapping[id(value)] = weakref.ref(new_value)
         elif isinstance(value, dict):
             if id(value) in self._dict_mapping:
                 # If the dict `value` was already referenced somewhere else
-                new_value = self._dict_mapping[id(value)]
+                new_value = self._dict_mapping[id(value)]()
             else:
-                # convert the builtin list into a ObservableList
+                # convert the builtin dict into a ObservableDict
                 new_value = _ObservableDict(original_dict=value)
-                self._dict_mapping[id(value)] = new_value
+
+                # Use weakref to allow the GC to collect unused objects
+                self._dict_mapping[id(value)] = weakref.ref(new_value)
         if isinstance(new_value, ObservableObject):
             new_value.add_observer(self, attr_name_or_key)
         return new_value
@@ -141,6 +150,9 @@ class _ObservableList(ObservableObject, list[Any]):
         list.__init__(self, self._original_list)
         for i, item in enumerate(self._original_list):
             super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
+
+    def __del__(self) -> None:
+        self._list_mapping.pop(id(self._original_list))
 
     def __setitem__(self, key: int, value: Any) -> None:  # type: ignore[override]
         if hasattr(self, "_observers"):
@@ -239,6 +251,9 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
         dict.__init__(self)
         for key, value in self._original_dict.items():
             self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
+
+    def __del__(self) -> None:
+        self._dict_mapping.pop(id(self._original_dict))
 
     def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):
