@@ -21,10 +21,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TaskDefinitionError(Exception):
-    pass
-
-
 class TaskStatus(Enum):
     RUNNING = "running"
 
