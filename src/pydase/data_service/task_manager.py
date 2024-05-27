@@ -108,11 +108,11 @@ class TaskManager:
             if inspect.iscoroutinefunction(method):
                 if function_has_arguments(method):
                     logger.info(
-                        "Asynchronous functions (tasks) should be defined without "
-                        f"arguments. The task '{method.__name__}' has at least one "
-                        "argument. Please remove the argument(s) from this function to "
-                        "use it in the frontend."
-                        )
+                        "Async function %a is defined with at least one argument. If "
+                        "you want to use it as a task, remove the argument(s) from the "
+                        "function definition.",
+                        method.__name__,
+                    )
                     continue
 
                 # create start and stop methods for each coroutine
