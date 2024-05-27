@@ -1,34 +1,37 @@
+from __future__ import annotations
+
 import logging
 import weakref
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, ClassVar, SupportsIndex
 
 from pydase.utils.helpers import parse_serialized_key
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from pydase.observer_pattern.observer.observer import Observer
 
 logger = logging.getLogger(__name__)
 
 
 class ObservableObject(ABC):
-    _list_mapping: ClassVar[dict[int, weakref.ReferenceType["_ObservableList"]]] = {}
-    _dict_mapping: ClassVar[dict[int, weakref.ReferenceType["_ObservableDict"]]] = {}
+    _list_mapping: ClassVar[dict[int, weakref.ReferenceType[_ObservableList]]] = {}
+    _dict_mapping: ClassVar[dict[int, weakref.ReferenceType[_ObservableDict]]] = {}
 
     def __init__(self) -> None:
         if not hasattr(self, "_observers"):
-            self._observers: dict[str, list["ObservableObject | Observer"]] = {}
+            self._observers: dict[str, list[ObservableObject | Observer]] = {}
 
     def add_observer(
-        self, observer: "ObservableObject | Observer", attr_name: str = ""
+        self, observer: ObservableObject | Observer, attr_name: str = ""
     ) -> None:
         if attr_name not in self._observers:
             self._observers[attr_name] = []
         if observer not in self._observers[attr_name]:
             self._observers[attr_name].append(observer)
 
-    def _remove_observer(self, observer: "ObservableObject", attribute: str) -> None:
+    def _remove_observer(self, observer: ObservableObject, attribute: str) -> None:
         if attribute in self._observers:
             self._observers[attribute].remove(observer)
 

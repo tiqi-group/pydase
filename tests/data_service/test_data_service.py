@@ -7,7 +7,6 @@ import pytest
 from pydase import DataService
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.data_service.task_manager import TaskDefinitionError
 from pydase.utils.decorators import FunctionDefinitionError, frontend
 from pytest import LogCaptureFixture
 
@@ -37,7 +36,8 @@ def test_unexpected_type_change_warning(caplog: LogCaptureFixture) -> None:
 
 
 def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
-    class SubService(DataService): ...
+    class SubService(DataService):
+        ...
 
     class SomeEnum(Enum):
         HI = 0
@@ -57,9 +57,11 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         def name(self) -> str:
             return self._name
 
-        def some_method(self) -> None: ...
+        def some_method(self) -> None:
+            ...
 
-        async def some_task(self) -> None: ...
+        async def some_task(self) -> None:
+            ...
 
     ServiceClass()
 
@@ -118,20 +120,25 @@ def test_protected_and_private_attribute_warning(caplog: LogCaptureFixture) -> N
     ) not in caplog.text
 
 
-def test_exposing_methods() -> None:
-    class ClassWithTask(pydase.DataService):
-        async def some_task(self, sleep_time: int) -> None:
-            pass
-
-    with pytest.raises(TaskDefinitionError):
-        ClassWithTask()
-
+def test_exposing_methods(caplog: LogCaptureFixture) -> None:
     with pytest.raises(FunctionDefinitionError):
 
         class ClassWithMethod(pydase.DataService):
             @frontend
             def some_method(self, *args: Any) -> str:
                 return "some method"
+
+    class ClassWithTask(pydase.DataService):
+        async def some_task(self, sleep_time: int) -> None:
+            pass
+
+    ClassWithTask()
+
+    assert (
+        "Async function 'some_task' is defined with at least one argument. If you want "
+        "to use it as a task, remove the argument(s) from the function definition."
+        in caplog.text
+    )
 
 
 def test_dynamically_added_attribute(caplog: LogCaptureFixture) -> None:
