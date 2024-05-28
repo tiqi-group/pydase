@@ -29,7 +29,7 @@ def validate_set(
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             return func(*args, **kwargs)
 
-        wrapper._validate_kwargs = {
+        wrapper._validate_kwargs = {  # type: ignore
             "timeout": timeout,
             "precision": precision,
         }
