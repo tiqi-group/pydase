@@ -827,13 +827,13 @@ class Service(pydase.DataService):
 
     @property
     def value(self) -> float:
-        # Implement how to get the value from the remove device...
+        # Implement how to get the value from the remote device...
         return self._device.value
 
     @value.setter
     @validate_set(timeout=1.0, precision=1e-5)
     def value(self, value: float) -> None:
-        # Implement how to set the value from the remove device...
+        # Implement how to set the value on the remote device...
         self._device.value = value
 
 
