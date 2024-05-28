@@ -1,6 +1,10 @@
 import logging
 from typing import Any
 
+from pydase.observer_pattern.observable.decorators import (
+    _validate_value_was_correctly_set,
+    has_validate_set_decorator,
+)
 from pydase.observer_pattern.observable.observable_object import ObservableObject
 from pydase.utils.helpers import is_property_attribute
 
@@ -35,7 +39,12 @@ class Observable(ObservableObject):
 
         super().__setattr__(name, value)
 
-        self._notify_changed(name, value)
+        if is_property_attribute(self, name) and has_validate_set_decorator(
+            getattr(type(self), name)
+        ):
+            _validate_value_was_correctly_set(obj=self, name=name, value=value)
+        else:
+            self._notify_changed(name, value)
 
     def __getattribute__(self, name: str) -> Any:
         if is_property_attribute(self, name):
