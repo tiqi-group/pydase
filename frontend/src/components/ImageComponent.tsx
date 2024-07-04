@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Card, Collapse, Image } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
-import { LevelName } from './NotificationsComponent';
+import React, { useEffect, useRef, useState } from "react";
+import { Card, Collapse, Image } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import { ChevronDown, ChevronRight } from "react-bootstrap-icons";
+import { LevelName } from "./NotificationsComponent";
 
 type ImageComponentProps = {
   fullAccessPath: string;
   value: string;
-  docString: string;
+  docString: string | null;
   format: string;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
@@ -34,7 +34,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
       <Card>
         <Card.Header
           onClick={() => setOpen(!open)}
-          style={{ cursor: 'pointer' }} // Change cursor style on hover
+          style={{ cursor: "pointer" }} // Change cursor style on hover
         >
           {displayName}
           <DocStringComponent docString={docString} />
@@ -42,10 +42,10 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
         </Card.Header>
         <Collapse in={open}>
           <Card.Body>
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NODE_ENV === "development" && (
               <p>Render count: {renderCount.current}</p>
             )}
-            {format === '' && value === '' ? (
+            {format === "" && value === "" ? (
               <p>No image set in the backend.</p>
             ) : (
               <Image src={`data:image/${format.toLowerCase()};base64,${value}`}></Image>
@@ -56,3 +56,5 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
     </div>
   );
 });
+
+ImageComponent.displayName = "ImageComponent";

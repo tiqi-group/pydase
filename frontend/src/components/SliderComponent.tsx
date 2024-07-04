@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import { Slider } from '@mui/material';
-import { NumberComponent, NumberObject } from './NumberComponent';
-import { LevelName } from './NotificationsComponent';
-import { SerializedValue } from './GenericComponent';
+import React, { useEffect, useRef, useState } from "react";
+import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import { Slider } from "@mui/material";
+import { NumberComponent, NumberObject } from "./NumberComponent";
+import { LevelName } from "./NotificationsComponent";
+import { SerializedObject } from "../types/SerializedObject";
+import { QuantityMap } from "../types/QuantityMap";
 
 type SliderComponentProps = {
   fullAccessPath: string;
@@ -12,11 +13,11 @@ type SliderComponentProps = {
   max: NumberObject;
   value: NumberObject;
   readOnly: boolean;
-  docString: string;
+  docString: string | null;
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
+  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
@@ -35,7 +36,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     addNotification,
     changeCallback = () => {},
     displayName,
-    id
+    id,
   } = props;
 
   useEffect(() => {
@@ -58,44 +59,76 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     addNotification(`${fullAccessPath}.stepSize changed to ${stepSize.value}.`);
   }, [props.stepSize]);
 
-  const handleOnChange = (event, newNumber: number | number[]) => {
+  const handleOnChange = (_: Event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
     // make sure this is properly handled.
     if (Array.isArray(newNumber)) {
       newNumber = newNumber[0];
     }
-    changeCallback({
-      type: value.type,
-      value: newNumber,
-      full_access_path: `${fullAccessPath}.value`,
-      readonly: value.readonly,
-      doc: docString
-    });
+
+    let serializedObject: SerializedObject;
+    if (value.type === "Quantity") {
+      serializedObject = {
+        type: "Quantity",
+        value: {
+          magnitude: newNumber,
+          unit: value.value.unit,
+        } as QuantityMap,
+        full_access_path: `${fullAccessPath}.value`,
+        readonly: value.readonly,
+        doc: docString,
+      };
+    } else {
+      serializedObject = {
+        type: value.type,
+        value: newNumber,
+        full_access_path: `${fullAccessPath}.value`,
+        readonly: value.readonly,
+        doc: docString,
+      };
+    }
+    changeCallback(serializedObject);
   };
 
   const handleValueChange = (
     newValue: number,
     name: string,
-    valueObject: NumberObject
+    valueObject: NumberObject,
   ) => {
-    changeCallback({
-      type: valueObject.type,
-      value: newValue,
-      full_access_path: `${fullAccessPath}.${name}`,
-      readonly: valueObject.readonly
-    });
+    let serializedObject: SerializedObject;
+    if (valueObject.type === "Quantity") {
+      serializedObject = {
+        type: valueObject.type,
+        value: {
+          magnitude: newValue,
+          unit: valueObject.value.unit,
+        } as QuantityMap,
+        full_access_path: `${fullAccessPath}.${name}`,
+        readonly: valueObject.readonly,
+        doc: null,
+      };
+    } else {
+      serializedObject = {
+        type: valueObject.type,
+        value: newValue,
+        full_access_path: `${fullAccessPath}.${name}`,
+        readonly: valueObject.readonly,
+        doc: null,
+      };
+    }
+    changeCallback(serializedObject);
   };
 
   const deconstructNumberDict = (
-    numberDict: NumberObject
-  ): [number, boolean, string | null] => {
-    let numberMagnitude: number;
-    let numberUnit: string | null = null;
+    numberDict: NumberObject,
+  ): [number, boolean, string | undefined] => {
+    let numberMagnitude: number = 0;
+    let numberUnit: string | undefined = undefined;
     const numberReadOnly = numberDict.readonly;
 
-    if (numberDict.type === 'int' || numberDict.type === 'float') {
+    if (numberDict.type === "int" || numberDict.type === "float") {
       numberMagnitude = numberDict.value;
-    } else if (numberDict.type === 'Quantity') {
+    } else if (numberDict.type === "Quantity") {
       numberMagnitude = numberDict.value.magnitude;
       numberUnit = numberDict.value.unit;
     }
@@ -110,7 +143,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   return (
     <div className="component sliderComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
 
@@ -123,7 +156,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         </Col>
         <Col xs="5" xl>
           <Slider
-            style={{ margin: '0px 0px 10px 0px' }}
+            style={{ margin: "0px 0px 10px 0px" }}
             aria-label="Always visible"
             // valueLabelDisplay="on"
             disabled={valueReadOnly}
@@ -134,7 +167,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
             step={stepSizeMagnitude}
             marks={[
               { value: minMagnitude, label: `${minMagnitude}` },
-              { value: maxMagnitude, label: `${maxMagnitude}` }
+              { value: maxMagnitude, label: `${maxMagnitude}` },
             ]}
           />
         </Col>
@@ -144,12 +177,12 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
             fullAccessPath={`${fullAccessPath}.value`}
             docString={docString}
             readOnly={valueReadOnly}
-            type="float"
+            type={value.type}
             value={valueMagnitude}
             unit={valueUnit}
             addNotification={() => {}}
             changeCallback={changeCallback}
-            id={id + '-value'}
+            id={id + "-value"}
           />
         </Col>
         <Col xs="auto">
@@ -179,14 +212,14 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
         <Form.Group>
           <Row
             className="justify-content-center"
-            style={{ paddingTop: '20px', margin: '10px' }}>
+            style={{ paddingTop: "20px", margin: "10px" }}>
             <Col xs="auto">
               <Form.Label>Min Value</Form.Label>
               <Form.Control
                 type="number"
                 value={minMagnitude}
                 disabled={minReadOnly}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'min', min)}
+                onChange={(e) => handleValueChange(Number(e.target.value), "min", min)}
               />
             </Col>
 
@@ -196,7 +229,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
                 type="number"
                 value={maxMagnitude}
                 disabled={maxReadOnly}
-                onChange={(e) => handleValueChange(Number(e.target.value), 'max', max)}
+                onChange={(e) => handleValueChange(Number(e.target.value), "max", max)}
               />
             </Col>
 
@@ -207,7 +240,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
                 value={stepSizeMagnitude}
                 disabled={stepSizeReadOnly}
                 onChange={(e) =>
-                  handleValueChange(Number(e.target.value), 'step_size', stepSize)
+                  handleValueChange(Number(e.target.value), "step_size", stepSize)
                 }
               />
             </Col>
@@ -217,3 +250,5 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     </div>
   );
 });
+
+SliderComponent.displayName = "SliderComponent";

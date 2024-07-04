@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { runMethod } from '../socket';
-import { Form, Button, InputGroup, Spinner } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import { LevelName } from './NotificationsComponent';
+import React, { useEffect, useRef, useState } from "react";
+import { runMethod } from "../socket";
+import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import { LevelName } from "./NotificationsComponent";
 
 type AsyncMethodProps = {
   fullAccessPath: string;
-  value: 'RUNNING' | null;
-  docString?: string;
+  value: "RUNNING" | null;
+  docString: string | null;
   hideOutput?: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
@@ -22,7 +22,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     value: runningTask,
     addNotification,
     displayName,
-    id
+    id,
   } = props;
 
   // Conditional rendering based on the 'render' prop.
@@ -33,7 +33,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const renderCount = useRef(0);
   const formRef = useRef(null);
   const [spinning, setSpinning] = useState(false);
-  const name = fullAccessPath.split('.').at(-1);
+  const name = fullAccessPath.split(".").at(-1)!;
   const parentPath = fullAccessPath.slice(0, -(name.length + 1));
 
   useEffect(() => {
@@ -59,14 +59,14 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
       method_name = `start_${name}`;
     }
 
-    const accessPath = [parentPath, method_name].filter((element) => element).join('.');
+    const accessPath = [parentPath, method_name].filter((element) => element).join(".");
     setSpinning(true);
     runMethod(accessPath);
   };
 
   return (
     <div className="component asyncMethodComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
       <Form onSubmit={execute} ref={formRef}>
@@ -78,10 +78,10 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
           <Button id={`button-${id}`} type="submit">
             {spinning ? (
               <Spinner size="sm" role="status" aria-hidden="true" />
-            ) : runningTask === 'RUNNING' ? (
-              'Stop '
+            ) : runningTask === "RUNNING" ? (
+              "Stop "
             ) : (
-              'Start '
+              "Start "
             )}
           </Button>
         </InputGroup>
@@ -89,3 +89,5 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     </div>
   );
 });
+
+AsyncMethodComponent.displayName = "AsyncMethodComponent";

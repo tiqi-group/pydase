@@ -1,9 +1,9 @@
-import { SerializedValue } from '../components/GenericComponent';
+import { SerializedObject } from "../types/SerializedObject";
 
 export type State = {
   type: string;
   name: string;
-  value: Record<string, SerializedValue> | null;
+  value: Record<string, SerializedObject> | null;
   readonly: boolean;
   doc: string | null;
 };
@@ -45,7 +45,7 @@ export function parseFullAccessPath(path: string): string[] {
  */
 function parseSerializedKey(serializedKey: string): string | number {
   // Strip outer brackets if present
-  if (serializedKey.startsWith('[') && serializedKey.endsWith(']')) {
+  if (serializedKey.startsWith("[") && serializedKey.endsWith("]")) {
     serializedKey = serializedKey.slice(1, -1);
   }
 
@@ -68,12 +68,13 @@ function parseSerializedKey(serializedKey: string): string | number {
 }
 
 function getOrCreateItemInContainer(
-  container: Record<string | number, SerializedValue> | SerializedValue[],
+  container: Record<string | number, SerializedObject> | SerializedObject[],
   key: string | number,
-  allowAddKey: boolean
-): SerializedValue {
+  allowAddKey: boolean,
+): SerializedObject {
   // Check if the key exists and return the item if it does
   if (key in container) {
+    /* @ts-expect-error Key is in the correct form but converted to type any for some reason */
     return container[key];
   }
 
@@ -107,10 +108,10 @@ function getOrCreateItemInContainer(
  * @throws SerializationValueError If the expected structure is incorrect.
  */
 function getContainerItemByKey(
-  container: Record<string, SerializedValue> | SerializedValue[],
+  container: Record<string, SerializedObject> | SerializedObject[],
   key: string,
-  allowAppend: boolean = false
-): SerializedValue {
+  allowAppend: boolean = false,
+): SerializedObject {
   const processedKey = parseSerializedKey(key);
 
   try {
@@ -126,13 +127,13 @@ function getContainerItemByKey(
 }
 
 export function setNestedValueByPath(
-  serializationDict: Record<string, SerializedValue>,
+  serializationDict: Record<string, SerializedObject>,
   path: string,
-  serializedValue: SerializedValue
-): Record<string, SerializedValue> {
+  serializedValue: SerializedObject,
+): Record<string, SerializedObject> {
   const pathParts = parseFullAccessPath(path);
-  const newSerializationDict: Record<string, SerializedValue> = JSON.parse(
-    JSON.stringify(serializationDict)
+  const newSerializationDict: Record<string, SerializedObject> = JSON.parse(
+    JSON.stringify(serializationDict),
   );
 
   let currentDict = newSerializationDict;
@@ -143,11 +144,11 @@ export function setNestedValueByPath(
       const nextLevelSerializedObject = getContainerItemByKey(
         currentDict,
         pathPart,
-        false
+        false,
       );
-      currentDict = nextLevelSerializedObject['value'] as Record<
+      currentDict = nextLevelSerializedObject["value"] as Record<
         string,
-        SerializedValue
+        SerializedObject
       >;
     }
 
@@ -160,14 +161,15 @@ export function setNestedValueByPath(
   } catch (error) {
     console.error(`Error occurred trying to change ${path}: ${error}`);
   }
+  return {};
 }
 
-function createEmptySerializedObject(): SerializedValue {
+function createEmptySerializedObject(): SerializedObject {
   return {
-    full_access_path: '',
-    value: undefined,
-    type: 'None',
+    full_access_path: "",
+    value: null,
+    type: "None",
     doc: null,
-    readonly: false
+    readonly: false,
   };
 }

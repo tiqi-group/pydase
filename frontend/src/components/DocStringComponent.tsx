@@ -1,8 +1,8 @@
-import { Badge, Tooltip, OverlayTrigger } from 'react-bootstrap';
-import React from 'react';
+import { Badge, Tooltip, OverlayTrigger } from "react-bootstrap";
+import React from "react";
 
 type DocStringProps = {
-  docString?: string;
+  docString?: string | null;
 };
 
 export const DocStringComponent = React.memo((props: DocStringProps) => {
@@ -21,3 +21,5 @@ export const DocStringComponent = React.memo((props: DocStringProps) => {
     </OverlayTrigger>
   );
 });
+
+DocStringComponent.displayName = "DocStringComponent";

@@ -1,7 +1,7 @@
-import React from 'react';
-import { ToastContainer, Toast } from 'react-bootstrap';
+import React from "react";
+import { ToastContainer, Toast } from "react-bootstrap";
 
-export type LevelName = 'CRITICAL' | 'ERROR' | 'WARNING' | 'INFO' | 'DEBUG';
+export type LevelName = "CRITICAL" | "ERROR" | "WARNING" | "INFO" | "DEBUG";
 export type Notification = {
   id: number;
   timeStamp: string;
@@ -23,10 +23,10 @@ export const Notifications = React.memo((props: NotificationProps) => {
       {notifications.map((notification) => {
         // Determine if the toast should be shown
         const shouldShow =
-          notification.levelname === 'ERROR' ||
-          notification.levelname === 'CRITICAL' ||
+          notification.levelname === "ERROR" ||
+          notification.levelname === "CRITICAL" ||
           (showNotification &&
-            ['WARNING', 'INFO', 'DEBUG'].includes(notification.levelname));
+            ["WARNING", "INFO", "DEBUG"].includes(notification.levelname));
 
         if (!shouldShow) {
           return null;
@@ -34,31 +34,31 @@ export const Notifications = React.memo((props: NotificationProps) => {
 
         return (
           <Toast
-            className={notification.levelname.toLowerCase() + 'Toast'}
+            className={notification.levelname.toLowerCase() + "Toast"}
             key={notification.id}
             onClose={() => removeNotificationById(notification.id)}
             onClick={() => removeNotificationById(notification.id)}
             onMouseLeave={() => {
-              if (notification.levelname !== 'ERROR') {
+              if (notification.levelname !== "ERROR") {
                 removeNotificationById(notification.id);
               }
             }}
             show={true}
             autohide={
-              notification.levelname === 'WARNING' ||
-              notification.levelname === 'INFO' ||
-              notification.levelname === 'DEBUG'
+              notification.levelname === "WARNING" ||
+              notification.levelname === "INFO" ||
+              notification.levelname === "DEBUG"
             }
             delay={
-              notification.levelname === 'WARNING' ||
-              notification.levelname === 'INFO' ||
-              notification.levelname === 'DEBUG'
+              notification.levelname === "WARNING" ||
+              notification.levelname === "INFO" ||
+              notification.levelname === "DEBUG"
                 ? 2000
                 : undefined
             }>
             <Toast.Header
               closeButton={false}
-              className={notification.levelname.toLowerCase() + 'Toast text-right'}>
+              className={notification.levelname.toLowerCase() + "Toast text-right"}>
               <strong className="me-auto">{notification.levelname}</strong>
               <small>{notification.timeStamp}</small>
             </Toast.Header>
@@ -69,3 +69,5 @@ export const Notifications = React.memo((props: NotificationProps) => {
     </ToastContainer>
   );
 });
+
+Notifications.displayName = "Notifications";

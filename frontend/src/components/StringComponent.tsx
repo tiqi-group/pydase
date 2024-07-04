@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import '../App.css';
-import { LevelName } from './NotificationsComponent';
-import { SerializedValue } from './GenericComponent';
+import React, { useEffect, useRef, useState } from "react";
+import { Form, InputGroup } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import "../App.css";
+import { LevelName } from "./NotificationsComponent";
+import { SerializedObject } from "../types/SerializedObject";
 
 // TODO: add button functionality
 
@@ -11,10 +11,10 @@ type StringComponentProps = {
   fullAccessPath: string;
   value: string;
   readOnly: boolean;
-  docString: string;
+  docString: string | null;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
+  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
 };
@@ -28,7 +28,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
     addNotification,
     changeCallback = () => {},
     displayName,
-    id
+    id,
   } = props;
 
   const renderCount = useRef(0);
@@ -46,27 +46,27 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
     addNotification(`${fullAccessPath} changed to ${props.value}.`);
   }, [props.value]);
 
-  const handleChange = (event) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
       changeCallback({
-        type: 'str',
+        type: "str",
         value: event.target.value,
         full_access_path: fullAccessPath,
         readonly: readOnly,
-        doc: docString
+        doc: docString,
       });
     }
   };
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && !isInstantUpdate) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" && !isInstantUpdate) {
       changeCallback({
-        type: 'str',
+        type: "str",
         value: inputString,
         full_access_path: fullAccessPath,
         readonly: readOnly,
-        doc: docString
+        doc: docString,
       });
       event.preventDefault();
     }
@@ -75,18 +75,18 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       changeCallback({
-        type: 'str',
+        type: "str",
         value: inputString,
         full_access_path: fullAccessPath,
         readonly: readOnly,
-        doc: docString
+        doc: docString,
       });
     }
   };
 
   return (
     <div className="component stringComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
       <InputGroup>
@@ -102,9 +102,11 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
+          className={isInstantUpdate && !readOnly ? "instantUpdate" : ""}
         />
       </InputGroup>
     </div>
   );
 });
+
+StringComponent.displayName = "StringComponent";
