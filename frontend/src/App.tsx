@@ -48,9 +48,15 @@ const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const [serviceName, setServiceName] = useState(null);
   const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
-  const [isInstantUpdate, setIsInstantUpdate] = useState(false);
+  const [isInstantUpdate, setIsInstantUpdate] = useState(() => {
+    const saved = localStorage.getItem('isInstantUpdate');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const [showSettings, setShowSettings] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
+  const [showNotification, setShowNotification] = useState(() => {
+    const saved = localStorage.getItem('showNotification');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
@@ -104,6 +110,14 @@ const App = () => {
     };
   }, []);
 
+  // Persist isInstantUpdate and showNotification state changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('isInstantUpdate', JSON.stringify(isInstantUpdate));
+  }, [isInstantUpdate]);
+
+  useEffect(() => {
+    localStorage.setItem('showNotification', JSON.stringify(showNotification));
+  }, [showNotification]);
   // Adding useCallback to prevent notify to change causing a re-render of all
   // components
   const addNotification = useCallback(

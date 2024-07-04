@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import React from 'react';
 import { Card, Collapse } from 'react-bootstrap';
 import { ChevronDown, ChevronRight } from 'react-bootstrap-icons';
@@ -17,7 +17,16 @@ export type DataServiceJSON = Record<string, SerializedValue>;
 
 export const DataServiceComponent = React.memo(
   ({ props, isInstantUpdate, addNotification, displayName, id }: DataServiceProps) => {
-    const [open, setOpen] = useState(true);
+    // Retrieve the initial state from localStorage, default to true if not found
+    const [open, setOpen] = useState(() => {
+      const savedState = localStorage.getItem(`dataServiceComponent-${id}-open`);
+      return savedState !== null ? JSON.parse(savedState) : true;
+    });
+
+    // Update localStorage whenever the state changes
+    useEffect(() => {
+      localStorage.setItem(`dataServiceComponent-${id}-open`, JSON.stringify(open));
+    }, [open]);
 
     if (displayName !== '') {
       return (
