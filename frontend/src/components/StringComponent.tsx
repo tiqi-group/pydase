@@ -49,7 +49,13 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
   const handleChange = (event) => {
     setInputString(event.target.value);
     if (isInstantUpdate) {
-      changeCallback(event.target.value);
+      changeCallback({
+        type: 'str',
+        value: event.target.value,
+        full_access_path: fullAccessPath,
+        readonly: readOnly,
+        doc: docString
+      });
     }
   };
 
