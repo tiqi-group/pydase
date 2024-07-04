@@ -2,6 +2,7 @@ import { SerializedValue } from '../components/GenericComponent';
 
 export type State = {
   type: string;
+  name: string;
   value: Record<string, SerializedValue> | null;
   readonly: boolean;
   doc: string | null;

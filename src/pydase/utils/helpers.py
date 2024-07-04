@@ -184,6 +184,4 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
     parameters.pop("self", None)
 
     # Check if there are any parameters left which would indicate additional arguments.
-    if len(parameters) > 0:
-        return True
-    return False
+    return len(parameters) > 0
