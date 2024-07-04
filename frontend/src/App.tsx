@@ -46,6 +46,7 @@ const reducer = (state: State, action: Action): State => {
 };
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
+  const [serviceName, setServiceName] = useState(null);
   const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
   const [isInstantUpdate, setIsInstantUpdate] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -72,7 +73,12 @@ const App = () => {
       // Fetch data from the API when the client connects
       fetch(`http://${hostname}:${port}/service-properties`)
         .then((response) => response.json())
-        .then((data: State) => dispatch({ type: 'SET_DATA', data }));
+        .then((data: State) => {
+          dispatch({ type: 'SET_DATA', data });
+          setServiceName(data.name);
+
+          document.title = data.name; // Setting browser tab title
+        });
       fetch(`http://${hostname}:${port}/web-settings`)
         .then((response) => response.json())
         .then((data: Record<string, WebSetting>) => setWebSettings(data));
@@ -149,7 +155,7 @@ const App = () => {
     <>
       <Navbar expand={false} bg="primary" variant="dark" fixed="top">
         <Container fluid>
-          <Navbar.Brand>Data Service App</Navbar.Brand>
+          <Navbar.Brand>{serviceName}</Navbar.Brand>
           <Navbar.Toggle aria-controls="offcanvasNavbar" onClick={handleShowSettings} />
         </Container>
       </Navbar>
