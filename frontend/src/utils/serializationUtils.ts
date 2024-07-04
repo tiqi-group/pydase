@@ -1,101 +1,100 @@
+import { SerializedObject } from "../types/SerializedObject";
+
 const serializePrimitive = (
   obj: number | boolean | string | null,
-  accessPath: string
-) => {
-  let type: string;
-
-  if (typeof obj === 'number') {
-    type = Number.isInteger(obj) ? 'int' : 'float';
+  accessPath: string,
+): SerializedObject => {
+  if (typeof obj === "number") {
     return {
       full_access_path: accessPath,
       doc: null,
       readonly: false,
-      type,
-      value: obj
+      type: Number.isInteger(obj) ? "int" : "float",
+      value: obj,
     };
-  } else if (typeof obj === 'boolean') {
-    type = 'bool';
+  } else if (typeof obj === "boolean") {
     return {
       full_access_path: accessPath,
       doc: null,
       readonly: false,
-      type,
-      value: obj
+      type: "bool",
+      value: obj,
     };
-  } else if (typeof obj === 'string') {
-    type = 'str';
+  } else if (typeof obj === "string") {
     return {
       full_access_path: accessPath,
       doc: null,
       readonly: false,
-      type,
-      value: obj
+      type: "str",
+      value: obj,
     };
   } else if (obj === null) {
-    type = 'NoneType';
     return {
       full_access_path: accessPath,
       doc: null,
       readonly: false,
-      type,
-      value: null
+      type: "None",
+      value: null,
     };
   } else {
-    throw new Error('Unsupported type for serialization');
+    throw new Error("Unsupported type for serialization");
   }
 };
 
-export const serializeList = (obj: unknown[], accessPath: string = '') => {
+export const serializeList = (obj: unknown[], accessPath: string = "") => {
   const doc = null;
   const value = obj.map((item, index) => {
     if (
-      typeof item === 'number' ||
-      typeof item === 'boolean' ||
-      typeof item === 'string' ||
+      typeof item === "number" ||
+      typeof item === "boolean" ||
+      typeof item === "string" ||
       item === null
     ) {
       serializePrimitive(
         item as number | boolean | string | null,
-        `${accessPath}[${index}]`
+        `${accessPath}[${index}]`,
       );
     }
   });
 
   return {
     full_access_path: accessPath,
-    type: 'list',
+    type: "list",
     value,
     readonly: false,
-    doc
+    doc,
   };
 };
 export const serializeDict = (
   obj: Record<string, unknown>,
-  accessPath: string = ''
+  accessPath: string = "",
 ) => {
   const doc = null;
-  const value = Object.entries(obj).reduce((acc, [key, val]) => {
-    // Construct the new access path for nested properties
-    const newPath = `${accessPath}["${key}"]`;
+  const value = Object.entries(obj).reduce(
+    (acc, [key, val]) => {
+      // Construct the new access path for nested properties
+      const newPath = `${accessPath}["${key}"]`;
 
-    // Serialize each value in the dictionary and assign to the accumulator
-    if (
-      typeof val === 'number' ||
-      typeof val === 'boolean' ||
-      typeof val === 'string' ||
-      val === null
-    ) {
-      acc[key] = serializePrimitive(val as number | boolean | string | null, newPath);
-    }
+      // Serialize each value in the dictionary and assign to the accumulator
+      if (
+        typeof val === "number" ||
+        typeof val === "boolean" ||
+        typeof val === "string" ||
+        val === null
+      ) {
+        acc[key] = serializePrimitive(val as number | boolean | string | null, newPath);
+      }
 
-    return acc;
-  }, {});
+      return acc;
+    },
+    <Record<string, SerializedObject>>{},
+  );
 
   return {
     full_access_path: accessPath,
-    type: 'dict',
+    type: "dict",
     value,
     readonly: false,
-    doc
+    doc,
   };
 };

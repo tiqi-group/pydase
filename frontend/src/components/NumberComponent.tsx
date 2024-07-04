@@ -1,45 +1,43 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Form, InputGroup } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import '../App.css';
-import { LevelName } from './NotificationsComponent';
-import { SerializedValue } from './GenericComponent';
+import React, { useEffect, useState, useRef } from "react";
+import { Form, InputGroup } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import "../App.css";
+import { LevelName } from "./NotificationsComponent";
+import { SerializedObject } from "../types/SerializedObject";
+import { QuantityMap } from "../types/QuantityMap";
 
 // TODO: add button functionality
 
 export type QuantityObject = {
-  type: 'Quantity';
+  type: "Quantity";
   readonly: boolean;
-  value: {
-    magnitude: number;
-    unit: string;
-  };
-  doc?: string;
+  value: QuantityMap;
+  doc: string | null;
 };
 export type IntObject = {
-  type: 'int';
+  type: "int";
   readonly: boolean;
   value: number;
-  doc?: string;
+  doc: string | null;
 };
 export type FloatObject = {
-  type: 'float';
+  type: "float";
   readonly: boolean;
   value: number;
-  doc?: string;
+  doc: string | null;
 };
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
 type NumberComponentProps = {
-  type: 'float' | 'int' | 'Quantity';
+  type: "float" | "int" | "Quantity";
   fullAccessPath: string;
   value: number;
   readOnly: boolean;
-  docString: string;
+  docString: string | null;
   isInstantUpdate: boolean;
   unit?: string;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (value: SerializedValue, callback?: (ack: unknown) => void) => void;
+  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName?: string;
   id: string;
 };
@@ -49,11 +47,11 @@ type NumberComponentProps = {
 const handleArrowKey = (
   key: string,
   value: string,
-  selectionStart: number
+  selectionStart: number,
   // selectionEnd: number
 ) => {
   // Split the input value into the integer part and decimal part
-  const parts = value.split('.');
+  const parts = value.split(".");
   const beforeDecimalCount = parts[0].length; // Count digits before the decimal
   const afterDecimalCount = parts[1] ? parts[1].length : 0; // Count digits after the decimal
 
@@ -69,14 +67,14 @@ const handleArrowKey = (
 
   // Convert the input value to a number, increment or decrement it based on the
   // arrow key
-  const numValue = parseFloat(value) + (key === 'ArrowUp' ? increment : -increment);
+  const numValue = parseFloat(value) + (key === "ArrowUp" ? increment : -increment);
 
   // Convert the resulting number to a string, maintaining the same number of digits
   // after the decimal
   const newValue = numValue.toFixed(afterDecimalCount);
 
   // Check if the length of the integer part of the number string has in-/decreased
-  const newBeforeDecimalCount = newValue.split('.')[0].length;
+  const newBeforeDecimalCount = newValue.split(".")[0].length;
   if (newBeforeDecimalCount > beforeDecimalCount) {
     // Move the cursor one position to the right
     selectionStart += 1;
@@ -90,18 +88,18 @@ const handleArrowKey = (
 const handleBackspaceKey = (
   value: string,
   selectionStart: number,
-  selectionEnd: number
+  selectionEnd: number,
 ) => {
   if (selectionEnd > selectionStart) {
     // If there is a selection, delete all characters in the selection
     return {
       value: value.slice(0, selectionStart) + value.slice(selectionEnd),
-      selectionStart
+      selectionStart,
     };
   } else if (selectionStart > 0) {
     return {
       value: value.slice(0, selectionStart - 1) + value.slice(selectionStart),
-      selectionStart: selectionStart - 1
+      selectionStart: selectionStart - 1,
     };
   }
   return { value, selectionStart };
@@ -110,18 +108,18 @@ const handleBackspaceKey = (
 const handleDeleteKey = (
   value: string,
   selectionStart: number,
-  selectionEnd: number
+  selectionEnd: number,
 ) => {
   if (selectionEnd > selectionStart) {
     // If there is a selection, delete all characters in the selection
     return {
       value: value.slice(0, selectionStart) + value.slice(selectionEnd),
-      selectionStart
+      selectionStart,
     };
   } else if (selectionStart < value.length) {
     return {
       value: value.slice(0, selectionStart) + value.slice(selectionStart + 1),
-      selectionStart
+      selectionStart,
     };
   }
   return { value, selectionStart };
@@ -131,12 +129,12 @@ const handleNumericKey = (
   key: string,
   value: string,
   selectionStart: number,
-  selectionEnd: number
+  selectionEnd: number,
 ) => {
   // Check if a number key or a decimal point key is pressed
-  if (key === '.' && value.includes('.')) {
+  if (key === "." && value.includes(".")) {
     // Check if value already contains a decimal. If so, ignore input.
-    console.warn('Invalid input! Ignoring...');
+    console.warn("Invalid input! Ignoring...");
     return { value, selectionStart };
   }
 
@@ -166,98 +164,111 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     addNotification,
     changeCallback = () => {},
     displayName,
-    id
+    id,
   } = props;
 
   // Create a state for the cursor position
-  const [cursorPosition, setCursorPosition] = useState(null);
+  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   // Create a state for the input string
   const [inputString, setInputString] = useState(value.toString());
   const renderCount = useRef(0);
 
-  const handleKeyDown = (event) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { key, target } = event;
+    console.log(typeof key);
+
+    // Typecast
+    const inputTarget = target as HTMLInputElement;
     if (
-      key === 'F1' ||
-      key === 'F5' ||
-      key === 'F12' ||
-      key === 'Tab' ||
-      key === 'ArrowRight' ||
-      key === 'ArrowLeft'
+      key === "F1" ||
+      key === "F5" ||
+      key === "F12" ||
+      key === "Tab" ||
+      key === "ArrowRight" ||
+      key === "ArrowLeft"
     ) {
       return;
     }
     event.preventDefault();
 
     // Get the current input value and cursor position
-    const { value } = target;
-    let { selectionStart } = target;
-    const { selectionEnd } = target;
+    const { value } = inputTarget;
+    const selectionEnd = inputTarget.selectionEnd ?? 0;
+    let selectionStart = inputTarget.selectionStart ?? 0;
 
     let newValue: string = value;
-    if (event.ctrlKey && key === 'a') {
+    if (event.ctrlKey && key === "a") {
       // Select everything when pressing Ctrl + a
-      target.setSelectionRange(0, target.value.length);
+      inputTarget.setSelectionRange(0, value.length);
       return;
-    } else if (key === '-') {
-      if (selectionStart === 0 && !value.startsWith('-')) {
-        newValue = '-' + value;
+    } else if (key === "-") {
+      if (selectionStart === 0 && !value.startsWith("-")) {
+        newValue = "-" + value;
         selectionStart++;
-      } else if (value.startsWith('-') && selectionStart === 1) {
+      } else if (value.startsWith("-") && selectionStart === 1) {
         newValue = value.substring(1); // remove minus sign
         selectionStart--;
       } else {
         return; // Ignore "-" pressed in other positions
       }
-    } else if (!isNaN(key) && key !== ' ') {
+    } else if (key >= "0" && key <= "9") {
       // Check if a number key or a decimal point key is pressed
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
         selectionStart,
-        selectionEnd
+        selectionEnd,
       ));
-    } else if (key === '.' && (type === 'float' || type === 'Quantity')) {
+    } else if (key === "." && (type === "float" || type === "Quantity")) {
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
         value,
         selectionStart,
-        selectionEnd
+        selectionEnd,
       ));
-    } else if (key === 'ArrowUp' || key === 'ArrowDown') {
+    } else if (key === "ArrowUp" || key === "ArrowDown") {
       ({ value: newValue, selectionStart } = handleArrowKey(
         key,
         value,
-        selectionStart
+        selectionStart,
         // selectionEnd
       ));
-    } else if (key === 'Backspace') {
+    } else if (key === "Backspace") {
       ({ value: newValue, selectionStart } = handleBackspaceKey(
         value,
         selectionStart,
-        selectionEnd
+        selectionEnd,
       ));
-    } else if (key === 'Delete') {
+    } else if (key === "Delete") {
       ({ value: newValue, selectionStart } = handleDeleteKey(
         value,
         selectionStart,
-        selectionEnd
+        selectionEnd,
       ));
-    } else if (key === 'Enter' && !isInstantUpdate) {
-      let updatedValue: number | Record<string, unknown> = Number(newValue);
-      if (type === 'Quantity') {
-        updatedValue = {
-          magnitude: Number(newValue),
-          unit: unit
+    } else if (key === "Enter" && !isInstantUpdate) {
+      let serializedObject: SerializedObject;
+      if (type === "Quantity") {
+        serializedObject = {
+          type: "Quantity",
+          value: {
+            magnitude: Number(newValue),
+            unit: unit,
+          } as QuantityMap,
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
+        };
+      } else {
+        serializedObject = {
+          type: type,
+          value: Number(newValue),
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
         };
       }
-      changeCallback({
-        type: type,
-        value: updatedValue,
-        full_access_path: fullAccessPath,
-        readonly: readOnly,
-        doc: docString
-      });
+
+      changeCallback(serializedObject);
       return;
     } else {
       console.debug(key);
@@ -266,20 +277,29 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
     // Update the input value and maintain the cursor position
     if (isInstantUpdate) {
-      let updatedValue: number | Record<string, unknown> = Number(newValue);
-      if (type === 'Quantity') {
-        updatedValue = {
-          magnitude: Number(newValue),
-          unit: unit
+      let serializedObject: SerializedObject;
+      if (type === "Quantity") {
+        serializedObject = {
+          type: "Quantity",
+          value: {
+            magnitude: Number(newValue),
+            unit: unit,
+          } as QuantityMap,
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
+        };
+      } else {
+        serializedObject = {
+          type: type,
+          value: Number(newValue),
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
         };
       }
-      changeCallback({
-        type: type,
-        value: updatedValue,
-        full_access_path: fullAccessPath,
-        readonly: readOnly,
-        doc: docString
-      });
+
+      changeCallback(serializedObject);
     }
 
     setInputString(newValue);
@@ -291,26 +311,35 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleBlur = () => {
     if (!isInstantUpdate) {
       // If not in "instant update" mode, emit an update when the input field loses focus
-      let updatedValue: number | Record<string, unknown> = Number(inputString);
-      if (type === 'Quantity') {
-        updatedValue = {
-          magnitude: Number(inputString),
-          unit: unit
+      let serializedObject: SerializedObject;
+      if (type === "Quantity") {
+        serializedObject = {
+          type: "Quantity",
+          value: {
+            magnitude: Number(inputString),
+            unit: unit,
+          } as QuantityMap,
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
+        };
+      } else {
+        serializedObject = {
+          type: type,
+          value: Number(inputString),
+          full_access_path: fullAccessPath,
+          readonly: readOnly,
+          doc: docString,
         };
       }
-      changeCallback({
-        type: type,
-        value: updatedValue,
-        full_access_path: fullAccessPath,
-        readonly: readOnly,
-        doc: docString
-      });
+
+      changeCallback(serializedObject);
     }
   };
   useEffect(() => {
     // Parse the input string to a number for comparison
     const numericInputString =
-      type === 'int' ? parseInt(inputString) : parseFloat(inputString);
+      type === "int" ? parseInt(inputString) : parseFloat(inputString);
     // Only update the inputString if it's different from the prop value
     if (value !== numericInputString) {
       setInputString(value.toString());
@@ -319,7 +348,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     // emitting notification
     let notificationMsg = `${fullAccessPath} changed to ${props.value}`;
     if (unit === undefined) {
-      notificationMsg += '.';
+      notificationMsg += ".";
     } else {
       notificationMsg += ` ${unit}.`;
     }
@@ -336,7 +365,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   return (
     <div className="component numberComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
       <InputGroup>
@@ -354,10 +383,12 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
           name={id}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          className={isInstantUpdate && !readOnly ? 'instantUpdate' : ''}
+          className={isInstantUpdate && !readOnly ? "instantUpdate" : ""}
         />
         {unit && <InputGroup.Text>{unit}</InputGroup.Text>}
       </InputGroup>
     </div>
   );
 });
+
+NumberComponent.displayName = "NumberComponent";

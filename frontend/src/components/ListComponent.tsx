@@ -1,11 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { DocStringComponent } from './DocStringComponent';
-import { SerializedValue, GenericComponent } from './GenericComponent';
-import { LevelName } from './NotificationsComponent';
+import React, { useEffect, useRef } from "react";
+import { DocStringComponent } from "./DocStringComponent";
+import { GenericComponent } from "./GenericComponent";
+import { LevelName } from "./NotificationsComponent";
+import { SerializedObject } from "../types/SerializedObject";
 
 type ListComponentProps = {
-  value: SerializedValue[];
-  docString: string;
+  value: SerializedObject[];
+  docString: string | null;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   id: string;
@@ -21,8 +22,8 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
   }, [props]);
 
   return (
-    <div className={'listComponent'} id={id}>
-      {process.env.NODE_ENV === 'development' && (
+    <div className={"listComponent"} id={id}>
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
       <DocStringComponent docString={docString} />
@@ -39,3 +40,5 @@ export const ListComponent = React.memo((props: ListComponentProps) => {
     </div>
   );
 });
+
+ListComponent.displayName = "ListComponent";

@@ -1,7 +1,7 @@
-import React from 'react';
-import { LevelName } from './NotificationsComponent';
-import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
-import { MethodComponent } from './MethodComponent';
+import React from "react";
+import { LevelName } from "./NotificationsComponent";
+import { DataServiceComponent, DataServiceJSON } from "./DataServiceComponent";
+import { MethodComponent } from "./MethodComponent";
 
 type DeviceConnectionProps = {
   fullAccessPath: string;
@@ -19,7 +19,7 @@ export const DeviceConnectionComponent = React.memo(
     isInstantUpdate,
     addNotification,
     displayName,
-    id
+    id,
   }: DeviceConnectionProps) => {
     const { connected, connect, ...updatedProps } = props;
     const connectedVal = connected.value;
@@ -29,14 +29,14 @@ export const DeviceConnectionComponent = React.memo(
         {!connectedVal && (
           <div className="overlayContent">
             <div>
-              {displayName != '' ? displayName : 'Device'} is currently not available!
+              {displayName != "" ? displayName : "Device"} is currently not available!
             </div>
             <MethodComponent
               fullAccessPath={`${fullAccessPath}.connect`}
               docString={connect.doc}
               addNotification={addNotification}
-              displayName={'reconnect'}
-              id={id + '-connect'}
+              displayName={"reconnect"}
+              id={id + "-connect"}
               render={true}
             />
           </div>
@@ -50,5 +50,7 @@ export const DeviceConnectionComponent = React.memo(
         />
       </div>
     );
-  }
+  },
 );
+
+DeviceConnectionComponent.displayName = "DeviceConnectionComponent";

@@ -1,43 +1,49 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
-import { Navbar, Form, Offcanvas, Container } from 'react-bootstrap';
-import { hostname, port, socket } from './socket';
-import './App.css';
+import { useCallback, useEffect, useReducer, useState } from "react";
+import { Navbar, Form, Offcanvas, Container } from "react-bootstrap";
+import { hostname, port, socket } from "./socket";
+import "./App.css";
 import {
   Notifications,
   Notification,
-  LevelName
-} from './components/NotificationsComponent';
-import { ConnectionToast } from './components/ConnectionToast';
-import { setNestedValueByPath, State } from './utils/stateUtils';
-import { WebSettingsContext, WebSetting } from './WebSettings';
-import { SerializedValue, GenericComponent } from './components/GenericComponent';
+  LevelName,
+} from "./components/NotificationsComponent";
+import { ConnectionToast } from "./components/ConnectionToast";
+import { setNestedValueByPath, State } from "./utils/stateUtils";
+import { WebSettingsContext, WebSetting } from "./WebSettings";
+import { GenericComponent } from "./components/GenericComponent";
+import { SerializedObject } from "./types/SerializedObject";
 
 type Action =
-  | { type: 'SET_DATA'; data: State }
+  | { type: "SET_DATA"; data: State }
   | {
-      type: 'UPDATE_ATTRIBUTE';
+      type: "UPDATE_ATTRIBUTE";
       fullAccessPath: string;
-      newValue: SerializedValue;
+      newValue: SerializedObject;
     };
 type UpdateMessage = {
-  data: { full_access_path: string; value: SerializedValue };
+  data: { full_access_path: string; value: SerializedObject };
 };
 type LogMessage = {
   levelname: LevelName;
   message: string;
 };
 
-const reducer = (state: State, action: Action): State => {
+const reducer = (state: State | null, action: Action): State | null => {
   switch (action.type) {
-    case 'SET_DATA':
+    case "SET_DATA":
       return action.data;
-    case 'UPDATE_ATTRIBUTE': {
+    case "UPDATE_ATTRIBUTE": {
       if (state === null) {
         return null;
       }
       return {
         ...state,
-        value: setNestedValueByPath(state.value, action.fullAccessPath, action.newValue)
+        value: setNestedValueByPath(
+          /* @ts-expect-error state is not null here... */
+          state.value,
+          action.fullAccessPath,
+          action.newValue,
+        ),
       };
     }
     default:
@@ -46,19 +52,19 @@ const reducer = (state: State, action: Action): State => {
 };
 const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
-  const [serviceName, setServiceName] = useState(null);
+  const [serviceName, setServiceName] = useState<string | null>(null);
   const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
   const [isInstantUpdate, setIsInstantUpdate] = useState(() => {
-    const saved = localStorage.getItem('isInstantUpdate');
+    const saved = localStorage.getItem("isInstantUpdate");
     return saved !== null ? JSON.parse(saved) : false;
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showNotification, setShowNotification] = useState(() => {
-    const saved = localStorage.getItem('showNotification');
+    const saved = localStorage.getItem("showNotification");
     return saved !== null ? JSON.parse(saved) : false;
   });
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState('connecting');
+  const [connectionStatus, setConnectionStatus] = useState("connecting");
 
   useEffect(() => {
     // Allow the user to add a custom css file
@@ -66,21 +72,21 @@ const App = () => {
       .then((response) => {
         if (response.ok) {
           // If the file exists, create a link element for the custom CSS
-          const link = document.createElement('link');
+          const link = document.createElement("link");
           link.href = `http://${hostname}:${port}/custom.css`;
-          link.type = 'text/css';
-          link.rel = 'stylesheet';
+          link.type = "text/css";
+          link.rel = "stylesheet";
           document.head.appendChild(link);
         }
       })
       .catch(console.error); // Handle the error appropriately
 
-    socket.on('connect', () => {
+    socket.on("connect", () => {
       // Fetch data from the API when the client connects
       fetch(`http://${hostname}:${port}/service-properties`)
         .then((response) => response.json())
         .then((data: State) => {
-          dispatch({ type: 'SET_DATA', data });
+          dispatch({ type: "SET_DATA", data });
           setServiceName(data.name);
 
           document.title = data.name; // Setting browser tab title
@@ -88,40 +94,40 @@ const App = () => {
       fetch(`http://${hostname}:${port}/web-settings`)
         .then((response) => response.json())
         .then((data: Record<string, WebSetting>) => setWebSettings(data));
-      setConnectionStatus('connected');
+      setConnectionStatus("connected");
     });
-    socket.on('disconnect', () => {
-      setConnectionStatus('disconnected');
+    socket.on("disconnect", () => {
+      setConnectionStatus("disconnected");
       setTimeout(() => {
         // Only set "reconnecting" is the state is still "disconnected"
         // E.g. when the client has already reconnected
         setConnectionStatus((currentState) =>
-          currentState === 'disconnected' ? 'reconnecting' : currentState
+          currentState === "disconnected" ? "reconnecting" : currentState,
         );
       }, 2000);
     });
 
-    socket.on('notify', onNotify);
-    socket.on('log', onLogMessage);
+    socket.on("notify", onNotify);
+    socket.on("log", onLogMessage);
 
     return () => {
-      socket.off('notify', onNotify);
-      socket.off('log', onLogMessage);
+      socket.off("notify", onNotify);
+      socket.off("log", onLogMessage);
     };
   }, []);
 
   // Persist isInstantUpdate and showNotification state changes to localStorage
   useEffect(() => {
-    localStorage.setItem('isInstantUpdate', JSON.stringify(isInstantUpdate));
+    localStorage.setItem("isInstantUpdate", JSON.stringify(isInstantUpdate));
   }, [isInstantUpdate]);
 
   useEffect(() => {
-    localStorage.setItem('showNotification', JSON.stringify(showNotification));
+    localStorage.setItem("showNotification", JSON.stringify(showNotification));
   }, [showNotification]);
   // Adding useCallback to prevent notify to change causing a re-render of all
   // components
   const addNotification = useCallback(
-    (message: string, levelname: LevelName = 'DEBUG') => {
+    (message: string, levelname: LevelName = "DEBUG") => {
       // Getting the current time in the required format
       const timeStamp = new Date().toISOString().substring(11, 19);
       // Adding an id to the notification to provide a way of removing it
@@ -130,15 +136,15 @@ const App = () => {
       // Custom logic for notifications
       setNotifications((prevNotifications) => [
         { levelname, id, message, timeStamp },
-        ...prevNotifications
+        ...prevNotifications,
       ]);
     },
-    []
+    [],
   );
 
   const removeNotificationById = (id: number) => {
     setNotifications((prevNotifications) =>
-      prevNotifications.filter((n) => n.id !== id)
+      prevNotifications.filter((n) => n.id !== id),
     );
   };
 
@@ -151,9 +157,9 @@ const App = () => {
 
     // Dispatching the update to the reducer
     dispatch({
-      type: 'UPDATE_ATTRIBUTE',
+      type: "UPDATE_ATTRIBUTE",
       fullAccessPath,
-      newValue
+      newValue,
     });
   }
 
@@ -208,7 +214,7 @@ const App = () => {
       <div className="App navbarOffset">
         <WebSettingsContext.Provider value={webSettings}>
           <GenericComponent
-            attribute={state as SerializedValue}
+            attribute={state as SerializedObject}
             isInstantUpdate={isInstantUpdate}
             addNotification={addNotification}
           />

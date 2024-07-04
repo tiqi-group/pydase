@@ -1,62 +1,34 @@
-import React, { useContext } from 'react';
-import { ButtonComponent } from './ButtonComponent';
-import { NumberComponent } from './NumberComponent';
-import { SliderComponent } from './SliderComponent';
-import { EnumComponent, EnumSerialization } from './EnumComponent';
-import { MethodComponent } from './MethodComponent';
-import { AsyncMethodComponent } from './AsyncMethodComponent';
-import { StringComponent } from './StringComponent';
-import { ListComponent } from './ListComponent';
-import { DataServiceComponent, DataServiceJSON } from './DataServiceComponent';
-import { DeviceConnectionComponent } from './DeviceConnection';
-import { ImageComponent } from './ImageComponent';
-import { LevelName } from './NotificationsComponent';
-import { getIdFromFullAccessPath } from '../utils/stringUtils';
-import { WebSettingsContext } from '../WebSettings';
-import { updateValue } from '../socket';
-import { DictComponent } from './DictComponent';
-import { parseFullAccessPath } from '../utils/stateUtils';
+import React, { useContext } from "react";
+import { ButtonComponent } from "./ButtonComponent";
+import { NumberComponent, NumberObject } from "./NumberComponent";
+import { SliderComponent } from "./SliderComponent";
+import { EnumComponent, EnumSerialization } from "./EnumComponent";
+import { MethodComponent } from "./MethodComponent";
+import { AsyncMethodComponent } from "./AsyncMethodComponent";
+import { StringComponent } from "./StringComponent";
+import { ListComponent } from "./ListComponent";
+import { DataServiceComponent, DataServiceJSON } from "./DataServiceComponent";
+import { DeviceConnectionComponent } from "./DeviceConnection";
+import { ImageComponent } from "./ImageComponent";
+import { LevelName } from "./NotificationsComponent";
+import { getIdFromFullAccessPath } from "../utils/stringUtils";
+import { WebSettingsContext } from "../WebSettings";
+import { updateValue } from "../socket";
+import { DictComponent } from "./DictComponent";
+import { parseFullAccessPath } from "../utils/stateUtils";
+import { SerializedObject } from "../types/SerializedObject";
 
-type AttributeType =
-  | 'str'
-  | 'bool'
-  | 'float'
-  | 'int'
-  | 'Quantity'
-  | 'None'
-  | 'list'
-  | 'dict'
-  | 'method'
-  | 'DataService'
-  | 'DeviceConnection'
-  | 'Enum'
-  | 'NumberSlider'
-  | 'Image'
-  | 'ColouredEnum';
-
-type ValueType = boolean | string | number | Record<string, unknown>;
-export type SerializedValue = {
-  type: AttributeType;
-  full_access_path: string;
-  name?: string;
-  value?: ValueType | ValueType[];
-  readonly: boolean;
-  doc?: string | null;
-  async?: boolean;
-  frontend_render?: boolean;
-  enum?: Record<string, string>;
-};
 type GenericComponentProps = {
-  attribute: SerializedValue;
+  attribute: SerializedObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
 };
 
 const getPathFromPathParts = (pathParts: string[]): string => {
-  let path = '';
+  let path = "";
   for (const pathPart of pathParts) {
-    if (!pathPart.startsWith('[') && path !== '') {
-      path += '.';
+    if (!pathPart.startsWith("[") && path !== "") {
+      path += ".";
     }
     path += pathPart;
   }
@@ -69,7 +41,7 @@ const createDisplayNameFromAccessPath = (fullAccessPath: string): string => {
   for (let i = parsedFullAccessPath.length - 1; i >= 0; i--) {
     const item = parsedFullAccessPath[i];
     displayNameParts.unshift(item);
-    if (!item.startsWith('[')) {
+    if (!item.startsWith("[")) {
       break;
     }
   }
@@ -94,13 +66,13 @@ export const GenericComponent = React.memo(
     }
 
     function changeCallback(
-      value: SerializedValue,
-      callback: (ack: unknown) => void = undefined
+      value: SerializedObject,
+      callback: (ack: unknown) => void = () => {},
     ) {
       updateValue(value, callback);
     }
 
-    if (attribute.type === 'bool') {
+    if (attribute.type === "bool") {
       return (
         <ButtonComponent
           fullAccessPath={fullAccessPath}
@@ -113,7 +85,7 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'float' || attribute.type === 'int') {
+    } else if (attribute.type === "float" || attribute.type === "int") {
       return (
         <NumberComponent
           type={attribute.type}
@@ -128,15 +100,15 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'Quantity') {
+    } else if (attribute.type === "Quantity") {
       return (
         <NumberComponent
           type="Quantity"
           fullAccessPath={fullAccessPath}
           docString={attribute.doc}
           readOnly={attribute.readonly}
-          value={Number(attribute.value['magnitude'])}
-          unit={attribute.value['unit']}
+          value={Number(attribute.value["magnitude"])}
+          unit={attribute.value["unit"]}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
@@ -144,16 +116,16 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'NumberSlider') {
+    } else if (attribute.type === "NumberSlider") {
       return (
         <SliderComponent
           fullAccessPath={fullAccessPath}
-          docString={attribute.value['value'].doc}
+          docString={attribute.value["value"].doc}
           readOnly={attribute.readonly}
-          value={attribute.value['value']}
-          min={attribute.value['min']}
-          max={attribute.value['max']}
-          stepSize={attribute.value['step_size']}
+          value={attribute.value["value"] as NumberObject}
+          min={attribute.value["min"] as NumberObject}
+          max={attribute.value["max"] as NumberObject}
+          stepSize={attribute.value["step_size"] as NumberObject}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
@@ -161,7 +133,7 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'Enum' || attribute.type === 'ColouredEnum') {
+    } else if (attribute.type === "Enum" || attribute.type === "ColouredEnum") {
       return (
         <EnumComponent
           attribute={attribute as EnumSerialization}
@@ -171,7 +143,7 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'method') {
+    } else if (attribute.type === "method") {
       if (!attribute.async) {
         return (
           <MethodComponent
@@ -188,7 +160,7 @@ export const GenericComponent = React.memo(
           <AsyncMethodComponent
             fullAccessPath={fullAccessPath}
             docString={attribute.doc}
-            value={attribute.value as 'RUNNING' | null}
+            value={attribute.value as "RUNNING" | null}
             addNotification={addNotification}
             displayName={displayName}
             id={id}
@@ -196,7 +168,7 @@ export const GenericComponent = React.memo(
           />
         );
       }
-    } else if (attribute.type === 'str') {
+    } else if (attribute.type === "str") {
       return (
         <StringComponent
           fullAccessPath={fullAccessPath}
@@ -210,7 +182,7 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'DataService') {
+    } else if (attribute.type === "DataService") {
       return (
         <DataServiceComponent
           props={attribute.value as DataServiceJSON}
@@ -220,7 +192,7 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'DeviceConnection') {
+    } else if (attribute.type === "DeviceConnection") {
       return (
         <DeviceConnectionComponent
           fullAccessPath={fullAccessPath}
@@ -231,41 +203,42 @@ export const GenericComponent = React.memo(
           id={id}
         />
       );
-    } else if (attribute.type === 'list') {
+    } else if (attribute.type === "list") {
       return (
         <ListComponent
-          value={attribute.value as SerializedValue[]}
+          value={attribute.value}
           docString={attribute.doc}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           id={id}
         />
       );
-    } else if (attribute.type === 'dict') {
+    } else if (attribute.type === "dict") {
       return (
         <DictComponent
-          value={attribute.value as Record<string, SerializedValue>}
+          value={attribute.value}
           docString={attribute.doc}
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           id={id}
         />
       );
-    } else if (attribute.type === 'Image') {
+    } else if (attribute.type === "Image") {
       return (
         <ImageComponent
           fullAccessPath={fullAccessPath}
-          docString={attribute.value['value'].doc}
+          docString={attribute.value["value"].doc}
           displayName={displayName}
           id={id}
           addNotification={addNotification}
-          // Add any other specific props for the ImageComponent here
-          value={attribute.value['value']['value'] as string}
-          format={attribute.value['format']['value'] as string}
+          value={attribute.value["value"]["value"] as string}
+          format={attribute.value["format"]["value"] as string}
         />
       );
     } else {
       return <div key={fullAccessPath}>{fullAccessPath}</div>;
     }
-  }
+  },
 );
+
+GenericComponent.displayName = "GenericComponent";

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Toast, Button, ToastContainer } from 'react-bootstrap';
+import React, { useEffect, useState } from "react";
+import { Toast, Button, ToastContainer } from "react-bootstrap";
 
 type ConnectionToastProps = {
   connectionStatus: string;
@@ -36,31 +36,31 @@ export const ConnectionToast = React.memo(
       delay: number | undefined;
     } => {
       switch (connectionStatus) {
-        case 'connecting':
+        case "connecting":
           return {
-            message: 'Connecting...',
-            bg: 'info',
-            delay: undefined
+            message: "Connecting...",
+            bg: "info",
+            delay: undefined,
           };
-        case 'connected':
-          return { message: 'Connected', bg: 'success', delay: 1000 };
-        case 'disconnected':
+        case "connected":
+          return { message: "Connected", bg: "success", delay: 1000 };
+        case "disconnected":
           return {
-            message: 'Disconnected',
-            bg: 'danger',
-            delay: undefined
+            message: "Disconnected",
+            bg: "danger",
+            delay: undefined,
           };
-        case 'reconnecting':
+        case "reconnecting":
           return {
-            message: 'Reconnecting...',
-            bg: 'info',
-            delay: undefined
+            message: "Reconnecting...",
+            bg: "info",
+            delay: undefined,
           };
         default:
           return {
-            message: '',
-            bg: 'info',
-            delay: undefined
+            message: "",
+            bg: "info",
+            delay: undefined,
           };
       }
     };
@@ -82,5 +82,7 @@ export const ConnectionToast = React.memo(
         </Toast>
       </ToastContainer>
     );
-  }
+  },
 );
+
+ConnectionToast.displayName = "ConnectionToast";

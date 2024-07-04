@@ -1,12 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import { runMethod } from '../socket';
-import { Button, Form } from 'react-bootstrap';
-import { DocStringComponent } from './DocStringComponent';
-import { LevelName } from './NotificationsComponent';
+import React, { useEffect, useRef } from "react";
+import { runMethod } from "../socket";
+import { Button, Form } from "react-bootstrap";
+import { DocStringComponent } from "./DocStringComponent";
+import { LevelName } from "./NotificationsComponent";
 
 type MethodProps = {
   fullAccessPath: string;
-  docString?: string;
+  docString: string | null;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
@@ -43,7 +43,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
 
   return (
     <div className="component methodComponent" id={id}>
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div>Render count: {renderCount.current}</div>
       )}
       <Form onSubmit={execute} ref={formRef}>
@@ -55,3 +55,5 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     </div>
   );
 });
+
+MethodComponent.displayName = "MethodComponent";
