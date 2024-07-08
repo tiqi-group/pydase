@@ -24,6 +24,23 @@ interface SliderComponentProps {
   id: string;
 }
 
+const deconstructNumberDict = (
+  numberDict: NumberObject,
+): [number, boolean, string | undefined] => {
+  let numberMagnitude = 0;
+  let numberUnit: string | undefined = undefined;
+  const numberReadOnly = numberDict.readonly;
+
+  if (numberDict.type === "int" || numberDict.type === "float") {
+    numberMagnitude = numberDict.value;
+  } else if (numberDict.type === "Quantity") {
+    numberMagnitude = numberDict.value.magnitude;
+    numberUnit = numberDict.value.unit;
+  }
+
+  return [numberMagnitude, numberReadOnly, numberUnit];
+};
+
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRenderCount();
   const [open, setOpen] = useState(false);
@@ -115,23 +132,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       };
     }
     changeCallback(serializedObject);
-  };
-
-  const deconstructNumberDict = (
-    numberDict: NumberObject,
-  ): [number, boolean, string | undefined] => {
-    let numberMagnitude = 0;
-    let numberUnit: string | undefined = undefined;
-    const numberReadOnly = numberDict.readonly;
-
-    if (numberDict.type === "int" || numberDict.type === "float") {
-      numberMagnitude = numberDict.value;
-    } else if (numberDict.type === "Quantity") {
-      numberMagnitude = numberDict.value.magnitude;
-      numberUnit = numberDict.value.unit;
-    }
-
-    return [numberMagnitude, numberReadOnly, numberUnit];
   };
 
   const [valueMagnitude, valueReadOnly, valueUnit] = deconstructNumberDict(value);

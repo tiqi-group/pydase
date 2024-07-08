@@ -48,6 +48,13 @@ const createDisplayNameFromAccessPath = (fullAccessPath: string): string => {
   return getPathFromPathParts(displayNameParts);
 };
 
+function changeCallback(
+  value: SerializedObject,
+  callback: (ack: unknown) => void = () => {},
+) {
+  updateValue(value, callback);
+}
+
 export const GenericComponent = React.memo(
   ({ attribute, isInstantUpdate, addNotification }: GenericComponentProps) => {
     const { full_access_path: fullAccessPath } = attribute;
@@ -63,13 +70,6 @@ export const GenericComponent = React.memo(
       if (webSettings[fullAccessPath].displayName) {
         displayName = webSettings[fullAccessPath].displayName;
       }
-    }
-
-    function changeCallback(
-      value: SerializedObject,
-      callback: (ack: unknown) => void = () => {},
-    ) {
-      updateValue(value, callback);
     }
 
     if (attribute.type === "bool") {
