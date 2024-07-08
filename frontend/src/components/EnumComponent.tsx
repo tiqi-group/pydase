@@ -3,6 +3,7 @@ import { InputGroup, Form, Row, Col } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject, SerializedEnum } from "../types/SerializedObject";
+import { propsAreEqual } from "../utils/propsAreEqual";
 import { useRenderCount } from "../hooks/useRenderCount";
 
 interface EnumComponentProps extends SerializedEnum {
@@ -82,6 +83,6 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       </Row>
     </div>
   );
-});
+}, propsAreEqual);
 
 EnumComponent.displayName = "EnumComponent";

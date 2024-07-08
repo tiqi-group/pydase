@@ -6,6 +6,7 @@ import { NumberComponent, NumberObject } from "./NumberComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
+import { propsAreEqual } from "../utils/propsAreEqual";
 import { useRenderCount } from "../hooks/useRenderCount";
 
 interface SliderComponentProps {
@@ -244,6 +245,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       </Collapse>
     </div>
   );
-});
+}, propsAreEqual);
 
 SliderComponent.displayName = "SliderComponent";

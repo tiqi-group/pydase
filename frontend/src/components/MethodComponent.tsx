@@ -4,6 +4,7 @@ import { Button, Form } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { useRenderCount } from "../hooks/useRenderCount";
+import { propsAreEqual } from "../utils/propsAreEqual";
 
 interface MethodProps {
   fullAccessPath: string;
@@ -49,6 +50,6 @@ export const MethodComponent = React.memo((props: MethodProps) => {
       </Form>
     </div>
   );
-});
+}, propsAreEqual);
 
 MethodComponent.displayName = "MethodComponent";
