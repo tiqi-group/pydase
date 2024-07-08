@@ -60,19 +60,19 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   useEffect(() => {
     addNotification(`${fullAccessPath} changed to ${value.value}.`);
-  }, [props.value]);
+  }, [props.value.value]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.min changed to ${min.value}.`);
-  }, [props.min]);
+  }, [props.min.value, props.min.type]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.max changed to ${max.value}.`);
-  }, [props.max]);
+  }, [props.max.value, props.max.type]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.stepSize changed to ${stepSize.value}.`);
-  }, [props.stepSize]);
+  }, [props.stepSize.value, props.stepSize.type]);
 
   const handleOnChange = (_: Event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
