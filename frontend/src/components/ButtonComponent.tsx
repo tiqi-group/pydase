@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { ToggleButton } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface ButtonComponentProps {
   fullAccessPath: string;
@@ -29,11 +30,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   } = props;
   // const buttonName = props.mapping ? (value ? props.mapping[0] : props.mapping[1]) : name;
 
-  const renderCount = useRef(0);
-
-  useEffect(() => {
-    renderCount.current++;
-  });
+  const renderCount = useRenderCount();
 
   useEffect(() => {
     addNotification(`${fullAccessPath} changed to ${value}.`);
@@ -51,9 +48,7 @@ export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
 
   return (
     <div className={"component buttonComponent"} id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
 
       <ToggleButton
         id={`toggle-check-${id}`}

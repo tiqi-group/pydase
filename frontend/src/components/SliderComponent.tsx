@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { Slider } from "@mui/material";
@@ -6,6 +6,7 @@ import { NumberComponent, NumberObject } from "./NumberComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface SliderComponentProps {
   fullAccessPath: string;
@@ -23,7 +24,7 @@ interface SliderComponentProps {
 }
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const [open, setOpen] = useState(false);
   const {
     fullAccessPath,
@@ -38,10 +39,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     displayName,
     id,
   } = props;
-
-  useEffect(() => {
-    renderCount.current++;
-  });
 
   useEffect(() => {
     addNotification(`${fullAccessPath} changed to ${value.value}.`);
@@ -143,9 +140,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   return (
     <div className="component sliderComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
 
       <Row>
         <Col xs="auto" xl="auto">

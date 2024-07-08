@@ -3,6 +3,7 @@ import { runMethod } from "../socket";
 import { Button, Form } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface MethodProps {
   fullAccessPath: string;
@@ -21,7 +22,7 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     return null;
   }
 
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const formRef = useRef(null);
 
   const triggerNotification = () => {
@@ -37,15 +38,9 @@ export const MethodComponent = React.memo((props: MethodProps) => {
     triggerNotification();
   };
 
-  useEffect(() => {
-    renderCount.current++;
-  });
-
   return (
     <div className="component methodComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <Form onSubmit={execute} ref={formRef}>
         <Button className="component" variant="primary" type="submit">
           {`${displayName} `}

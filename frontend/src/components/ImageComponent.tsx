@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Collapse, Image } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { ChevronDown, ChevronRight } from "react-bootstrap-icons";
 import { LevelName } from "./NotificationsComponent";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface ImageComponentProps {
   fullAccessPath: string;
@@ -18,12 +19,8 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
   const { fullAccessPath, value, docString, format, addNotification, displayName, id } =
     props;
 
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    renderCount.current++;
-  });
 
   useEffect(() => {
     addNotification(`${fullAccessPath} changed.`);
@@ -43,7 +40,7 @@ export const ImageComponent = React.memo((props: ImageComponentProps) => {
         <Collapse in={open}>
           <Card.Body>
             {process.env.NODE_ENV === "development" && (
-              <p>Render count: {renderCount.current}</p>
+              <p>Render count: {renderCount}</p>
             )}
             {format === "" && value === "" ? (
               <p>No image set in the backend.</p>

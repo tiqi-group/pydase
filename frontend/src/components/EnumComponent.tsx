@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import { InputGroup, Form, Row, Col } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 export interface EnumSerialization {
   type: "Enum" | "ColouredEnum";
@@ -40,12 +41,8 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
       });
     };
   }
-  const renderCount = useRef(0);
   const [enumValue, setEnumValue] = useState(value);
-
-  useEffect(() => {
-    renderCount.current++;
-  });
+  const renderCount = useRenderCount();
 
   useEffect(() => {
     setEnumValue(() => {
@@ -56,9 +53,7 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
 
   return (
     <div className={"component enumComponent"} id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <Row>
         <Col className="d-flex align-items-center">
           <InputGroup.Text>
