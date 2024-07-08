@@ -2,9 +2,8 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactRecommended from "eslint-plugin-react/configs/recommended.js";
-import tsParser from "@typescript-eslint/parser";
 
-export default [
+export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...tseslint.configs.stylistic,
@@ -12,7 +11,7 @@ export default [
     files: ["**/*.{js,jsx,ts,tsx}"],
     ...reactRecommended,
     languageOptions: {
-      parser: tsParser,
+      parser: tseslint.parser,
     },
     rules: {
       "prettier/prettier": "error",
@@ -22,4 +21,4 @@ export default [
     },
   },
   eslintPluginPrettierRecommended,
-];
+);
