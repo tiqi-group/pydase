@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { ButtonComponent } from "./ButtonComponent";
 import { NumberComponent, NumberObject } from "./NumberComponent";
 import { SliderComponent } from "./SliderComponent";
-import { EnumComponent, EnumSerialization } from "./EnumComponent";
+import { EnumComponent } from "./EnumComponent";
 import { MethodComponent } from "./MethodComponent";
 import { AsyncMethodComponent } from "./AsyncMethodComponent";
 import { StringComponent } from "./StringComponent";
@@ -16,7 +16,7 @@ import { WebSettingsContext } from "../WebSettings";
 import { updateValue } from "../socket";
 import { DictComponent } from "./DictComponent";
 import { parseFullAccessPath } from "../utils/stateUtils";
-import { SerializedObject } from "../types/SerializedObject";
+import { SerializedEnum, SerializedObject } from "../types/SerializedObject";
 
 interface GenericComponentProps {
   attribute: SerializedObject;
@@ -136,7 +136,7 @@ export const GenericComponent = React.memo(
     } else if (attribute.type === "Enum" || attribute.type === "ColouredEnum") {
       return (
         <EnumComponent
-          attribute={attribute as EnumSerialization}
+          {...(attribute as SerializedEnum)}
           addNotification={addNotification}
           changeCallback={changeCallback}
           displayName={displayName}

@@ -2,52 +2,32 @@ import React, { useEffect } from "react";
 import { InputGroup, Form, Row, Col } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
-import { SerializedObject } from "../types/SerializedObject";
+import { SerializedObject, SerializedEnum } from "../types/SerializedObject";
 import { useRenderCount } from "../hooks/useRenderCount";
 
-export interface EnumSerialization {
-  type: "Enum" | "ColouredEnum";
-  full_access_path: string;
-  name: string;
-  value: string;
-  readonly: boolean;
-  doc: string | null;
-  enum: Record<string, string>;
-}
-
-interface EnumComponentProps {
-  attribute: EnumSerialization;
+interface EnumComponentProps extends SerializedEnum {
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
-  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
+  changeCallback: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
 }
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
-  const { attribute, addNotification, displayName, id } = props;
   const {
-    full_access_path: fullAccessPath,
+    addNotification,
+    displayName,
+    id,
     value,
-    doc: docString,
+    full_access_path: fullAccessPath,
     enum: enumDict,
+    doc: docString,
     readonly: readOnly,
-  } = attribute;
+    changeCallback,
+  } = props;
 
-  let { changeCallback } = props;
-  if (changeCallback === undefined) {
-    changeCallback = (value: SerializedObject) => {
-      setEnumValue(() => {
-        return String(value.value);
-      });
-    };
-  }
-  const [enumValue, setEnumValue] = useState(value);
   const renderCount = useRenderCount();
 
   useEffect(() => {
-    setEnumValue(() => {
-      return value;
-    });
     addNotification(`${fullAccessPath} changed to ${value}.`);
   }, [value]);
 
@@ -65,11 +45,9 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
             // Display the Form.Control when readOnly is true
             <Form.Control
               style={
-                attribute.type == "ColouredEnum"
-                  ? { backgroundColor: enumDict[enumValue] }
-                  : {}
+                props.type == "ColouredEnum" ? { backgroundColor: enumDict[value] } : {}
               }
-              value={attribute.type == "ColouredEnum" ? enumValue : enumDict[enumValue]}
+              value={props.type == "ColouredEnum" ? value : enumDict[value]}
               name={fullAccessPath}
               disabled={true}
             />
@@ -77,27 +55,25 @@ export const EnumComponent = React.memo((props: EnumComponentProps) => {
             // Display the Form.Select when readOnly is false
             <Form.Select
               aria-label="example-select"
-              value={enumValue}
+              value={value}
               name={fullAccessPath}
               style={
-                attribute.type == "ColouredEnum"
-                  ? { backgroundColor: enumDict[enumValue] }
-                  : {}
+                props.type == "ColouredEnum" ? { backgroundColor: enumDict[value] } : {}
               }
               onChange={(event) =>
                 changeCallback({
-                  type: attribute.type,
-                  name: attribute.name,
+                  type: props.type,
+                  name: props.name,
                   enum: enumDict,
                   value: event.target.value,
                   full_access_path: fullAccessPath,
-                  readonly: attribute.readonly,
-                  doc: attribute.doc,
+                  readonly: props.readonly,
+                  doc: props.doc,
                 })
               }>
               {Object.entries(enumDict).map(([key, val]) => (
                 <option key={key} value={key}>
-                  {attribute.type == "ColouredEnum" ? key : val}
+                  {props.type == "ColouredEnum" ? key : val}
                 </option>
               ))}
             </Form.Select>
