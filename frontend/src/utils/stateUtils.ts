@@ -1,12 +1,12 @@
 import { SerializedObject } from "../types/SerializedObject";
 
-export type State = {
+export interface State {
   type: string;
   name: string;
   value: Record<string, SerializedObject> | null;
   readonly: boolean;
   doc: string | null;
-};
+}
 
 /**
  * Splits a full access path into its atomic parts, separating attribute names, numeric
@@ -110,7 +110,7 @@ function getOrCreateItemInContainer(
 function getContainerItemByKey(
   container: Record<string, SerializedObject> | SerializedObject[],
   key: string,
-  allowAppend: boolean = false,
+  allowAppend = false,
 ): SerializedObject {
   const processedKey = parseSerializedKey(key);
 

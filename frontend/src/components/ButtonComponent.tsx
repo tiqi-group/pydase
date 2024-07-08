@@ -4,7 +4,7 @@ import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 
-type ButtonComponentProps = {
+interface ButtonComponentProps {
   fullAccessPath: string;
   value: boolean;
   readOnly: boolean;
@@ -14,7 +14,7 @@ type ButtonComponentProps = {
   changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
-};
+}
 
 export const ButtonComponent = React.memo((props: ButtonComponentProps) => {
   const {

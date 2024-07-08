@@ -4,13 +4,13 @@ import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 
-type DictComponentProps = {
+interface DictComponentProps {
   value: Record<string, SerializedObject>;
   docString: string | null;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   id: string;
-};
+}
 
 export const DictComponent = React.memo((props: DictComponentProps) => {
   const { value, docString, isInstantUpdate, addNotification, id } = props;

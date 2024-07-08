@@ -4,14 +4,14 @@ import { Button, Form } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 
-type MethodProps = {
+interface MethodProps {
   fullAccessPath: string;
   docString: string | null;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
   render: boolean;
-};
+}
 
 export const MethodComponent = React.memo((props: MethodProps) => {
   const { fullAccessPath, docString, addNotification, displayName, id } = props;

@@ -6,13 +6,13 @@ import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 
-type DataServiceProps = {
+interface DataServiceProps {
   props: DataServiceJSON;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
-};
+}
 
 export type DataServiceJSON = Record<string, SerializedObject>;
 

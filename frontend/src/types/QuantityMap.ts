@@ -1,4 +1,4 @@
-export type QuantityMap = {
+export interface QuantityMap {
   magnitude: number;
   unit: string;
-};
+}

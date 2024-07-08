@@ -20,13 +20,13 @@ type Action =
       fullAccessPath: string;
       newValue: SerializedObject;
     };
-type UpdateMessage = {
+interface UpdateMessage {
   data: { full_access_path: string; value: SerializedObject };
-};
-type LogMessage = {
+}
+interface LogMessage {
   levelname: LevelName;
   message: string;
-};
+}
 
 const reducer = (state: State | null, action: Action): State | null => {
   switch (action.type) {
