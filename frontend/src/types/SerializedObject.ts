@@ -1,15 +1,15 @@
 import { QuantityMap } from "./QuantityMap";
 
-type SignatureDict = {
+interface SignatureDict {
   parameters: Record<string, Record<string, unknown>>;
   return_annotation: Record<string, unknown>;
-};
+}
 
-type SerializedObjectBase = {
+interface SerializedObjectBase {
   full_access_path: string;
   doc: string | null;
   readonly: boolean;
-};
+}
 
 type SerializedInteger = SerializedObjectBase & {
   value: number;

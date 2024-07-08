@@ -3,14 +3,14 @@ import { LevelName } from "./NotificationsComponent";
 import { DataServiceComponent, DataServiceJSON } from "./DataServiceComponent";
 import { MethodComponent } from "./MethodComponent";
 
-type DeviceConnectionProps = {
+interface DeviceConnectionProps {
   fullAccessPath: string;
   props: DataServiceJSON;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
-};
+}
 
 export const DeviceConnectionComponent = React.memo(
   ({

@@ -7,7 +7,7 @@ import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
 
-type SliderComponentProps = {
+interface SliderComponentProps {
   fullAccessPath: string;
   min: NumberObject;
   max: NumberObject;
@@ -20,7 +20,7 @@ type SliderComponentProps = {
   changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
-};
+}
 
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const renderCount = useRef(0);
@@ -122,7 +122,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   const deconstructNumberDict = (
     numberDict: NumberObject,
   ): [number, boolean, string | undefined] => {
-    let numberMagnitude: number = 0;
+    let numberMagnitude = 0;
     let numberUnit: string | undefined = undefined;
     const numberReadOnly = numberDict.readonly;
 

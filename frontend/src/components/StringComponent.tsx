@@ -7,7 +7,7 @@ import { SerializedObject } from "../types/SerializedObject";
 
 // TODO: add button functionality
 
-type StringComponentProps = {
+interface StringComponentProps {
   fullAccessPath: string;
   value: string;
   readOnly: boolean;
@@ -17,7 +17,7 @@ type StringComponentProps = {
   changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName: string;
   id: string;
-};
+}
 
 export const StringComponent = React.memo((props: StringComponentProps) => {
   const {

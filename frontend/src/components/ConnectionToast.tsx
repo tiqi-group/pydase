@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Toast, Button, ToastContainer } from "react-bootstrap";
 
-type ConnectionToastProps = {
+interface ConnectionToastProps {
   connectionStatus: string;
-};
+}
 
 /**
  * ConnectionToast Component

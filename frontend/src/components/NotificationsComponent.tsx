@@ -2,18 +2,18 @@ import React from "react";
 import { ToastContainer, Toast } from "react-bootstrap";
 
 export type LevelName = "CRITICAL" | "ERROR" | "WARNING" | "INFO" | "DEBUG";
-export type Notification = {
+export interface Notification {
   id: number;
   timeStamp: string;
   message: string;
   levelname: LevelName;
-};
+}
 
-type NotificationProps = {
+interface NotificationProps {
   showNotification: boolean;
   notifications: Notification[];
   removeNotificationById: (id: number) => void;
-};
+}
 
 export const Notifications = React.memo((props: NotificationProps) => {
   const { showNotification, notifications, removeNotificationById } = props;

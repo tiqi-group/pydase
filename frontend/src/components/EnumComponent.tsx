@@ -4,7 +4,7 @@ import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 
-export type EnumSerialization = {
+export interface EnumSerialization {
   type: "Enum" | "ColouredEnum";
   full_access_path: string;
   name: string;
@@ -12,15 +12,15 @@ export type EnumSerialization = {
   readonly: boolean;
   doc: string | null;
   enum: Record<string, string>;
-};
+}
 
-type EnumComponentProps = {
+interface EnumComponentProps {
   attribute: EnumSerialization;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
   changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
-};
+}
 
 export const EnumComponent = React.memo((props: EnumComponentProps) => {
   const { attribute, addNotification, displayName, id } = props;

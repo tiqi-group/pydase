@@ -18,11 +18,11 @@ import { DictComponent } from "./DictComponent";
 import { parseFullAccessPath } from "../utils/stateUtils";
 import { SerializedObject } from "../types/SerializedObject";
 
-type GenericComponentProps = {
+interface GenericComponentProps {
   attribute: SerializedObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-};
+}
 
 const getPathFromPathParts = (pathParts: string[]): string => {
   let path = "";

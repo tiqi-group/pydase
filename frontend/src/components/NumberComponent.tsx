@@ -8,27 +8,27 @@ import { QuantityMap } from "../types/QuantityMap";
 
 // TODO: add button functionality
 
-export type QuantityObject = {
+export interface QuantityObject {
   type: "Quantity";
   readonly: boolean;
   value: QuantityMap;
   doc: string | null;
-};
-export type IntObject = {
+}
+export interface IntObject {
   type: "int";
   readonly: boolean;
   value: number;
   doc: string | null;
-};
-export type FloatObject = {
+}
+export interface FloatObject {
   type: "float";
   readonly: boolean;
   value: number;
   doc: string | null;
-};
+}
 export type NumberObject = IntObject | FloatObject | QuantityObject;
 
-type NumberComponentProps = {
+interface NumberComponentProps {
   type: "float" | "int" | "Quantity";
   fullAccessPath: string;
   value: number;
@@ -40,7 +40,7 @@ type NumberComponentProps = {
   changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
   displayName?: string;
   id: string;
-};
+}
 
 // TODO: highlight the digit that is being changed by setting both selectionStart and
 // selectionEnd

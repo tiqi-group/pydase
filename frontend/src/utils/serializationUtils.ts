@@ -41,7 +41,7 @@ const serializePrimitive = (
   }
 };
 
-export const serializeList = (obj: unknown[], accessPath: string = "") => {
+export const serializeList = (obj: unknown[], accessPath = "") => {
   const doc = null;
   const value = obj.map((item, index) => {
     if (
@@ -65,10 +65,7 @@ export const serializeList = (obj: unknown[], accessPath: string = "") => {
     doc,
   };
 };
-export const serializeDict = (
-  obj: Record<string, unknown>,
-  accessPath: string = "",
-) => {
+export const serializeDict = (obj: Record<string, unknown>, accessPath = "") => {
   const doc = null;
   const value = Object.entries(obj).reduce(
     (acc, [key, val]) => {
@@ -87,7 +84,7 @@ export const serializeDict = (
 
       return acc;
     },
-    <Record<string, SerializedObject>>{},
+    {} as Record<string, SerializedObject>,
   );
 
   return {

@@ -4,7 +4,7 @@ import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 
-type AsyncMethodProps = {
+interface AsyncMethodProps {
   fullAccessPath: string;
   value: "RUNNING" | null;
   docString: string | null;
@@ -13,7 +13,7 @@ type AsyncMethodProps = {
   displayName: string;
   id: string;
   render: boolean;
-};
+}
 
 export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   const {

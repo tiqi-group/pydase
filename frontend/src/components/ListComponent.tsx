@@ -4,13 +4,13 @@ import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 
-type ListComponentProps = {
+interface ListComponentProps {
   value: SerializedObject[];
   docString: string | null;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
   id: string;
-};
+}
 
 export const ListComponent = React.memo((props: ListComponentProps) => {
   const { value, docString, isInstantUpdate, addNotification, id } = props;
