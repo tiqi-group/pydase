@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { runMethod } from "../socket";
 import { Button, Form } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
