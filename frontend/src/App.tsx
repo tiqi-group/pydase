@@ -39,8 +39,7 @@ const reducer = (state: State | null, action: Action): State | null => {
       return {
         ...state,
         value: setNestedValueByPath(
-          /* @ts-expect-error state is not null here... */
-          state.value,
+          state.value as Record<string, SerializedObject>,
           action.fullAccessPath,
           action.newValue,
         ),

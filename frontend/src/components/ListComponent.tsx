@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { DocStringComponent } from "./DocStringComponent";
 import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface ListComponentProps {
   value: SerializedObject[];
@@ -15,17 +16,11 @@ interface ListComponentProps {
 export const ListComponent = React.memo((props: ListComponentProps) => {
   const { value, docString, isInstantUpdate, addNotification, id } = props;
 
-  const renderCount = useRef(0);
-
-  useEffect(() => {
-    renderCount.current++;
-  }, [props]);
+  const renderCount = useRenderCount();
 
   return (
     <div className={"listComponent"} id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <DocStringComponent docString={docString} />
       {value.map((item) => {
         return (

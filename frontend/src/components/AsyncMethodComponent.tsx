@@ -3,6 +3,7 @@ import { runMethod } from "../socket";
 import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface AsyncMethodProps {
   fullAccessPath: string;
@@ -30,14 +31,13 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
     return null;
   }
 
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const formRef = useRef(null);
   const [spinning, setSpinning] = useState(false);
   const name = fullAccessPath.split(".").at(-1)!;
   const parentPath = fullAccessPath.slice(0, -(name.length + 1));
 
   useEffect(() => {
-    renderCount.current++;
     let message: string;
 
     if (runningTask === null) {
@@ -66,9 +66,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
 
   return (
     <div className="component asyncMethodComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <Form onSubmit={execute} ref={formRef}>
         <InputGroup>
           <InputGroup.Text>

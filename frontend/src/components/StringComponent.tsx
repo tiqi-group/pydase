@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import "../App.css";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 // TODO: add button functionality
 
@@ -31,12 +32,8 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
     id,
   } = props;
 
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const [inputString, setInputString] = useState(props.value);
-
-  useEffect(() => {
-    renderCount.current++;
-  }, [isInstantUpdate, inputString, renderCount]);
 
   useEffect(() => {
     // Only update the inputString if it's different from the prop value
@@ -86,9 +83,7 @@ export const StringComponent = React.memo((props: StringComponentProps) => {
 
   return (
     <div className="component stringComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <InputGroup>
         <InputGroup.Text>
           {displayName}

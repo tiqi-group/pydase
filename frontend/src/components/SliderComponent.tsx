@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputGroup, Form, Row, Col, Collapse, ToggleButton } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { Slider } from "@mui/material";
@@ -6,6 +6,8 @@ import { NumberComponent, NumberObject } from "./NumberComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
+import { propsAreEqual } from "../utils/propsAreEqual";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 interface SliderComponentProps {
   fullAccessPath: string;
@@ -22,8 +24,25 @@ interface SliderComponentProps {
   id: string;
 }
 
+const deconstructNumberDict = (
+  numberDict: NumberObject,
+): [number, boolean, string | undefined] => {
+  let numberMagnitude = 0;
+  let numberUnit: string | undefined = undefined;
+  const numberReadOnly = numberDict.readonly;
+
+  if (numberDict.type === "int" || numberDict.type === "float") {
+    numberMagnitude = numberDict.value;
+  } else if (numberDict.type === "Quantity") {
+    numberMagnitude = numberDict.value.magnitude;
+    numberUnit = numberDict.value.unit;
+  }
+
+  return [numberMagnitude, numberReadOnly, numberUnit];
+};
+
 export const SliderComponent = React.memo((props: SliderComponentProps) => {
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
   const [open, setOpen] = useState(false);
   const {
     fullAccessPath,
@@ -40,24 +59,20 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
   } = props;
 
   useEffect(() => {
-    renderCount.current++;
-  });
-
-  useEffect(() => {
     addNotification(`${fullAccessPath} changed to ${value.value}.`);
-  }, [props.value]);
+  }, [props.value.value]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.min changed to ${min.value}.`);
-  }, [props.min]);
+  }, [props.min.value, props.min.type]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.max changed to ${max.value}.`);
-  }, [props.max]);
+  }, [props.max.value, props.max.type]);
 
   useEffect(() => {
     addNotification(`${fullAccessPath}.stepSize changed to ${stepSize.value}.`);
-  }, [props.stepSize]);
+  }, [props.stepSize.value, props.stepSize.type]);
 
   const handleOnChange = (_: Event, newNumber: number | number[]) => {
     // This will never be the case as we do not have a range slider. However, we should
@@ -119,23 +134,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
     changeCallback(serializedObject);
   };
 
-  const deconstructNumberDict = (
-    numberDict: NumberObject,
-  ): [number, boolean, string | undefined] => {
-    let numberMagnitude = 0;
-    let numberUnit: string | undefined = undefined;
-    const numberReadOnly = numberDict.readonly;
-
-    if (numberDict.type === "int" || numberDict.type === "float") {
-      numberMagnitude = numberDict.value;
-    } else if (numberDict.type === "Quantity") {
-      numberMagnitude = numberDict.value.magnitude;
-      numberUnit = numberDict.value.unit;
-    }
-
-    return [numberMagnitude, numberReadOnly, numberUnit];
-  };
-
   const [valueMagnitude, valueReadOnly, valueUnit] = deconstructNumberDict(value);
   const [minMagnitude, minReadOnly] = deconstructNumberDict(min);
   const [maxMagnitude, maxReadOnly] = deconstructNumberDict(max);
@@ -143,9 +141,7 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
 
   return (
     <div className="component sliderComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
 
       <Row>
         <Col xs="auto" xl="auto">
@@ -249,6 +245,6 @@ export const SliderComponent = React.memo((props: SliderComponentProps) => {
       </Collapse>
     </div>
   );
-});
+}, propsAreEqual);
 
 SliderComponent.displayName = "SliderComponent";

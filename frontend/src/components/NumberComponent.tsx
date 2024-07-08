@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import "../App.css";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
+import { useRenderCount } from "../hooks/useRenderCount";
 
 // TODO: add button functionality
 
@@ -171,7 +172,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
   // Create a state for the input string
   const [inputString, setInputString] = useState(value.toString());
-  const renderCount = useRef(0);
+  const renderCount = useRenderCount();
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { key, target } = event;
@@ -365,9 +366,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   return (
     <div className="component numberComponent" id={id}>
-      {process.env.NODE_ENV === "development" && (
-        <div>Render count: {renderCount.current}</div>
-      )}
+      {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <InputGroup>
         {displayName && (
           <InputGroup.Text>

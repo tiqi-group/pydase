@@ -36,11 +36,11 @@ type SerializedString = SerializedObjectBase & {
   type: "str";
 };
 
-type SerializedEnum = SerializedObjectBase & {
+export type SerializedEnum = SerializedObjectBase & {
   name: string;
   value: string;
   type: "Enum" | "ColouredEnum";
-  enum: Record<string, unknown>;
+  enum: Record<string, string>;
 };
 
 type SerializedList = SerializedObjectBase & {
