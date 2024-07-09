@@ -108,7 +108,7 @@ class Deserializer:
             return pydase.DataService
         return None
 
-    @classmethod
+    @classmethod  # TODO: this shouldn't be a class method
     def create_attr_property(cls, serialized_attr: SerializedObject) -> property:
         attr_name = serialized_attr["full_access_path"].split(".")[-1]
 
