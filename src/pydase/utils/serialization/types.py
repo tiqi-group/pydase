@@ -45,6 +45,11 @@ class SerializedString(SerializedObjectBase):
     type: Literal["str"]
 
 
+class SerializedDatetime(SerializedObjectBase):
+    type: Literal["datetime"]
+    value: str
+
+
 class SerializedEnum(SerializedObjectBase):
     name: str
     value: str
@@ -107,6 +112,7 @@ SerializedObject = (
     | SerializedFloat
     | SerializedInteger
     | SerializedString
+    | SerializedDatetime
     | SerializedList
     | SerializedDict
     | SerializedNoneType
