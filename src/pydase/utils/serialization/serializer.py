@@ -54,36 +54,36 @@ class SerializationValueError(Exception):
 
 
 class Serializer:
-    @staticmethod
-    def serialize_object(obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
+    @classmethod
+    def serialize_object(cls, obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
         result: SerializedObject
 
         if isinstance(obj, Exception):
-            result = Serializer._serialize_exception(obj)
+            result = cls._serialize_exception(obj)
 
         elif isinstance(obj, AbstractDataService):
-            result = Serializer._serialize_data_service(obj, access_path=access_path)
+            result = cls._serialize_data_service(obj, access_path=access_path)
 
         elif isinstance(obj, list):
-            result = Serializer._serialize_list(obj, access_path=access_path)
+            result = cls._serialize_list(obj, access_path=access_path)
 
         elif isinstance(obj, dict):
-            result = Serializer._serialize_dict(obj, access_path=access_path)
+            result = cls._serialize_dict(obj, access_path=access_path)
 
         # Special handling for u.Quantity
         elif isinstance(obj, u.Quantity):
-            result = Serializer._serialize_quantity(obj, access_path=access_path)
+            result = cls._serialize_quantity(obj, access_path=access_path)
 
         # Handling for Enums
         elif isinstance(obj, Enum):
-            result = Serializer._serialize_enum(obj, access_path=access_path)
+            result = cls._serialize_enum(obj, access_path=access_path)
 
         # Methods and coroutines
         elif inspect.isfunction(obj) or inspect.ismethod(obj):
-            result = Serializer._serialize_method(obj, access_path=access_path)
+            result = cls._serialize_method(obj, access_path=access_path)
 
         elif isinstance(obj, int | float | bool | str | None):
-            result = Serializer._serialize_primitive(obj, access_path=access_path)
+            result = cls._serialize_primitive(obj, access_path=access_path)
 
         try:
             return result
@@ -92,8 +92,9 @@ class Serializer:
                 f"Could not serialized object of type {type(obj)}."
             )
 
-    @staticmethod
+    @classmethod
     def _serialize_primitive(
+        cls,
         obj: float | bool | str | None,
         access_path: str,
     ) -> (
@@ -112,8 +113,8 @@ class Serializer:
             "value": obj,
         }
 
-    @staticmethod
-    def _serialize_exception(obj: Exception) -> SerializedException:
+    @classmethod
+    def _serialize_exception(cls, obj: Exception) -> SerializedException:
         return {
             "full_access_path": "",
             "doc": None,
@@ -123,8 +124,8 @@ class Serializer:
             "name": obj.__class__.__name__,
         }
 
-    @staticmethod
-    def _serialize_enum(obj: Enum, access_path: str = "") -> SerializedEnum:
+    @classmethod
+    def _serialize_enum(cls, obj: Enum, access_path: str = "") -> SerializedEnum:
         import pydase.components.coloured_enum
 
         value = obj.name
@@ -149,9 +150,9 @@ class Serializer:
             },
         }
 
-    @staticmethod
+    @classmethod
     def _serialize_quantity(
-        obj: u.Quantity, access_path: str = ""
+        cls, obj: u.Quantity, access_path: str = ""
     ) -> SerializedQuantity:
         doc = get_attribute_doc(obj)
         value: u.QuantityDict = {"magnitude": obj.m, "unit": str(obj.u)}
@@ -163,13 +164,15 @@ class Serializer:
             "doc": doc,
         }
 
-    @staticmethod
-    def _serialize_dict(obj: dict[str, Any], access_path: str = "") -> SerializedDict:
+    @classmethod
+    def _serialize_dict(
+        cls, obj: dict[str, Any], access_path: str = ""
+    ) -> SerializedDict:
         readonly = False
         doc = get_attribute_doc(obj)
         value = {}
         for key, val in obj.items():
-            value[key] = Serializer.serialize_object(
+            value[key] = cls.serialize_object(
                 val, access_path=f'{access_path}["{key}"]'
             )
         return {
@@ -180,12 +183,12 @@ class Serializer:
             "doc": doc,
         }
 
-    @staticmethod
-    def _serialize_list(obj: list[Any], access_path: str = "") -> SerializedList:
+    @classmethod
+    def _serialize_list(cls, obj: list[Any], access_path: str = "") -> SerializedList:
         readonly = False
         doc = get_attribute_doc(obj)
         value = [
-            Serializer.serialize_object(o, access_path=f"{access_path}[{i}]")
+            cls.serialize_object(o, access_path=f"{access_path}[{i}]")
             for i, o in enumerate(obj)
         ]
         return {
@@ -196,9 +199,9 @@ class Serializer:
             "doc": doc,
         }
 
-    @staticmethod
+    @classmethod
     def _serialize_method(
-        obj: Callable[..., Any], access_path: str = ""
+        cls, obj: Callable[..., Any], access_path: str = ""
     ) -> SerializedMethod:
         readonly = True
         doc = get_attribute_doc(obj)
@@ -231,9 +234,9 @@ class Serializer:
             "frontend_render": frontend_render,
         }
 
-    @staticmethod
+    @classmethod
     def _serialize_data_service(
-        obj: AbstractDataService, access_path: str = ""
+        cls, obj: AbstractDataService, access_path: str = ""
     ) -> SerializedDataService:
         readonly = False
         doc = get_attribute_doc(obj)
@@ -274,7 +277,7 @@ class Serializer:
             val = getattr(obj, key)
 
             path = f"{access_path}.{key}" if access_path else key
-            serialized_object = Serializer.serialize_object(val, access_path=path)
+            serialized_object = cls.serialize_object(val, access_path=path)
 
             # If there's a running task for this method
             if serialized_object["type"] == "method" and key in obj._task_manager.tasks:
