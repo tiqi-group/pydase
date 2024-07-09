@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 from typing import Any
 
 import pydase.components
@@ -135,6 +136,16 @@ def test_loads_primitive_types(obj: Any, obj_serialization: SerializedObject) ->
                 "doc": None,
                 "readonly": False,
                 "name": "MyService",
+            },
+        ),
+        (
+            datetime.fromisoformat("2024-07-09 15:37:08.249845"),
+            {
+                "full_access_path": "",
+                "type": "datetime",
+                "value": "2024-07-09 15:37:08.249845",
+                "readonly": True,
+                "doc": None,
             },
         ),
     ],

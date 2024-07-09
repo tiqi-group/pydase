@@ -1,15 +1,21 @@
 import enum
 import logging
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
 import pydase
 import pydase.components
 import pydase.units as u
 from pydase.utils.helpers import get_component_classes
-from pydase.utils.serialization.types import SerializedObject
+from pydase.utils.serialization.types import (
+    SerializedDatetime,
+    SerializedException,
+    SerializedObject,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +39,7 @@ class Deserializer:
             "dict": cls.deserialize_dict,
             "method": cls.deserialize_method,
             "Exception": cls.deserialize_exception,
+            "datetime": cls.deserialize_datetime,
         }
 
         # First go through handled types (as ColouredEnum is also within the components)
@@ -56,6 +63,10 @@ class Deserializer:
     @classmethod
     def deserialize_quantity(cls, serialized_object: SerializedObject) -> Any:
         return u.convert_to_quantity(serialized_object["value"])  # type: ignore
+
+    @classmethod
+    def deserialize_datetime(cls, serialized_object: SerializedDatetime) -> datetime:
+        return datetime.fromisoformat(serialized_object["value"])
 
     @classmethod
     def deserialize_enum(
@@ -88,11 +99,11 @@ class Deserializer:
         return
 
     @classmethod
-    def deserialize_exception(cls, serialized_object: SerializedObject) -> NoReturn:
+    def deserialize_exception(cls, serialized_object: SerializedException) -> NoReturn:
         import builtins
 
         try:
-            exception = getattr(builtins, serialized_object["name"])  # type: ignore
+            exception = getattr(builtins, serialized_object["name"])
         except AttributeError:
             exception = type(serialized_object["name"], (Exception,), {})  # type: ignore
         raise exception(serialized_object["value"])

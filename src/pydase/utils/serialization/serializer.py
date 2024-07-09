@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import logging
 import sys
+from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -21,6 +22,7 @@ from pydase.utils.serialization.types import (
     DataServiceTypes,
     SerializedBool,
     SerializedDataService,
+    SerializedDatetime,
     SerializedDict,
     SerializedEnum,
     SerializedException,
@@ -60,6 +62,9 @@ class Serializer:
 
         if isinstance(obj, Exception):
             result = cls._serialize_exception(obj)
+
+        elif isinstance(obj, datetime):
+            result = cls._serialize_datetime(obj, access_path=access_path)
 
         elif isinstance(obj, AbstractDataService):
             result = cls._serialize_data_service(obj, access_path=access_path)
@@ -111,6 +116,16 @@ class Serializer:
             "readonly": False,
             "type": type(obj).__name__,
             "value": obj,
+        }
+
+    @classmethod
+    def _serialize_datetime(cls, obj: datetime, access_path: str) -> SerializedDatetime:
+        return {
+            "type": "datetime",
+            "value": str(obj),
+            "doc": None,
+            "full_access_path": access_path,
+            "readonly": True,
         }
 
     @classmethod

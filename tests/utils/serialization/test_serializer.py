@@ -1,5 +1,6 @@
 import asyncio
 import enum
+from datetime import datetime
 from enum import Enum
 from typing import Any, ClassVar
 
@@ -89,6 +90,16 @@ service_instance = ServiceClass()
                 "type": "Quantity",
                 "value": {"magnitude": 10, "unit": "meter"},
                 "readonly": False,
+                "doc": None,
+            },
+        ),
+        (
+            datetime.fromisoformat("2024-07-09 15:37:08.249845"),
+            {
+                "full_access_path": "",
+                "type": "datetime",
+                "value": "2024-07-09 15:37:08.249845",
+                "readonly": True,
                 "doc": None,
             },
         ),
@@ -476,8 +487,7 @@ def test_derived_data_service_serialization() -> None:
         def name(self, value: str) -> None:
             self._name = value
 
-    class DerivedService(BaseService):
-        ...
+    class DerivedService(BaseService): ...
 
     base_service_serialization = dump(BaseService())
     derived_service_serialization = dump(DerivedService())
