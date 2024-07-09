@@ -5,14 +5,19 @@ from typing import Any, TypedDict
 import click
 import socketio  # type: ignore[import-untyped]
 
+import pydase.utils.serialization.deserializer
+import pydase.utils.serialization.serializer
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.logging import SocketIOHandler
-from pydase.utils.serialization.deserializer import Deserializer
-from pydase.utils.serialization.serializer import SerializedObject, dump
+from pydase.utils.serialization.serializer import SerializedObject
 
 logger = logging.getLogger(__name__)
+
+# These functions can be monkey-patched by other libraries at runtime
+loads = pydase.utils.serialization.deserializer.loads
+dump = pydase.utils.serialization.serializer.dump
 
 
 class UpdateDict(TypedDict):
@@ -159,8 +164,8 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
             method = get_object_attr_from_path(
                 state_manager.service, data["access_path"]
             )
-            args = Deserializer.deserialize(data["args"])
-            kwargs: dict[str, Any] = Deserializer.deserialize(data["kwargs"])
+            args = loads(data["args"])
+            kwargs: dict[str, Any] = loads(data["kwargs"])
             return dump(method(*args, **kwargs))
         except Exception as e:
             logger.error(e)
