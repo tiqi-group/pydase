@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import logging.config
 import sys
 from copy import copy
 
@@ -8,6 +9,8 @@ import uvicorn.logging
 from uvicorn.config import LOGGING_CONFIG
 
 import pydase.config
+
+logger = logging.getLogger(__name__)
 
 
 class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
@@ -88,7 +91,7 @@ def setup_logging(level: str | int | None = None) -> None:
     ```
     """
 
-    logger = logging.getLogger()
+    logger.debug("Configuring pydase logging.")
 
     if pydase.config.OperationMode().environment == "development":
         log_level = logging.DEBUG
@@ -113,34 +116,35 @@ def setup_logging(level: str | int | None = None) -> None:
         else:
             raise ValueError("Log level must be a string or an integer.")
 
-    # Set the logger's level.
-    logger.setLevel(log_level)
+    log_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "()": "pydase.utils.logging.DefaultFormatter",
+                "fmt": "%(asctime)s.%(msecs)03d | %(levelprefix)s | "
+                "%(name)s:%(funcName)s:%(lineno)d - %(message)s",
+                "datefmt": "%Y-%m-%d %H:%M:%S",
+            },
+        },
+        "handlers": {
+            "default": {
+                "formatter": "default",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+            },
+        },
+        "loggers": {
+            "pydase": {"handlers": ["default"], "level": log_level, "propagate": False},
+        },
+    }
 
-    # create console handler and set level to debug
-    ch = logging.StreamHandler()
-
-    # add formatter to ch
-    ch.setFormatter(
-        DefaultFormatter(
-            fmt=(
-                "%(asctime)s.%(msecs)03d | %(levelprefix)s | "
-                "%(name)s:%(funcName)s:%(lineno)d - %(message)s"
-            ),
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-    )
-
-    # add ch to logger
-    logger.addHandler(ch)
-
-    logger.debug("Configuring service logging.")
-    logging.getLogger("asyncio").setLevel(logging.INFO)
-    logging.getLogger("urllib3").setLevel(logging.INFO)
+    logging.config.dictConfig(log_config)
 
     # configuring uvicorn logger
-    LOGGING_CONFIG["formatters"]["default"][
-        "fmt"
-    ] = "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
+    LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
+        "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
+    )
     LOGGING_CONFIG["formatters"]["default"]["datefmt"] = "%Y-%m-%d %H:%M:%S"
     LOGGING_CONFIG["formatters"]["access"]["fmt"] = (
         "%(asctime)s.%(msecs)03d | %(levelprefix)s %(client_addr)s "
