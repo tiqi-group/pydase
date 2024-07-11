@@ -7,7 +7,8 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pytest import LogCaptureFixture
 
-logger = logging.getLogger()
+logger = logging.getLogger("pydase")
+logger.propagate = True
 
 
 @pytest.mark.asyncio
