@@ -1,12 +1,12 @@
 import logging
 
-from pydase.utils.logging import setup_logging
 from pytest import LogCaptureFixture
 
 
 def test_log_error(caplog: LogCaptureFixture):
-    setup_logging("ERROR")
-    logger = logging.getLogger()
+    logger = logging.getLogger("pydase")
+    logger.setLevel(logging.ERROR)
+
     logger.debug("This is a debug message")
     logger.info("This is an info message")
     logger.warning("This is a warning message")
@@ -21,8 +21,9 @@ def test_log_error(caplog: LogCaptureFixture):
 
 
 def test_log_warning(caplog: LogCaptureFixture):
-    setup_logging("WARNING")
-    logger = logging.getLogger()
+    logger = logging.getLogger("pydase")
+    logger.setLevel(logging.WARNING)
+
     logger.debug("This is a debug message")
     logger.info("This is an info message")
     logger.warning("This is a warning message")
@@ -37,10 +38,9 @@ def test_log_warning(caplog: LogCaptureFixture):
 
 
 def test_log_debug(caplog: LogCaptureFixture):
-    setup_logging("DEBUG")
-    logger = (
-        logging.getLogger()
-    )  # Get the root logger or replace with the appropriate logger.
+    logger = logging.getLogger("pydase")
+    logger.setLevel(logging.DEBUG)
+
     logger.debug("This is a debug message")
     logger.info("This is an info message")
     logger.warning("This is a warning message")
@@ -54,10 +54,9 @@ def test_log_debug(caplog: LogCaptureFixture):
 
 
 def test_log_info(caplog: LogCaptureFixture):
-    setup_logging("INFO")
-    logger = (
-        logging.getLogger()
-    )  # Get the root logger or replace with the appropriate logger.
+    logger = logging.getLogger("pydase")
+    logger.setLevel(logging.INFO)
+
     logger.debug("This is a debug message")
     logger.info("This is an info message")
     logger.warning("This is a warning message")
