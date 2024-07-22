@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
 import React from "react";
 import { Card, Collapse } from "react-bootstrap";
 import { ChevronDown, ChevronRight } from "react-bootstrap-icons";
 import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
+import useLocalStorage from "../hooks/useLocalStorage";
 
 interface DataServiceProps {
   props: DataServiceJSON;
@@ -19,15 +19,7 @@ export type DataServiceJSON = Record<string, SerializedObject>;
 export const DataServiceComponent = React.memo(
   ({ props, isInstantUpdate, addNotification, displayName, id }: DataServiceProps) => {
     // Retrieve the initial state from localStorage, default to true if not found
-    const [open, setOpen] = useState(() => {
-      const savedState = localStorage.getItem(`dataServiceComponent-${id}-open`);
-      return savedState !== null ? JSON.parse(savedState) : true;
-    });
-
-    // Update localStorage whenever the state changes
-    useEffect(() => {
-      localStorage.setItem(`dataServiceComponent-${id}-open`, JSON.stringify(open));
-    }, [open]);
+    const [open, setOpen] = useLocalStorage(`dataServiceComponent-${id}-open`, true);
 
     if (displayName !== "") {
       return (
