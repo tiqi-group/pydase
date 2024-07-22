@@ -12,6 +12,7 @@ import { setNestedValueByPath, State } from "./utils/stateUtils";
 import { WebSettingsContext, WebSetting } from "./WebSettings";
 import { GenericComponent } from "./components/GenericComponent";
 import { SerializedObject } from "./types/SerializedObject";
+import useLocalStorage from "./hooks/useLocalStorage";
 
 type Action =
   | { type: "SET_DATA"; data: State }
@@ -53,15 +54,15 @@ const App = () => {
   const [state, dispatch] = useReducer(reducer, null);
   const [serviceName, setServiceName] = useState<string | null>(null);
   const [webSettings, setWebSettings] = useState<Record<string, WebSetting>>({});
-  const [isInstantUpdate, setIsInstantUpdate] = useState(() => {
-    const saved = localStorage.getItem("isInstantUpdate");
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+  const [isInstantUpdate, setIsInstantUpdate] = useLocalStorage(
+    "isInstantUpdate",
+    false,
+  );
   const [showSettings, setShowSettings] = useState(false);
-  const [showNotification, setShowNotification] = useState(() => {
-    const saved = localStorage.getItem("showNotification");
-    return saved !== null ? JSON.parse(saved) : false;
-  });
+  const [showNotification, setShowNotification] = useLocalStorage(
+    "showNotification",
+    false,
+  );
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [connectionStatus, setConnectionStatus] = useState("connecting");
 
@@ -115,14 +116,6 @@ const App = () => {
     };
   }, []);
 
-  // Persist isInstantUpdate and showNotification state changes to localStorage
-  useEffect(() => {
-    localStorage.setItem("isInstantUpdate", JSON.stringify(isInstantUpdate));
-  }, [isInstantUpdate]);
-
-  useEffect(() => {
-    localStorage.setItem("showNotification", JSON.stringify(showNotification));
-  }, [showNotification]);
   // Adding useCallback to prevent notify to change causing a re-render of all
   // components
   const addNotification = useCallback(
