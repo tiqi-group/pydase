@@ -910,9 +910,57 @@ Please ensure that the CSS file path is accessible from the server's running loc
 
 - **Custom Display Names**: Modify the `"displayName"` value in the file to change how each component appears in the frontend.
 - **Control Component Visibility**: Utilize the `"display"` key-value pair to control whether a component is rendered in the frontend. Set the value to `true` to make the component visible or `false` to hide it.
-<!-- - **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. -->
+- **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. The value defaults to [`Number.MAX_SAFE_INTEGER`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER).
 
 The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
+
+For example, styling the following service 
+
+```python
+import pydase
+
+
+class Device(pydase.DataService):
+    name = "My Device"
+    some_float = 1.0
+    some_int = 1
+
+
+class Service(pydase.DataService):
+    device = Device()
+    state = "RUNNING"
+
+
+service_instance = Service()
+pydase.Server(service_instance).run()
+```
+
+with the following `web_settings.json`
+
+```json
+{
+    "device": {
+        "displayName": "My Device",
+        "displayOrder": 1
+    },
+    "device.name": {
+        "display": false
+    },
+    "device.some_float": {
+        "displayOrder": 1
+    },
+    "device.some_int": {
+        "displayOrder": 0
+    },
+    "state": {
+        "displayOrder": 0
+    }
+}
+```
+
+looks like this:
+
+![Tailoring frontend component layout](./docs/images/Tailoring_frontend_component_layout.png)
 
 ### Specifying a Custom Frontend Source
 
