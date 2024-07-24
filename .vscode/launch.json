@@ -25,7 +25,7 @@
             "type": "firefox",
             "request": "launch",
             "name": "react: firefox",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}/frontend"
         }
     ]
