@@ -4,6 +4,7 @@ import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { useRenderCount } from "../hooks/useRenderCount";
+import useSortedEntries from "../hooks/useSortedEntries";
 
 interface DictComponentProps {
   value: Record<string, SerializedObject>;
@@ -14,16 +15,16 @@ interface DictComponentProps {
 }
 
 export const DictComponent = React.memo((props: DictComponentProps) => {
-  const { value, docString, isInstantUpdate, addNotification, id } = props;
+  const { docString, isInstantUpdate, addNotification, id } = props;
 
+  const sortedEntries = useSortedEntries(props.value);
   const renderCount = useRenderCount();
-  const valueArray = Object.values(value);
 
   return (
     <div className={"listComponent"} id={id}>
       {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <DocStringComponent docString={docString} />
-      {valueArray.map((item) => {
+      {sortedEntries.map((item) => {
         return (
           <GenericComponent
             key={item.full_access_path}

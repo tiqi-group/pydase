@@ -5,6 +5,7 @@ import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import useLocalStorage from "../hooks/useLocalStorage";
+import useSortedEntries from "../hooks/useSortedEntries";
 
 interface DataServiceProps {
   props: DataServiceJSON;
@@ -21,6 +22,8 @@ export const DataServiceComponent = React.memo(
     // Retrieve the initial state from localStorage, default to true if not found
     const [open, setOpen] = useLocalStorage(`dataServiceComponent-${id}-open`, true);
 
+    const sortedEntries = useSortedEntries(props);
+
     if (displayName !== "") {
       return (
         <div className="component dataServiceComponent" id={id}>
@@ -30,9 +33,9 @@ export const DataServiceComponent = React.memo(
             </Card.Header>
             <Collapse in={open}>
               <Card.Body>
-                {Object.entries(props).map(([key, value]) => (
+                {sortedEntries.map((value) => (
                   <GenericComponent
-                    key={key}
+                    key={value.full_access_path}
                     attribute={value}
                     isInstantUpdate={isInstantUpdate}
                     addNotification={addNotification}
@@ -46,9 +49,9 @@ export const DataServiceComponent = React.memo(
     } else {
       return (
         <div className="component dataServiceComponent" id={id}>
-          {Object.entries(props).map(([key, value]) => (
+          {sortedEntries.map((value) => (
             <GenericComponent
-              key={key}
+              key={value.full_access_path}
               attribute={value}
               isInstantUpdate={isInstantUpdate}
               addNotification={addNotification}
