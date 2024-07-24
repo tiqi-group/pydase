@@ -7,7 +7,7 @@ import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
 import { propsAreEqual } from "../utils/propsAreEqual";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 interface SliderComponentProps {
   fullAccessPath: string;

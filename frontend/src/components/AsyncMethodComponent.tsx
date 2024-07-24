@@ -3,7 +3,7 @@ import { runMethod } from "../socket";
 import { Form, Button, InputGroup, Spinner } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 interface AsyncMethodProps {
   fullAccessPath: string;

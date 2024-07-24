@@ -4,7 +4,7 @@ import { DocStringComponent } from "./DocStringComponent";
 import "../App.css";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 // TODO: add button functionality
 

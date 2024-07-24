@@ -4,7 +4,7 @@ import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject, SerializedEnum } from "../types/SerializedObject";
 import { propsAreEqual } from "../utils/propsAreEqual";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 interface EnumComponentProps extends SerializedEnum {
   addNotification: (message: string, levelname?: LevelName) => void;

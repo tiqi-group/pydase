@@ -3,7 +3,7 @@ import { DocStringComponent } from "./DocStringComponent";
 import { GenericComponent } from "./GenericComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 import useSortedEntries from "../hooks/useSortedEntries";
 
 interface DictComponentProps {

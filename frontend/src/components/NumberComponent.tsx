@@ -5,7 +5,7 @@ import "../App.css";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
 import { QuantityMap } from "../types/QuantityMap";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 // TODO: add button functionality
 
@@ -176,7 +176,6 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { key, target } = event;
-    console.log(typeof key);
 
     // Typecast
     const inputTarget = target as HTMLInputElement;

@@ -3,7 +3,7 @@ import { runMethod } from "../socket";
 import { Button, Form } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 import { propsAreEqual } from "../utils/propsAreEqual";
 
 interface MethodProps {

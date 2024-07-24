@@ -3,7 +3,7 @@ import { Card, Collapse, Image } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { ChevronDown, ChevronRight } from "react-bootstrap-icons";
 import { LevelName } from "./NotificationsComponent";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 interface ImageComponentProps {
   fullAccessPath: string;

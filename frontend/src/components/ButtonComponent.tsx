@@ -3,7 +3,7 @@ import { ToggleButton } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import { SerializedObject } from "../types/SerializedObject";
-import { useRenderCount } from "../hooks/useRenderCount";
+import useRenderCount from "../hooks/useRenderCount";
 
 interface ButtonComponentProps {
   fullAccessPath: string;
