@@ -4,8 +4,9 @@ edit_uri: blob/docs/docs/
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - User Guide: 
+  - User Guide:
     - Components Guide: user-guide/Components.md
+    - Interacting with Services: user-guide/Interaction.md
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
@@ -37,6 +38,7 @@ plugins:
   - include-markdown
   - search
   - mkdocstrings
+  - swagger-ui-tag
 
 watch:
   - src/pydase
