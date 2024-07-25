@@ -85,9 +85,9 @@ def setup_sio_server(
     state_manager = observer.state_manager
 
     if enable_cors:
-        sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins="*")
+        sio = socketio.AsyncServer(async_mode="aiohttp", cors_allowed_origins="*")
     else:
-        sio = socketio.AsyncServer(async_mode="asgi")
+        sio = socketio.AsyncServer(async_mode="aiohttp")
 
     setup_sio_events(sio, state_manager)
     setup_logging_handler(sio)

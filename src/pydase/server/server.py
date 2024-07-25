@@ -2,18 +2,24 @@ import asyncio
 import logging
 import os
 import signal
+import sys
 import threading
 from pathlib import Path
 from types import FrameType
 from typing import Any, Protocol, TypedDict
-
-from uvicorn.server import HANDLED_SIGNALS
 
 from pydase import DataService
 from pydase.config import ServiceConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server import WebServer
+
+HANDLED_SIGNALS = (
+    signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
+    signal.SIGTERM,  # Unix signal 15. Sent by `kill <pid>`.
+)
+if sys.platform == "win32":  # pragma: py-not-win32
+    HANDLED_SIGNALS += (signal.SIGBREAK,)  # Windows signal 21. Sent by Ctrl+Break.
 
 logger = logging.getLogger(__name__)
 
@@ -207,8 +213,9 @@ class Server:
                 addin_server.__module__ + "." + addin_server.__class__.__name__
             )
 
-            future_or_task = self._loop.create_task(addin_server.serve())
-            self.servers[server_name] = future_or_task
+            server_task = self._loop.create_task(addin_server.serve())
+            server_task.add_done_callback(self.handle_server_shutdown)
+            self.servers[server_name] = server_task
         if self._enable_web:
             self._web_server = WebServer(
                 data_service_observer=self._observer,
@@ -216,8 +223,22 @@ class Server:
                 port=self._web_port,
                 **self._kwargs,
             )
-            future_or_task = self._loop.create_task(self._web_server.serve())
-            self.servers["web"] = future_or_task
+            server_task = self._loop.create_task(self._web_server.serve())
+
+            server_task.add_done_callback(self.handle_server_shutdown)
+            self.servers["web"] = server_task
+
+    def handle_server_shutdown(self, task: asyncio.Task[Any]) -> None:
+        """Handle server shutdown. If the service should exit, do nothing. Else, make
+        the service exit."""
+
+        if self.should_exit:
+            return
+
+        try:
+            task.result()
+        except Exception:
+            self.should_exit = True
 
     async def main_loop(self) -> None:
         while not self.should_exit:
@@ -229,7 +250,9 @@ class Server:
         logger.info("Saving data to %s.", self._state_manager.filename)
         self._state_manager.save_state()
 
+        logger.debug("Cancelling servers")
         await self.__cancel_servers()
+        logger.debug("Cancelling tasks")
         await self.__cancel_tasks()
 
     async def __cancel_servers(self) -> None:
@@ -240,7 +263,7 @@ class Server:
             except asyncio.CancelledError:
                 logger.debug("Cancelled '%s' server.", server_name)
             except Exception as e:
-                logger.warning("Unexpected exception: %s", e)
+                logger.error("Unexpected exception: %s", e)
 
     async def __cancel_tasks(self) -> None:
         for task in asyncio.all_tasks(self._loop):
