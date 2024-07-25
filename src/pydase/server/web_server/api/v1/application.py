@@ -43,18 +43,17 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
         try:
             update_value(state_manager, data)
 
-            return aiohttp.web.Response()
+            return aiohttp.web.json_response()
         except Exception as e:
             logger.exception(e)
-            return aiohttp.web.json_response(dump(e))
+            return aiohttp.web.json_response(dump(e), status=400)
 
     async def _trigger_method(request: aiohttp.web.Request) -> aiohttp.web.Response:
         data: TriggerMethodDict = await request.json()
 
         try:
-            trigger_method(state_manager, data)
+            return aiohttp.web.json_response(trigger_method(state_manager, data))
 
-            return aiohttp.web.Response()
         except Exception as e:
             logger.exception(e)
             return aiohttp.web.json_response(dump(e))
