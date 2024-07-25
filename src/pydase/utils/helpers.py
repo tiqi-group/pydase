@@ -60,6 +60,10 @@ def parse_full_access_path(path: str) -> list[str]:
         list[str]
             A list of components that make up the path, including attribute names,
             numeric indices, and string keys as separate elements.
+
+    Example:
+        >>> parse_full_access_path('dict_attr["some_key"].attr_name["other_key"]')
+        ["dict_attr", '["some_key"]', "attr_name", '["other_key"]']
     """
     # Matches:
     # \w+ - Words
