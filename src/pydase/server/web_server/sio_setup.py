@@ -11,7 +11,7 @@ else:
 import click
 import socketio  # type: ignore[import-untyped]
 
-import pydase.server.web_server.api
+import pydase.server.web_server.api.v1.endpoints
 import pydase.utils.serialization.deserializer
 import pydase.utils.serialization.serializer
 from pydase.data_service.data_service_observer import DataServiceObserver
@@ -145,7 +145,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:
         try:
-            pydase.server.web_server.api.update_value(
+            pydase.server.web_server.api.v1.endpoints.update_value(
                 state_manager=state_manager, data=data
             )
         except Exception as e:
@@ -156,7 +156,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
         try:
-            return pydase.server.web_server.api.get_value(
+            return pydase.server.web_server.api.v1.endpoints.get_value(
                 state_manager=state_manager, access_path=access_path
             )
         except Exception as e:
@@ -166,7 +166,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
         try:
-            return pydase.server.web_server.api.trigger_method(
+            return pydase.server.web_server.api.v1.endpoints.trigger_method(
                 state_manager=state_manager, data=data
             )
         except Exception as e:
