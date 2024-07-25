@@ -2,11 +2,12 @@ import asyncio
 import logging
 import logging.config
 import sys
+from collections.abc import Callable
 from copy import copy
+from typing import ClassVar, Literal
 
+import click
 import socketio  # type: ignore[import-untyped]
-import uvicorn.config
-import uvicorn.logging
 
 import pydase.config
 
@@ -41,7 +42,7 @@ LOGGING_CONFIG = {
 }
 
 
-class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
+class DefaultFormatter(logging.Formatter):
     """
     A custom log formatter class that:
 
@@ -49,6 +50,36 @@ class DefaultFormatter(uvicorn.logging.ColourizedFormatter):
     * If a log call includes an `extras={"color_message": ...}` it will be used
       for formatting the output, instead of the plain text message.
     """
+
+    level_name_colors: ClassVar[dict[int, Callable[..., str]]] = {
+        logging.DEBUG: lambda level_name: click.style(str(level_name), fg="cyan"),
+        logging.INFO: lambda level_name: click.style(str(level_name), fg="green"),
+        logging.WARNING: lambda level_name: click.style(str(level_name), fg="yellow"),
+        logging.ERROR: lambda level_name: click.style(str(level_name), fg="red"),
+        logging.CRITICAL: lambda level_name: click.style(
+            str(level_name), fg="bright_red"
+        ),
+    }
+
+    def __init__(
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: Literal["%", "{", "$"] = "%",
+        use_colors: bool | None = None,
+    ):
+        if use_colors in (True, False):
+            self.use_colors = use_colors
+        else:
+            self.use_colors = sys.stdout.isatty()
+        super().__init__(fmt=fmt, datefmt=datefmt, style=style)
+
+    def color_level_name(self, level_name: str, level_no: int) -> str:
+        def default(level_name: str) -> str:
+            return str(level_name)
+
+        func = self.level_name_colors.get(level_no, default)
+        return func(level_name)
 
     def formatMessage(self, record: logging.LogRecord) -> str:  # noqa: N802
         recordcopy = copy(record)
@@ -78,7 +109,8 @@ class SocketIOHandler(logging.Handler):
         self._sio = sio
 
     def format(self, record: logging.LogRecord) -> str:
-        return f"{record.name}:{record.funcName}:{record.lineno} - {record.message}"
+        msg = record.getMessage()
+        return f"{record.name}:{record.funcName}:{record.lineno} - {msg}"
 
     def emit(self, record: logging.LogRecord) -> None:
         log_entry = self.format(record)
@@ -108,18 +140,3 @@ def setup_logging() -> None:
     logger.debug("Configuring pydase logging.")
 
     logging.config.dictConfig(LOGGING_CONFIG)
-
-    # configuring uvicorn logger
-    uvicorn.config.LOGGING_CONFIG["formatters"]["default"]["fmt"] = (
-        "%(asctime)s.%(msecs)03d | %(levelprefix)s %(message)s"
-    )
-    uvicorn.config.LOGGING_CONFIG["formatters"]["default"]["datefmt"] = (
-        "%Y-%m-%d %H:%M:%S"
-    )
-    uvicorn.config.LOGGING_CONFIG["formatters"]["access"]["fmt"] = (
-        "%(asctime)s.%(msecs)03d | %(levelprefix)s %(client_addr)s "
-        '- "%(request_line)s" %(status_code)s'
-    )
-    uvicorn.config.LOGGING_CONFIG["formatters"]["access"]["datefmt"] = (
-        "%Y-%m-%d %H:%M:%S"
-    )
