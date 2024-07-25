@@ -9,6 +9,7 @@ import aiohttp_middlewares.cors
 
 from pydase.config import ServiceConfig, WebServerConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
+from pydase.server.web_server.api import create_api_application
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
@@ -106,6 +107,7 @@ class WebServer:
         app.router.add_get("/service-properties", self._service_properties_route)
         app.router.add_get("/web-settings", self._web_settings_route)
         app.router.add_get("/custom.css", self._styles_route)
+        app.add_subapp("/api/", create_api_application(self.state_manager))
 
         app.router.add_get(r"/", index)
         app.router.add_get(r"/{tail:.*}", index)
