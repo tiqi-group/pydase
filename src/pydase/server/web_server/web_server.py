@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any
 
 import aiohttp.web
 import aiohttp_middlewares.cors
@@ -16,10 +16,7 @@ from pydase.utils.helpers import (
     get_path_from_path_parts,
     parse_full_access_path,
 )
-from pydase.utils.serialization.serializer import dump, generate_serialized_data_paths
-
-if TYPE_CHECKING:
-    from pydase.utils.serialization.types import SerializedObject
+from pydase.utils.serialization.serializer import generate_serialized_data_paths
 
 logger = logging.getLogger(__name__)
 API_VERSION = "v1"
