@@ -2,25 +2,27 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
-import socketio  # type: ignore[import-untyped]
-import uvicorn
-from fastapi import FastAPI, Response
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+import aiohttp.web
+import aiohttp_middlewares.cors
 
 from pydase.config import ServiceConfig, WebServerConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.server.web_server.sio_setup import (
     setup_sio_server,
 )
-from pydase.utils.helpers import get_path_from_path_parts, parse_full_access_path
-from pydase.utils.serialization.serializer import generate_serialized_data_paths
-from pydase.version import __version__
+from pydase.utils.helpers import (
+    get_path_from_path_parts,
+    parse_full_access_path,
+)
+from pydase.utils.serialization.serializer import dump, generate_serialized_data_paths
+
+if TYPE_CHECKING:
+    from pydase.utils.serialization.types import SerializedObject
 
 logger = logging.getLogger(__name__)
+API_VERSION = "v1"
 
 
 class WebServer:
@@ -88,24 +90,67 @@ class WebServer:
 
     async def serve(self) -> None:
         self._loop = asyncio.get_running_loop()
-        self._setup_socketio()
-        self._setup_fastapi_app()
-        self.web_server = uvicorn.Server(
-            uvicorn.Config(self.__fastapi_app, host=self.host, port=self.port)
+        self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
+
+        async def index(request: aiohttp.web.Request) -> aiohttp.web.FileResponse:
+            return aiohttp.web.FileResponse(self.frontend_src / "index.html")
+
+        app = aiohttp.web.Application()
+
+        # Add CORS middleware if enabled
+        if self.enable_cors:
+            app.middlewares.append(
+                aiohttp_middlewares.cors.cors_middleware(allow_all=True)
+            )
+
+        # Define routes
+        self._sio.attach(app, socketio_path="/ws/socket.io")
+        app.router.add_static("/assets", self.frontend_src / "assets")
+        app.router.add_get("/service-properties", self._service_properties_route)
+        app.router.add_get("/web-settings", self._web_settings_route)
+        app.router.add_get("/custom.css", self._styles_route)
+
+        app.router.add_get(r"/", index)
+        app.router.add_get(r"/{tail:.*}", index)
+
+        await aiohttp.web._run_app(
+            app,
+            host=self.host,
+            port=self.port,
+            handle_signals=False,
+            print=logger.info,
+            shutdown_timeout=0.1,
         )
-        # overwrite uvicorn's signal handlers, otherwise it will bogart SIGINT and
-        # SIGTERM, which makes it impossible to escape out of
-        self.web_server.install_signal_handlers = lambda: None  # type: ignore[method-assign]
-        await self.web_server.serve()
+
+    async def _service_properties_route(
+        self,
+        request: aiohttp.web.Request,
+    ) -> aiohttp.web.Response:
+        return aiohttp.web.json_response(self.state_manager.cache)
+
+    async def _web_settings_route(
+        self,
+        request: aiohttp.web.Request,
+    ) -> aiohttp.web.Response:
+        return aiohttp.web.json_response(self.web_settings)
+
+    async def _styles_route(
+        self,
+        request: aiohttp.web.Request,
+    ) -> aiohttp.web.FileResponse | aiohttp.web.Response:
+        if self.css is not None:
+            return aiohttp.web.FileResponse(self.css)
+
+        return aiohttp.web.Response(content_type="text/css")
 
     def _initialise_configuration(self) -> None:
         logger.debug("Initialising web server configuration...")
 
-        file_path = self._service_config_dir / "web_settings.json"
-
         if self._generate_web_settings:
-            # File does not exist, create it with default content
             logger.debug("Generating web settings file...")
+            file_path = self._service_config_dir / "web_settings.json"
+
+            # File does not exist, create it with default content
             file_path.parent.mkdir(
                 parents=True, exist_ok=True
             )  # Ensure directory exists
@@ -148,54 +193,3 @@ class WebServer:
             }
 
         return current_web_settings
-
-    def _setup_socketio(self) -> None:
-        self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
-        self.__sio_app = socketio.ASGIApp(self._sio)
-
-    def _setup_fastapi_app(self) -> None:  # noqa: C901
-        app = FastAPI()
-
-        if self.enable_cors:
-            app.add_middleware(
-                CORSMiddleware,
-                allow_credentials=True,
-                allow_origins=["*"],
-                allow_methods=["*"],
-                allow_headers=["*"],
-            )
-        app.mount("/ws", self.__sio_app)
-
-        @app.get("/version")
-        def version() -> str:
-            return __version__
-
-        @app.get("/name")
-        def name() -> str:
-            return type(self.service).__name__
-
-        @app.get("/service-properties")
-        def service_properties() -> dict[str, Any]:
-            return self.state_manager.cache  # type: ignore
-
-        @app.get("/web-settings")
-        def web_settings() -> dict[str, Any]:
-            return self.web_settings
-
-        # exposing custom.css file provided by user
-        @app.get("/custom.css")
-        async def styles() -> Response:
-            if self.css is not None:
-                return FileResponse(str(self.css))
-
-            return Response(content="", media_type="text/css")
-
-        app.mount(
-            "/",
-            StaticFiles(
-                directory=self.frontend_src,
-                html=True,
-            ),
-        )
-
-        self.__fastapi_app = app
