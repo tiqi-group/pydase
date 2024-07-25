@@ -38,6 +38,16 @@ LOGGING_CONFIG = {
     },
     "loggers": {
         "pydase": {"handlers": ["default"], "level": LOG_LEVEL, "propagate": False},
+        "aiohttp_middlewares": {
+            "handlers": ["default"],
+            "level": logging.WARNING,
+            "propagate": False,
+        },
+        "aiohttp": {
+            "handlers": ["default"],
+            "level": logging.INFO,
+            "propagate": False,
+        },
     },
 }
 

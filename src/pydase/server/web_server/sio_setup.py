@@ -175,5 +175,5 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
 
 def setup_logging_handler(sio: socketio.AsyncServer) -> None:
-    logger = logging.getLogger()
-    logger.addHandler(SocketIOHandler(sio))
+    logging.getLogger().addHandler(SocketIOHandler(sio))
+    logging.getLogger("pydase").addHandler(SocketIOHandler(sio))
