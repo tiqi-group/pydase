@@ -123,7 +123,7 @@ class WebServer:
         self,
         request: aiohttp.web.Request,
     ) -> aiohttp.web.Response:
-        return aiohttp.web.json_response(self.state_manager.cache)
+        return aiohttp.web.json_response(self.state_manager.cache_manager.cache)
 
     async def _web_settings_route(
         self,

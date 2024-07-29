@@ -37,7 +37,7 @@ class DataServiceObserver(PropertyObserver):
 
         try:
             cached_value_dict = deepcopy(
-                self.state_manager._data_service_cache.get_value_dict_from_cache(
+                self.state_manager.cache_manager.get_value_dict_from_cache(
                     full_access_path
                 )
             )
@@ -60,7 +60,7 @@ class DataServiceObserver(PropertyObserver):
             self._update_cache_value(full_access_path, value, cached_value_dict)
 
             cached_value_dict = deepcopy(
-                self.state_manager._data_service_cache.get_value_dict_from_cache(
+                self.state_manager.cache_manager.get_value_dict_from_cache(
                     full_access_path
                 )
             )
@@ -93,7 +93,7 @@ class DataServiceObserver(PropertyObserver):
                 value_dict["type"],
                 cached_value_dict["type"],
             )
-        self.state_manager._data_service_cache.update_cache(
+        self.state_manager.cache_manager.update_cache(
             full_access_path,
             value,
         )

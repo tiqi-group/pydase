@@ -134,7 +134,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
             "Client [%s] requested service serialization",
             click.style(str(sid), fg="cyan"),
         )
-        return state_manager.cache
+        return state_manager.cache_manager.cache
 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:  # type: ignore
@@ -151,9 +151,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
         try:
-            return state_manager._data_service_cache.get_value_dict_from_cache(
-                access_path
-            )
+            return state_manager.cache_manager.get_value_dict_from_cache(access_path)
         except Exception as e:
             logger.exception(e)
             return dump(e)

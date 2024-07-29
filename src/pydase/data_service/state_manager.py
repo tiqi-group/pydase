@@ -113,19 +113,12 @@ class StateManager:
             self.filename = filename
 
         self.service = service
-        self._data_service_cache = DataServiceCache(self.service)
-
-    @property
-    def cache(self) -> SerializedObject:
-        """Returns the cached DataService state."""
-        return self._data_service_cache.cache
+        self.cache_manager = DataServiceCache(self.service)
 
     @property
     def cache_value(self) -> dict[str, SerializedObject]:
         """Returns the "value" value of the DataService serialization."""
-        return cast(
-            dict[str, SerializedObject], self._data_service_cache.cache["value"]
-        )
+        return cast(dict[str, SerializedObject], self.cache_manager.cache["value"])
 
     def save_state(self) -> None:
         """
@@ -158,8 +151,8 @@ class StateManager:
             if self.__is_loadable_state_attribute(path):
                 nested_json_dict = get_nested_dict_by_path(json_dict, path)
                 try:
-                    nested_class_dict = (
-                        self._data_service_cache.get_value_dict_from_cache(path)
+                    nested_class_dict = self.cache_manager.get_value_dict_from_cache(
+                        path
                     )
                 except (SerializationPathError, KeyError):
                     nested_class_dict = {
@@ -211,7 +204,7 @@ class StateManager:
             value: The new value to set for the attribute.
         """
 
-        current_value_dict = get_nested_dict_by_path(self.cache_value, path)
+        current_value_dict = self.cache_manager.get_value_dict_from_cache(path)
 
         # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
@@ -249,7 +242,7 @@ class StateManager:
         path_parts = parse_full_access_path(path)
         target_obj = get_object_by_path_parts(self.service, path_parts[:-1])
 
-        attr_cache_type = get_nested_dict_by_path(self.cache_value, path)["type"]
+        attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)["type"]
 
         # De-serialize the value
         if attr_cache_type in ("ColouredEnum", "Enum"):
@@ -296,8 +289,8 @@ class StateManager:
             return has_decorator
 
         try:
-            cached_serialization_dict = get_nested_dict_by_path(
-                self.cache_value, full_access_path
+            cached_serialization_dict = self.cache_manager.get_value_dict_from_cache(
+                full_access_path
             )
 
             if cached_serialization_dict["value"] == "method":
