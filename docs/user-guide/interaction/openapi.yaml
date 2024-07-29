@@ -37,14 +37,31 @@ paths:
                     readonly: false
                     type: float
                     value: 12.1
-                DoesNotExist:
-                  summary: Attribute or does not exist
+        '400':
+          description: Could not get attribute
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedException'
+              examples:
+                List:
+                  summary: List out of index
                   value:
                     docs: null
-                    full_access_path: device.channel[0].voltage
+                    full_access_path: ""
+                    name: SerializationPathError
                     readonly: false
-                    type: "None"
-                    value: null
+                    type: Exception
+                    value: "Index '2': list index out of range"
+                Attribute:
+                  summary: Attribute or dict key does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: SerializationPathError
+                    readonly: false
+                    type: Exception
+                    value: "Key 'invalid_attribute': 'invalid_attribute'."
   /api/v1/update_value:
     put:
       tags:
@@ -79,7 +96,7 @@ paths:
                     type: Exception
                     value: "Index '2': list index out of range"
                 Attribute:
-                  summary: Attribute or does not exist
+                  summary: Attribute does not exist
                   value:
                     docs: null
                     full_access_path: ""

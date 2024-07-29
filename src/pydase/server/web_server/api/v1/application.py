@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 
 API_VERSION = "v1"
 
+STATUS_OK = 200
+STATUS_FAILED = 400
+
 
 def create_api_application(state_manager: StateManager) -> aiohttp.web.Application:
     api_application = aiohttp.web.Application(
@@ -30,12 +33,14 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
 
         access_path = request.rel_url.query["access_path"]
 
+        status = STATUS_OK
         try:
             result = get_value(state_manager, access_path)
         except Exception as e:
             logger.exception(e)
             result = dump(e)
-        return aiohttp.web.json_response(result)
+            status = STATUS_FAILED
+        return aiohttp.web.json_response(result, status=status)
 
     async def _update_value(request: aiohttp.web.Request) -> aiohttp.web.Response:
         data: UpdateDict = await request.json()
@@ -46,7 +51,7 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
             return aiohttp.web.json_response()
         except Exception as e:
             logger.exception(e)
-            return aiohttp.web.json_response(dump(e), status=400)
+            return aiohttp.web.json_response(dump(e), status=STATUS_FAILED)
 
     async def _trigger_method(request: aiohttp.web.Request) -> aiohttp.web.Response:
         data: TriggerMethodDict = await request.json()
@@ -56,7 +61,7 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
 
         except Exception as e:
             logger.exception(e)
-            return aiohttp.web.json_response(dump(e))
+            return aiohttp.web.json_response(dump(e), status=STATUS_FAILED)
 
     api_application.router.add_get("/get_value", _get_value)
     api_application.router.add_post("/update_value", _update_value)
