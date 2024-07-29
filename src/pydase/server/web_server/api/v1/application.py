@@ -64,7 +64,7 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
             return aiohttp.web.json_response(dump(e), status=STATUS_FAILED)
 
     api_application.router.add_get("/get_value", _get_value)
-    api_application.router.add_post("/update_value", _update_value)
-    api_application.router.add_post("/trigger_method", _trigger_method)
+    api_application.router.add_put("/update_value", _update_value)
+    api_application.router.add_put("/trigger_method", _trigger_method)
 
     return api_application
