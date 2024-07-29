@@ -51,10 +51,6 @@ class SerializationPathError(Exception):
     pass
 
 
-class SerializationValueError(Exception):
-    pass
-
-
 class Serializer:
     @classmethod
     def serialize_object(cls, obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
@@ -358,7 +354,7 @@ def set_nested_value_by_path(
         next_level_serialized_object = get_container_item_by_key(
             current_dict, path_parts[-1], allow_append=True
         )
-    except (SerializationPathError, SerializationValueError, KeyError) as e:
+    except (SerializationPathError, KeyError) as e:
         logger.error("Error occured trying to change %a: %s", path, e)
         return
 
@@ -468,10 +464,6 @@ def get_container_item_by_key(
             If the path composed of `attr_name` and any specified index is invalid, or
             leads to an IndexError or KeyError. This error is also raised if an attempt
             to access a nonexistent key or index occurs without permission to append.
-        SerializationValueError:
-            If the retrieval results in an object that is expected to be a dictionary
-            but is not, indicating a mismatch between expected and actual serialized
-            data structure.
     """
     processed_key = parse_serialized_key(key)
 

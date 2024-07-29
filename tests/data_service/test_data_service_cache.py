@@ -22,13 +22,13 @@ def test_nested_attributes_cache_callback() -> None:
 
     service_instance.name = "Peepz"
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("name")["value"]
+        state_manager.cache_manager.get_value_dict_from_cache("name")["value"]
         == "Peepz"
     )
 
     service_instance.class_attr.name = "Ciao"
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("class_attr.name")[
+        state_manager.cache_manager.get_value_dict_from_cache("class_attr.name")[
             "value"
         ]
         == "Ciao"
@@ -48,24 +48,20 @@ async def test_task_status_update() -> None:
     DataServiceObserver(state_manager)
 
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("my_method")["type"]
+        state_manager.cache_manager.get_value_dict_from_cache("my_method")["type"]
         == "method"
     )
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("my_method")[
-            "value"
-        ]
+        state_manager.cache_manager.get_value_dict_from_cache("my_method")["value"]
         is None
     )
 
     service_instance.start_my_method()  # type: ignore
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("my_method")["type"]
+        state_manager.cache_manager.get_value_dict_from_cache("my_method")["type"]
         == "method"
     )
     assert (
-        state_manager._data_service_cache.get_value_dict_from_cache("my_method")[
-            "value"
-        ]
+        state_manager.cache_manager.get_value_dict_from_cache("my_method")["value"]
         == "RUNNING"
     )

@@ -9,7 +9,11 @@ from pydase.observer_pattern.observer.property_observer import (
     PropertyObserver,
 )
 from pydase.utils.helpers import get_object_attr_from_path
-from pydase.utils.serialization.serializer import SerializedObject, dump
+from pydase.utils.serialization.serializer import (
+    SerializationPathError,
+    SerializedObject,
+    dump,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,24 +33,34 @@ class DataServiceObserver(PropertyObserver):
             for changing_attribute in self.changing_attributes
         ):
             return
+        cached_value_dict: SerializedObject
 
-        cached_value_dict = deepcopy(
-            self.state_manager._data_service_cache.get_value_dict_from_cache(
-                full_access_path
+        try:
+            cached_value_dict = deepcopy(
+                self.state_manager.cache_manager.get_value_dict_from_cache(
+                    full_access_path
+                )
             )
-        )
+        except (SerializationPathError, KeyError):
+            cached_value_dict = {
+                "full_access_path": full_access_path,
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            }
 
         cached_value = cached_value_dict.get("value")
         if (
             all(part[0] != "_" for part in full_access_path.split("."))
-            and cached_value != dump(value)["value"]
+            and cached_value != value
         ):
             logger.debug("'%s' changed to '%s'", full_access_path, value)
 
             self._update_cache_value(full_access_path, value, cached_value_dict)
 
             cached_value_dict = deepcopy(
-                self.state_manager._data_service_cache.get_value_dict_from_cache(
+                self.state_manager.cache_manager.get_value_dict_from_cache(
                     full_access_path
                 )
             )
@@ -79,7 +93,7 @@ class DataServiceObserver(PropertyObserver):
                 value_dict["type"],
                 cached_value_dict["type"],
             )
-        self.state_manager._data_service_cache.update_cache(
+        self.state_manager.cache_manager.update_cache(
             full_access_path,
             value,
         )
