@@ -2,7 +2,6 @@ import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from pydase.utils.serialization.serializer import (
-    SerializationPathError,
     SerializedObject,
     get_nested_dict_by_path,
     set_nested_value_by_path,
@@ -37,16 +36,7 @@ class DataServiceCache:
         )
 
     def get_value_dict_from_cache(self, full_access_path: str) -> SerializedObject:
-        try:
-            return get_nested_dict_by_path(
-                cast(dict[str, SerializedObject], self._cache["value"]),
-                full_access_path,
-            )
-        except (SerializationPathError, KeyError):
-            return {
-                "full_access_path": full_access_path,
-                "value": None,
-                "type": "None",
-                "doc": None,
-                "readonly": False,
-            }
+        return get_nested_dict_by_path(
+            cast(dict[str, SerializedObject], self._cache["value"]),
+            full_access_path,
+        )

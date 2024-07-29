@@ -157,9 +157,18 @@ class StateManager:
         for path in generate_serialized_data_paths(json_dict):
             if self.__is_loadable_state_attribute(path):
                 nested_json_dict = get_nested_dict_by_path(json_dict, path)
-                nested_class_dict = self._data_service_cache.get_value_dict_from_cache(
-                    path
-                )
+                try:
+                    nested_class_dict = (
+                        self._data_service_cache.get_value_dict_from_cache(path)
+                    )
+                except (SerializationPathError, KeyError):
+                    nested_class_dict = {
+                        "full_access_path": path,
+                        "value": None,
+                        "type": "None",
+                        "doc": None,
+                        "readonly": False,
+                    }
 
                 value_type = nested_json_dict["type"]
                 class_attr_value_type = nested_class_dict.get("type", None)
