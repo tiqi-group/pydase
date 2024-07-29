@@ -962,7 +962,7 @@ with the following `web_settings.json`
 
 looks like this:
 
-![Tailoring frontend component layout](./docs/images/Tailoring frontend component layout.png)
+![Tailoring frontend component layout](./docs/images/Tailoring_frontend_component_layout.png)
 
 ### Specifying a Custom Frontend Source
 
