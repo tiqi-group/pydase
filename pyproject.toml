@@ -37,7 +37,7 @@ requests = "^2.32.3"
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.5.2"
+mkdocs-material = "^9.5.30"
 mkdocs-include-markdown-plugin = "^3.9.1"
 mkdocstrings = "^0.22.0"
 pymdown-extensions = "^10.1"

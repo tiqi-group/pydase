@@ -111,7 +111,7 @@ Write the React component code, following the structure and patterns used in exi
 
 For example, for the `Image` component, a template could look like this:
 
-```tsx
+```ts
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, Collapse, Image } from 'react-bootstrap';
 import { DocStringComponent } from './DocStringComponent';
@@ -203,8 +203,7 @@ There are two different events a component might want to trigger: updating an at
     
     For illustration, take the `ButtonComponent`. When the button state changes, we want to send this update to the backend:
 
-    ```tsx
-    // file: frontend/src/components/ButtonComponent.tsx
+    ```ts title="frontend/src/components/ButtonComponent.tsx"
     // ... (import statements)
     
     type ButtonComponentProps = {
@@ -249,7 +248,7 @@ There are two different events a component might want to trigger: updating an at
 
     To see how to use the `MethodComponent` in your component, have a look at the `DeviceConnection.tsx` file. Here is an example that demonstrates the usage of the `runMethod` function (also, have a look at the `MethodComponent.tsx` file):
 
-    ```tsx
+    ```ts title="frontend/src/components/_YourComponent_.tsx"
     import { runMethod } from '../socket';
     // ... (other imports)
 
@@ -287,9 +286,7 @@ The `GenericComponent` is responsible for rendering different types of component
 
 At the beginning of the `GenericComponent` file, import the newly created `ImageComponent`:
 
-```tsx
-// file: frontend/src/components/GenericComponent.tsx
-
+```ts title="frontend/src/components/GenericComponent.tsx"
 import { ImageComponent } from './ImageComponent';
 ```
 
@@ -299,7 +296,7 @@ Update the `AttributeType` type definition to include the new type for the `Imag
 
 For example, if the new attribute type is `'Image'` (which should correspond to the name of the backend component class), you can add it to the union:
 
-```tsx
+```ts
 type AttributeType =
   | 'str'
   | 'bool'
@@ -318,7 +315,7 @@ type AttributeType =
 
 Inside the `GenericComponent` function, add a new conditional branch to render the `ImageComponent` when the attribute type is `'Image'`:
 
-```tsx
+```ts
 } else if (attribute.type === 'Image') {
   return (
     <ImageComponent
@@ -348,7 +345,7 @@ For example, updating an `Image` component corresponds to setting a very long st
 
 To create a custom notification message, you can update the message passed to the `addNotification` method in the `useEffect` hook in the component file file. For the `ImageComponent`, this could look like this:
 
-```tsx
+```ts
 const fullAccessPath = [parentPath, name].filter((element) => element).join('.');
 
 useEffect(() => {

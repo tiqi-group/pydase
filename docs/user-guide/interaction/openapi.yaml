@@ -1,6 +1,7 @@
 openapi: 3.1.0
 info:
-  title: Pydase RESTful API
+  version: 1.0.0
+  title: pydase API
 tags:
   - name: /api/v1
     description: Version 1

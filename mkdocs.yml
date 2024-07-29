@@ -6,7 +6,7 @@ nav:
   - Getting Started: getting-started.md
   - User Guide:
     - Components Guide: user-guide/Components.md
-    - Interacting with Services: user-guide/Interaction.md
+    - Interacting with pydase Services: user-guide/interaction/main.md
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
@@ -17,7 +17,10 @@ nav:
     - Contributing: about/contributing.md
     - License: about/license.md
 
-theme: readthedocs
+theme: 
+  name: material
+  features:
+    - content.code.copy
 
 extra_css:
   - css/extra.css
@@ -27,11 +30,13 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.highlight:
+      use_pygments: true
       anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
   - pymdownx.snippets
   - pymdownx.superfences
-  # - pymdownx.highlight:
-  # - pymdownx.inlinehilite
+  - pymdownx.inlinehilite
 
 
 plugins:
