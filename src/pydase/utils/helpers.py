@@ -122,16 +122,20 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
 
 
 def get_object_by_path_parts(target_obj: Any, path_parts: list[str]) -> Any:
+    """Gets nested attribute of `target_object` specified by `path_parts`.
+
+    Raises:
+        AttributeError: Attribute does not exist.
+        KeyError: Key in dict does not exist.
+        IndexError: Index out of list range.
+        TypeError: List index in the path is not a valid integer.
+    """
     for part in path_parts:
         if part.startswith("["):
             deserialized_part = parse_serialized_key(part)
             target_obj = target_obj[deserialized_part]
         else:
-            try:
-                target_obj = getattr(target_obj, part)
-            except AttributeError:
-                logger.debug("Attribute %a does not exist in the object.", part)
-                return None
+            target_obj = getattr(target_obj, part)
     return target_obj
 
 
@@ -149,7 +153,10 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
         the path does not exist, the function logs a debug message and returns None.
 
     Raises:
-        ValueError: If a list index in the path is not a valid integer.
+        AttributeError: Attribute does not exist.
+        KeyError: Key in dict does not exist.
+        IndexError: Index out of list range.
+        TypeError: List index in the path is not a valid integer.
     """
     path_parts = parse_full_access_path(path)
     return get_object_by_path_parts(target_obj, path_parts)
