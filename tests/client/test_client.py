@@ -130,6 +130,7 @@ def test_tab_completion(pydase_client: pydase.Client) -> None:
     assert all(
         x in pydase_client.proxy.__dir__()
         for x in [
+            "dict_attr",
             "list_attr",
             "my_method",
             "my_property",
