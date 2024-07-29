@@ -17,7 +17,7 @@ def update_value(state_manager: StateManager, data: UpdateDict) -> None:
 
 
 def get_value(state_manager: StateManager, access_path: str) -> SerializedObject:
-    return state_manager._data_service_cache.get_value_dict_from_cache(access_path)
+    return state_manager.cache_manager.get_value_dict_from_cache(access_path)
 
 
 def trigger_method(state_manager: StateManager, data: TriggerMethodDict) -> Any:
