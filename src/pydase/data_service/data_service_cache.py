@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
-    SerializationValueError,
     SerializedObject,
     get_nested_dict_by_path,
     set_nested_value_by_path,
@@ -43,7 +42,7 @@ class DataServiceCache:
                 cast(dict[str, SerializedObject], self._cache["value"]),
                 full_access_path,
             )
-        except (SerializationPathError, SerializationValueError, KeyError):
+        except (SerializationPathError, KeyError):
             return {
                 "full_access_path": full_access_path,
                 "value": None,
