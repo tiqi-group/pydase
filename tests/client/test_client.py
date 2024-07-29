@@ -121,6 +121,9 @@ def test_dict(pydase_client: pydase.Client) -> None:
     # pop will remove the dictionary entry on the server
     assert list(pydase_client.proxy.dict_attr.keys()) == ["foo"]
 
+    pydase_client.proxy.dict_attr["non_existent_key"] = "Hello"
+    assert pydase_client.proxy.dict_attr["non_existent_key"] == "Hello"
+
 
 def test_tab_completion(pydase_client: pydase.Client) -> None:
     # Tab completion gets its suggestions from the __dir__ class method

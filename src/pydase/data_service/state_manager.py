@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 import os
@@ -204,7 +205,16 @@ class StateManager:
             value: The new value to set for the attribute.
         """
 
-        current_value_dict = self.cache_manager.get_value_dict_from_cache(path)
+        try:
+            current_value_dict = self.cache_manager.get_value_dict_from_cache(path)
+        except (SerializationPathError, KeyError):
+            current_value_dict = {
+                "full_access_path": path,
+                "value": None,
+                "type": "None",
+                "doc": None,
+                "readonly": False,
+            }
 
         # This will also filter out methods as they are 'read-only'
         if current_value_dict["readonly"]:
@@ -239,24 +249,31 @@ class StateManager:
     def __update_attribute_by_path(
         self, path: str, serialized_value: SerializedObject
     ) -> None:
+        is_value_set = False
         path_parts = parse_full_access_path(path)
         target_obj = get_object_by_path_parts(self.service, path_parts[:-1])
 
-        attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)["type"]
+        def cached_value_is_enum(path: str) -> bool:
+            try:
+                attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)[
+                    "type"
+                ]
 
-        # De-serialize the value
-        if attr_cache_type in ("ColouredEnum", "Enum"):
+                return attr_cache_type in ("ColouredEnum", "Enum")
+            except Exception:
+                return False
+
+        if cached_value_is_enum(path):
             enum_attr = get_object_by_path_parts(target_obj, [path_parts[-1]])
             # take the value of the existing enum class
             if serialized_value["type"] in ("ColouredEnum", "Enum"):
-                try:
+                # This error will arise when setting an enum from another enum class.
+                # In this case, we resort to loading the enum and setting it directly.
+                with contextlib.suppress(KeyError):
                     value = enum_attr.__class__[serialized_value["value"]]
-                except KeyError:
-                    # This error will arise when setting an enum from another enum class
-                    # In this case, we resort to loading the enum and setting it
-                    # directly
-                    value = loads(serialized_value)
-        else:
+                    is_value_set = True
+
+        if not is_value_set:
             value = loads(serialized_value)
 
         # set the value
