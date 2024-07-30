@@ -34,9 +34,6 @@
 - [Using `validate_set` to Validate Property Setters](#using-validate_set-to-validate-property-setters)
 - [Configuring pydase via Environment Variables](#configuring-pydase-via-environment-variables)
 - [Customizing the Web Interface](#customizing-the-web-interface)
-  - [Enhancing the Web Interface Style with Custom CSS](#enhancing-the-web-interface-style-with-custom-css)
-  - [Tailoring Frontend Component Layout](#tailoring-frontend-component-layout)
-  - [Specifying a Custom Frontend Source](#specifying-a-custom-frontend-source)
 - [Logging in pydase](#logging-in-pydase)
   - [Changing the Log Level](#changing-the-log-level)
 - [Documentation](#documentation)
@@ -896,112 +893,14 @@ server = Server(
 
 ## Customizing the Web Interface
 
-### Enhancing the Web Interface Style with Custom CSS
+`pydase` allows you to enhance the user experience by customizing the web interface's appearance through
 
-`pydase` allows you to enhance the user experience by customizing the web interface's appearance. You can apply your own styles globally across the web interface by passing a custom CSS file to the server during initialization.
+1. a custom CSS file, and
+2. tailoring the frontend component layout and display style.
 
-Here's how you can use this feature:
+You can also provide a custom frontend source if you need even more flexibility.
 
-1. Prepare your custom CSS file with the desired styles.
-
-2. When initializing your server, use the `css` parameter of the `Server` class to specify the path to your custom CSS file.
-
-```python
-from pydase import Server, DataService
-
-class MyService(DataService):
-    # ... your service definition ...
-
-if __name__ == "__main__":
-    service = MyService()
-    server = Server(service, css="path/to/your/custom.css").run()
-```
-
-This will apply the styles defined in `custom.css` to the web interface, allowing you to maintain branding consistency or improve visual accessibility.
-
-Please ensure that the CSS file path is accessible from the server's running location. Relative or absolute paths can be used depending on your setup.
-
-### Tailoring Frontend Component Layout
-
-`pydase` enables users to customize the frontend layout via the `web_settings.json` file. Each key in the file corresponds to the full access path of public attributes, properties, and methods of the exposed service, using dot-notation.
-
-- **Custom Display Names**: Modify the `"displayName"` value in the file to change how each component appears in the frontend.
-- **Control Component Visibility**: Utilize the `"display"` key-value pair to control whether a component is rendered in the frontend. Set the value to `true` to make the component visible or `false` to hide it.
-- **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. The value defaults to [`Number.MAX_SAFE_INTEGER`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER).
-
-The `web_settings.json` file will be stored in the directory specified by `SERVICE_CONFIG_DIR`. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](#configuring-pydase-via-environment-variables).
-
-For example, styling the following service 
-
-```python
-import pydase
-
-
-class Device(pydase.DataService):
-    name = "My Device"
-    temperature = 1.0
-    power = 1
-
-
-class Service(pydase.DataService):
-    device = Device()
-    state = "RUNNING"
-
-
-service_instance = Service()
-pydase.Server(service_instance).run()
-```
-
-with the following `web_settings.json`
-
-```json
-{
-    "device": {
-        "displayName": "My Device",
-        "displayOrder": 1
-    },
-    "device.name": {
-        "display": false
-    },
-    "device.power": {
-        "displayName": "Power",
-        "displayOrder": 1
-    },
-    "device.temperature": {
-      "displayName": "Temperature",
-      "displayOrder": 0
-    },
-    "state": {
-        "displayOrder": 0
-    }
-}
-```
-
-looks like this:
-
-![Tailoring frontend component layout](./docs/images/Tailoring_frontend_component_layout.png)
-
-### Specifying a Custom Frontend Source
-
-To further personalize your web interface, you can provide `pydase` with a custom frontend GUI. To do so, you can use the `frontend_src` keyword in the `pydase.Server`:
-
-```python
-from pathlib import Path
-
-import pydase
-
-
-class MyService(pydase.DataService):
-    # Service definition
-
-
-if __name__ == "__main__":
-    service = MyService()
-    pydase.Server(
-        service,
-        frontend_src=Path("path/to/your/frontend/directory"),
-    ).run()
-```
+For details, please see [here](https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#customization-options).
 
 ## Logging in pydase
 
