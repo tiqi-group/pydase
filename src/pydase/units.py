@@ -3,7 +3,7 @@ from typing import TypedDict
 import pint
 
 units: pint.UnitRegistry = pint.UnitRegistry(autoconvert_offset_to_baseunit=True)
-units.default_format = "~P"  # pretty and short format
+units.formatter.default_format = "~P"  # pretty and short format
 
 Quantity = pint.Quantity
 Unit = units.Unit
