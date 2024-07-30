@@ -4,7 +4,7 @@ from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server.sio_setup import TriggerMethodDict, UpdateDict
 from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.serialization.deserializer import loads
-from pydase.utils.serialization.serializer import dump
+from pydase.utils.serialization.serializer import Serializer, dump
 from pydase.utils.serialization.types import SerializedObject
 
 
@@ -17,7 +17,10 @@ def update_value(state_manager: StateManager, data: UpdateDict) -> None:
 
 
 def get_value(state_manager: StateManager, access_path: str) -> SerializedObject:
-    return state_manager.cache_manager.get_value_dict_from_cache(access_path)
+    return Serializer.serialize_object(
+        get_object_attr_from_path(state_manager.service, access_path),
+        access_path=access_path,
+    )
 
 
 def trigger_method(state_manager: StateManager, data: TriggerMethodDict) -> Any:
