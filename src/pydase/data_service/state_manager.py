@@ -281,6 +281,15 @@ class StateManager:
             processed_key = parse_serialized_key(path_parts[-1])
             target_obj[processed_key] = value  # type: ignore
         else:
+            # Don't allow adding attributes to objects through state manager
+            if self.__attr_exists_on_target_obj(
+                target_obj=target_obj, name=path_parts[-1]
+            ):
+                raise AttributeError(
+                    f"{target_obj.__class__.__name__!r} object has no attribute "
+                    f"{path_parts[-1]!r}"
+                )
+
             setattr(target_obj, path_parts[-1], value)
 
     def __is_loadable_state_attribute(self, full_access_path: str) -> bool:
@@ -322,3 +331,8 @@ class StateManager:
                 path_parts[-1],
             )
             return False
+
+    def __attr_exists_on_target_obj(self, target_obj: Any, name: str) -> bool:
+        return not is_property_attribute(target_obj, name) and not hasattr(
+            target_obj, name
+        )
