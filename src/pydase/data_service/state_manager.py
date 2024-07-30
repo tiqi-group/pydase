@@ -248,17 +248,7 @@ class StateManager:
         path_parts = parse_full_access_path(path)
         target_obj = get_object_by_path_parts(self.service, path_parts[:-1])
 
-        def cached_value_is_enum(path: str) -> bool:
-            try:
-                attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)[
-                    "type"
-                ]
-
-                return attr_cache_type in ("ColouredEnum", "Enum")
-            except Exception:
-                return False
-
-        if cached_value_is_enum(path):
+        if self.__cached_value_is_enum(path):
             enum_attr = get_object_by_path_parts(target_obj, [path_parts[-1]])
             # take the value of the existing enum class
             if serialized_value["type"] in ("ColouredEnum", "Enum"):
@@ -325,6 +315,14 @@ class StateManager:
                 " the class. Ignoring value from JSON file...",
                 path_parts[-1],
             )
+            return False
+
+    def __cached_value_is_enum(self, path: str) -> bool:
+        try:
+            attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)["type"]
+
+            return attr_cache_type in ("ColouredEnum", "Enum")
+        except Exception:
             return False
 
     def __attr_exists_on_target_obj(self, target_obj: Any, name: str) -> bool:
