@@ -154,7 +154,7 @@ if __name__ == "__main__":
     Server(service).run()
 ```
 
-This will start the server, making your Device service accessible via RPC and a web server at [http://localhost:8001](http://localhost:8001).
+This will start the server, making your Device service accessible on [http://localhost:8001](http://localhost:8001).
 
 ### Accessing the Web Interface
 
@@ -875,7 +875,6 @@ Configuring `pydase` through environment variables enhances flexibility, securit
     ```
 
 - **`SERVICE_WEB_PORT`**: Defines the port number for the web server. This has to be different for each services running on the same host. Default is 8001.
-- **`SERVICE_RPC_PORT`**: Defines the port number for the rpc server. This has to be different for each services running on the same host. Default is 18871.
 - **`GENERATE_WEB_SETTINGS`**: When set to true, generates / updates the `web_settings.json` file. If the file already exists, only new entries are appended.
 
 Some of those settings can also be altered directly in code when initializing the server: 
@@ -890,7 +889,6 @@ from your_service_module import YourService
 server = Server(
     YourService(),
     web_port=8080,
-    rpc_port=18880,
     config_dir=pathlib.Path("other_config_dir"),  # note that you need to provide an argument of type pathlib.Path
     generate_web_settings=True
 ).run()
