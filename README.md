@@ -1,9 +1,9 @@
-# pydase (Python Data Service) <!-- omit from toc -->
+# pydase <!-- omit from toc -->
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=latest)](https://pydase.readthedocs.io/en/latest/?badge=latest)
 
-`pydase` is a Python library for creating data service servers with integrated web and RPC servers. It's designed to handle the management of data structures, automated tasks, and callbacks, and provides built-in functionality for serving data over different protocols.
+`pydase` is a Python library designed to streamline the creation of services that interface with devices and data. It offers a unified API, simplifying the process of data querying and device interaction. Whether you're managing lab sensors, network devices, or any abstract data entity, `pydase` facilitates rapid service development and deployment.
 
 - [Features](#features)
 - [Installation](#installation)
@@ -14,6 +14,7 @@
   - [Connecting to the Service via Python Client](#connecting-to-the-service-via-python-client)
     - [Tab Completion Support](#tab-completion-support)
     - [Integration within Another Service](#integration-within-another-service)
+  - [RESTful API](#restful-api)
 - [Understanding the Component System](#understanding-the-component-system)
   - [Built-in Type and Enum Components](#built-in-type-and-enum-components)
   - [Method Components](#method-components)
@@ -45,11 +46,11 @@
 ## Features
 
 <!-- no toc -->
-- [Simple data service definition through class-based interface](#defining-a-dataService)
-- [Integrated web interface for interactive access and control of your data service](#accessing-the-web-interface)
+- [Simple service definition through class-based interface](#defining-a-dataService)
+- [Integrated web interface for interactive access and control of your service](#accessing-the-web-interface)
 - [Support for programmatic control and interaction with your service](#connecting-to-the-service-via-python-client)
 - [Component system bridging Python backend with frontend visual representation](#understanding-the-component-system)
-- [Customizable styling for the web interface through user-defined CSS](#customizing-web-interface-style)
+- [Customizable styling for the web interface](#customizing-web-interface-style)
 - [Saving and restoring the service state for service persistence](#understanding-service-persistence)
 - [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
 - [Support for units](#understanding-units-in-pydase)
@@ -208,6 +209,24 @@ if __name__ == "__main__":
 In this setup, the `MyService` class has a `proxy` attribute that connects to a `pydase` service located at `<ip_addr>:8001`.
 The `block_until_connected=False` argument allows the service to start up even if the initial connection attempt fails.
 This configuration is particularly useful in distributed systems where services may start in any order.
+
+### RESTful API
+The `pydase` RESTful API allows for standard HTTP-based interactions and provides access to various functionalities through specific routes. 
+
+For example, you can get a value like this:
+
+```python
+import json
+
+import requests
+
+response = requests.get(
+    "http://<hostname>:<port>/api/v1/get_value?access_path=<full_access_path>"
+)
+serialized_value = json.loads(response.text)
+```
+
+For more information, see [here](https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#restful-api).
 
 <!--usage-end-->
 
@@ -510,96 +529,96 @@ In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value`
 
 - Accessing parent class resources in `NumberSlider`
 
-  In scenarios where you need the slider component to interact with or access resources from its parent class, you can achieve this by passing a callback function to it. This method avoids directly passing the entire parent class instance (`self`) and offers a more encapsulated approach. The callback function can be designed to utilize specific attributes or methods of the parent class, allowing the slider to perform actions or retrieve data in response to slider events.
+    In scenarios where you need the slider component to interact with or access resources from its parent class, you can achieve this by passing a callback function to it. This method avoids directly passing the entire parent class instance (`self`) and offers a more encapsulated approach. The callback function can be designed to utilize specific attributes or methods of the parent class, allowing the slider to perform actions or retrieve data in response to slider events.
 
-  Here's an illustrative example:
+    Here's an illustrative example:
 
-  ```python
-  from collections.abc import Callable
+    ```python
+    from collections.abc import Callable
 
-  import pydase
-  import pydase.components
-
-
-  class MySlider(pydase.components.NumberSlider):
-      def __init__(
-          self,
-          value: float,
-          on_change: Callable[[float], None],
-      ) -> None:
-          super().__init__(value=value)
-          self._on_change = on_change
-
-      # ... other properties ...
-
-      @property
-      def value(self) -> float:
-          return self._value
-
-      @value.setter
-      def value(self, new_value: float) -> None:
-          if new_value < self._min or new_value > self._max:
-              raise ValueError("Value is either below allowed min or above max value.")
-          self._value = new_value
-          self._on_change(new_value)
+    import pydase
+    import pydase.components
 
 
-  class MyService(pydase.DataService):
-      def __init__(self) -> None:
-          self.voltage = MySlider(
-              5,
-              on_change=self.handle_voltage_change,
-          )
+    class MySlider(pydase.components.NumberSlider):
+        def __init__(
+            self,
+            value: float,
+            on_change: Callable[[float], None],
+        ) -> None:
+            super().__init__(value=value)
+            self._on_change = on_change
 
-      def handle_voltage_change(self, new_voltage: float) -> None:
-          print(f"Voltage changed to: {new_voltage}")
-          # Additional logic here
+        # ... other properties ...
 
-  if __name__ == "__main__":
-     service_instance = MyService()
-     my_service.voltage.value = 7  # Output: "Voltage changed to: 7"
-     pydase.Server(service_instance).run()
-  ```
+        @property
+        def value(self) -> float:
+            return self._value
+
+        @value.setter
+        def value(self, new_value: float) -> None:
+            if new_value < self._min or new_value > self._max:
+                raise ValueError("Value is either below allowed min or above max value.")
+            self._value = new_value
+            self._on_change(new_value)
+
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            self.voltage = MySlider(
+                5,
+                on_change=self.handle_voltage_change,
+            )
+
+        def handle_voltage_change(self, new_voltage: float) -> None:
+            print(f"Voltage changed to: {new_voltage}")
+            # Additional logic here
+
+    if __name__ == "__main__":
+       service_instance = MyService()
+       my_service.voltage.value = 7  # Output: "Voltage changed to: 7"
+       pydase.Server(service_instance).run()
+    ```
 
 - Incorporating units in `NumberSlider`
 
-  The `NumberSlider` is capable of [displaying units](#understanding-units-in-pydase) alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
+    The `NumberSlider` is capable of [displaying units](#understanding-units-in-pydase) alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
 
-  Here's how to implement a `NumberSlider` with unit display:
+    Here's how to implement a `NumberSlider` with unit display:
 
-  ```python
-  import pydase
-  import pydase.components
-  import pydase.units as u
+    ```python
+    import pydase
+    import pydase.components
+    import pydase.units as u
 
-  class MySlider(pydase.components.NumberSlider):
-      def __init__(
-          self,
-          value: u.Quantity = 0.0 * u.units.V,
-      ) -> None:
-          super().__init__(value)
+    class MySlider(pydase.components.NumberSlider):
+        def __init__(
+            self,
+            value: u.Quantity = 0.0 * u.units.V,
+        ) -> None:
+            super().__init__(value)
 
-      @property
-      def value(self) -> u.Quantity:
-          return self._value
+        @property
+        def value(self) -> u.Quantity:
+            return self._value
 
-      @value.setter
-      def value(self, value: u.Quantity) -> None:
-          if value.m < self._min or value.m > self._max:
-              raise ValueError("Value is either below allowed min or above max value.")
-          self._value = value
+        @value.setter
+        def value(self, value: u.Quantity) -> None:
+            if value.m < self._min or value.m > self._max:
+                raise ValueError("Value is either below allowed min or above max value.")
+            self._value = value
 
-  class MyService(pydase.DataService):
-      def __init__(self) -> None:
-          super().__init__()
-          self.voltage = MySlider()
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.voltage = MySlider()
 
-  if __name__ == "__main__":
-      service_instance = MyService()
-      service_instance.voltage.value = 5 * u.units.V
-      print(service_instance.voltage.value)  # Output: 5 V
-      pydase.Server(service_instance).run()
-  ```
+    if __name__ == "__main__":
+        service_instance = MyService()
+        service_instance.voltage.value = 5 * u.units.V
+        print(service_instance.voltage.value)  # Output: 5 V
+        pydase.Server(service_instance).run()
+    ```
 
 #### `ColouredEnum`
 
@@ -922,8 +941,8 @@ import pydase
 
 class Device(pydase.DataService):
     name = "My Device"
-    some_float = 1.0
-    some_int = 1
+    temperature = 1.0
+    power = 1
 
 
 class Service(pydase.DataService):
@@ -946,11 +965,13 @@ with the following `web_settings.json`
     "device.name": {
         "display": false
     },
-    "device.some_float": {
+    "device.power": {
+        "displayName": "Power",
         "displayOrder": 1
     },
-    "device.some_int": {
-        "displayOrder": 0
+    "device.temperature": {
+      "displayName": "Temperature",
+      "displayOrder": 0
     },
     "state": {
         "displayOrder": 0

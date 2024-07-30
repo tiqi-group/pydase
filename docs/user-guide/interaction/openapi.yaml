@@ -1,0 +1,326 @@
+openapi: 3.1.0
+info:
+  version: 1.0.0
+  title: pydase API
+tags:
+  - name: /api/v1
+    description: Version 1
+paths:
+  /api/v1/get_value:
+    get:
+      tags:
+        - /api/v1
+      summary: Get the value of an existing attribute.
+      description: Get the value of an existing attribute by full access path.
+      operationId: getValue
+      parameters:
+        - in: query
+          name: access_path
+          schema:
+            type: string
+          example:  device.channel[0].voltage
+          required: true
+          description: Full access path of the service attribute.
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedAttribute'
+              examples:
+                Exists:
+                  summary: Attribute exists
+                  value:
+                    docs: My documentation string.
+                    full_access_path: device.channel[0].voltage
+                    readonly: false
+                    type: float
+                    value: 12.1
+        '400':
+          description: Could not get attribute
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedException'
+              examples:
+                Attribute:
+                  summary: Attribute does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "'MyService' object has no attribute 'invalid_attribute'"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
+  /api/v1/update_value:
+    put:
+      tags:
+        - /api/v1
+      summary: Update an existing attribute.
+      description: Update an existing attribute by full access path.
+      operationId: updateValue
+      requestBody:
+        description: Update an existent attribute in the service
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateValue'
+        required: true
+      responses:
+        '200':
+          description: Successful Operation
+        '400':
+          description: Could not Update Attribute
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedException'
+              examples:
+                Attribute:
+                  summary: Attribute does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "'MyService' object has no attribute 'invalid_attribute'"
+                ReadOnly:
+                  summary: Attribute is read-only
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "property 'readonly_property' of 'MyService' object has no setter"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
+  /api/v1/trigger_method:
+    put:
+      tags:
+        - /api/v1
+      summary: Trigger method.
+      description: Trigger method with by full access path with provided args and kwargs.
+      operationId: triggerMethod
+      requestBody:
+        description: Update an existent attribute in the service
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerMethod'
+        required: true
+      responses:
+        '200':
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedAttribute'
+              examples:
+                NoneReturn:
+                  summary: Function returns None
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    readonly: false
+                    type: "NoneType"
+                    value: null
+                FloatReturn:
+                  summary: Function returns float
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    readonly: false
+                    type: "float"
+                    value: 23.2
+        '400':
+          description: Method does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedException'
+              examples:
+                Args:
+                  summary: Wrong number of arguments
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: TypeError
+                    readonly: true
+                    type: Exception
+                    value: "MyService.some_function() takes 1 positional argument but 2 were given"
+                Attribute:
+                  summary: Attribute does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "'MyService' object has no attribute 'invalid_method'"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
+                Dict:
+                  summary: Dictionary key does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: KeyError
+                    readonly: true
+                    type: Exception
+                    value: "invalid_key"
+components:
+  schemas:
+    UpdateValue:
+      required:
+        - access_path
+        - value
+      type: object
+      properties:
+        access_path:
+          type: string
+          example: device.channel[0].voltage
+        value:
+          $ref: '#/components/schemas/SerializedValue'
+    TriggerMethod:
+      required:
+        - access_path
+      type: object
+      properties:
+        access_path:
+          type: string
+          example: device.channel[0].voltage
+        args:
+          type: object
+          required:
+            - type
+            - value
+            - full_access_path
+          properties:
+            full_access_path:
+              type: string
+              example: ""
+            type:
+              type: string
+              enum:
+                - list
+            value:
+              type: array
+              items:
+                $ref: '#/components/schemas/SerializedValue'
+        kwargs:
+          type: object
+          required:
+            - type
+            - value
+            - full_access_path
+          properties:
+            full_access_path:
+              type: string
+              example: ""
+            type:
+              type: string
+              enum:
+                - dict
+            value:
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/SerializedValue'
+    SerializedValue:
+      required:
+        - full_access_path
+        - type
+        - value
+      type: object
+      properties:
+        docs:
+          type: string | null
+          example: null
+        full_access_path:
+          type: string
+          example: ""
+        readonly:
+          type: boolean
+          example: false
+        type:
+          type: string
+          example: float
+        value:
+          type: any
+          example: 22.0
+    SerializedAttribute:
+      required:
+        - full_access_path
+        - type
+        - value
+      type: object
+      properties:
+        docs:
+          type: string | null
+          example: My documentation string.
+        full_access_path:
+          type: string
+          example: device.channel[0].voltage
+        readonly:
+          type: boolean
+          example: false
+        type:
+          type: string
+          example: float
+        value:
+          type: any
+          example: 22.0
+    SerializedException:
+      required:
+        - full_access_path
+        - type
+        - value
+      type: object
+      properties:
+        docs:
+          type: string | null
+          example: Raised when the access path does not correspond to a valid attribute.
+        full_access_path:
+          type: string
+          example: ""
+        name:
+          type: string
+          example: SerializationPathError
+        readonly:
+          type: boolean
+          example: true
+        type:
+          type: string
+          example: Exception
+        value:
+          type: string
+          examples:
+            value:
+              "Index '2': list index out of range"
+            some:
+              "Index '2': list index out of range"

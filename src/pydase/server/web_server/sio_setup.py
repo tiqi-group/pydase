@@ -1,15 +1,21 @@
 import asyncio
 import logging
+import sys
 from typing import Any, TypedDict
+
+if sys.version_info < (3, 11):
+    from typing_extensions import NotRequired
+else:
+    from typing import NotRequired
 
 import click
 import socketio  # type: ignore[import-untyped]
 
+import pydase.server.web_server.api.v1.endpoints
 import pydase.utils.serialization.deserializer
 import pydase.utils.serialization.serializer
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.helpers import get_object_attr_from_path
 from pydase.utils.logging import SocketIOHandler
 from pydase.utils.serialization.serializer import SerializedObject
 
@@ -39,8 +45,8 @@ class UpdateDict(TypedDict):
 
 class TriggerMethodDict(TypedDict):
     access_path: str
-    args: SerializedObject
-    kwargs: SerializedObject
+    args: NotRequired[SerializedObject]
+    kwargs: NotRequired[SerializedObject]
 
 
 class RunMethodDict(TypedDict):
@@ -137,21 +143,22 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
         return state_manager.cache_manager.cache
 
     @sio.event
-    async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:  # type: ignore
-        path = data["access_path"]
-
+    async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:
         try:
-            state_manager.set_service_attribute_value_by_path(
-                path=path, serialized_value=data["value"]
+            pydase.server.web_server.api.v1.endpoints.update_value(
+                state_manager=state_manager, data=data
             )
         except Exception as e:
             logger.exception(e)
             return dump(e)
+        return None
 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
         try:
-            return state_manager.cache_manager.get_value_dict_from_cache(access_path)
+            return pydase.server.web_server.api.v1.endpoints.get_value(
+                state_manager=state_manager, access_path=access_path
+            )
         except Exception as e:
             logger.exception(e)
             return dump(e)
@@ -159,17 +166,14 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
         try:
-            method = get_object_attr_from_path(
-                state_manager.service, data["access_path"]
+            return pydase.server.web_server.api.v1.endpoints.trigger_method(
+                state_manager=state_manager, data=data
             )
-            args = loads(data["args"])
-            kwargs: dict[str, Any] = loads(data["kwargs"])
-            return dump(method(*args, **kwargs))
         except Exception as e:
             logger.error(e)
             return dump(e)
 
 
 def setup_logging_handler(sio: socketio.AsyncServer) -> None:
-    logger = logging.getLogger()
-    logger.addHandler(SocketIOHandler(sio))
+    logging.getLogger().addHandler(SocketIOHandler(sio))
+    logging.getLogger("pydase").addHandler(SocketIOHandler(sio))

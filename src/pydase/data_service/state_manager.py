@@ -216,11 +216,6 @@ class StateManager:
                 "readonly": False,
             }
 
-        # This will also filter out methods as they are 'read-only'
-        if current_value_dict["readonly"]:
-            logger.debug("Attribute '%s' is read-only. Ignoring new value...", path)
-            return
-
         if "full_access_path" not in serialized_value:
             # Backwards compatibility for JSON files not containing the
             # full_access_path
@@ -253,17 +248,7 @@ class StateManager:
         path_parts = parse_full_access_path(path)
         target_obj = get_object_by_path_parts(self.service, path_parts[:-1])
 
-        def cached_value_is_enum(path: str) -> bool:
-            try:
-                attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)[
-                    "type"
-                ]
-
-                return attr_cache_type in ("ColouredEnum", "Enum")
-            except Exception:
-                return False
-
-        if cached_value_is_enum(path):
+        if self.__cached_value_is_enum(path):
             enum_attr = get_object_by_path_parts(target_obj, [path_parts[-1]])
             # take the value of the existing enum class
             if serialized_value["type"] in ("ColouredEnum", "Enum"):
@@ -281,6 +266,15 @@ class StateManager:
             processed_key = parse_serialized_key(path_parts[-1])
             target_obj[processed_key] = value  # type: ignore
         else:
+            # Don't allow adding attributes to objects through state manager
+            if self.__attr_exists_on_target_obj(
+                target_obj=target_obj, name=path_parts[-1]
+            ):
+                raise AttributeError(
+                    f"{target_obj.__class__.__name__!r} object has no attribute "
+                    f"{path_parts[-1]!r}"
+                )
+
             setattr(target_obj, path_parts[-1], value)
 
     def __is_loadable_state_attribute(self, full_access_path: str) -> bool:
@@ -322,3 +316,16 @@ class StateManager:
                 path_parts[-1],
             )
             return False
+
+    def __cached_value_is_enum(self, path: str) -> bool:
+        try:
+            attr_cache_type = self.cache_manager.get_value_dict_from_cache(path)["type"]
+
+            return attr_cache_type in ("ColouredEnum", "Enum")
+        except Exception:
+            return False
+
+    def __attr_exists_on_target_obj(self, target_obj: Any, name: str) -> bool:
+        return not is_property_attribute(target_obj, name) and not hasattr(
+            target_obj, name
+        )

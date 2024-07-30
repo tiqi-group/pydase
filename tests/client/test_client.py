@@ -7,7 +7,7 @@ import pytest
 from pydase.client.proxy_loader import ProxyAttributeError
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def pydase_client() -> Generator[pydase.Client, None, Any]:
     class SubService(pydase.DataService):
         name = "SubService"

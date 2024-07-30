@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pydase"
-version = "0.8.4"
+version = "0.8.5"
 description = "A flexible and robust Python library for creating, managing, and interacting with data services, with built-in support for web and RPC servers, and customizable features for diverse use cases."
 authors = ["Mose Mueller <mosmuell@ethz.ch>"]
 readme = "README.md"
@@ -31,15 +31,17 @@ pyright = "^1.1.323"
 pytest-mock = "^3.11.1"
 ruff = "^0.2.0"
 pytest-asyncio = "^0.23.2"
+requests = "^2.32.3"
 
 [tool.poetry.group.docs]
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.5.2"
+mkdocs-material = "^9.5.30"
 mkdocs-include-markdown-plugin = "^3.9.1"
 mkdocstrings = "^0.22.0"
 pymdown-extensions = "^10.1"
+mkdocs-swagger-ui-tag = "^0.6.10"
 
 [build-system]
 requires = ["poetry-core"]

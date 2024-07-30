@@ -10,7 +10,7 @@ from pytest import LogCaptureFixture
 logger = logging.getLogger("pydase")
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope="function")
 async def test_autostart_task_callback(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         def __init__(self) -> None:
@@ -36,7 +36,7 @@ async def test_autostart_task_callback(caplog: LogCaptureFixture) -> None:
     assert "'my_other_task' changed to 'TaskStatus.RUNNING'" in caplog.text
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope="function")
 async def test_DataService_subclass_autostart_task_callback(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -66,7 +66,7 @@ async def test_DataService_subclass_autostart_task_callback(
     assert "'sub_service.my_other_task' changed to 'TaskStatus.RUNNING'" in caplog.text
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope="function")
 async def test_DataService_subclass_list_autostart_task_callback(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -108,7 +108,7 @@ async def test_DataService_subclass_list_autostart_task_callback(
     )
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope="function")
 async def test_start_and_stop_task_methods(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         def __init__(self) -> None:
