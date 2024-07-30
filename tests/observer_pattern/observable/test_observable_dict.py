@@ -6,7 +6,6 @@ from pydase.observer_pattern.observable import Observable
 from pydase.observer_pattern.observer import Observer
 
 logger = logging.getLogger("pydase")
-logger.propagate = True
 
 
 class MyObserver(Observer):

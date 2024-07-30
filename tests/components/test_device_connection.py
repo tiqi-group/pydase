@@ -1,12 +1,9 @@
 import asyncio
-import logging
 
 import pydase
 import pydase.components.device_connection
 import pytest
 from pytest import LogCaptureFixture
-
-logger = logging.getLogger(__name__)
 
 
 @pytest.mark.asyncio
