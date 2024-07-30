@@ -6,7 +6,7 @@ import pytest
 from pytest import LogCaptureFixture
 
 
-@pytest.mark.asyncio(scope="session")
+@pytest.mark.asyncio(scope="function")
 async def test_reconnection(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.components.device_connection.DeviceConnection):
         def __init__(

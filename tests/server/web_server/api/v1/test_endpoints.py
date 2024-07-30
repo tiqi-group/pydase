@@ -8,7 +8,7 @@ import pydase
 import pytest
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def pydase_server() -> Generator[None, None, None]:
     class SubService(pydase.DataService):
         name = "SubService"
@@ -103,7 +103,7 @@ def pydase_server() -> Generator[None, None, None]:
         ),
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_get_value(
     access_path: str,
     expected: dict[str, Any],
@@ -171,7 +171,7 @@ async def test_get_value(
         ),
     ],
 )
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_update_value(
     access_path: str,
     new_value: dict[str, Any],
