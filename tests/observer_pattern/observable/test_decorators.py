@@ -73,7 +73,7 @@ def test_validate_set_timeout(caplog: pytest.LogCaptureFixture) -> None:
             )
             self.thread.start()
 
-        def __del__(self) -> None:
+        def close_connection(self) -> None:
             self.loop.call_soon_threadsafe(self.loop.stop)
             self.thread.join()
 
@@ -126,3 +126,4 @@ def test_validate_set_timeout(caplog: pytest.LogCaptureFixture) -> None:
         )
 
     service_instance.value_2 = 3.0  # no assertion raised
+    service_instance._driver.close_connection()
