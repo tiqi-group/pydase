@@ -35,7 +35,7 @@ def test_nested_attributes_cache_callback() -> None:
     )
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="session")
 async def test_task_status_update() -> None:
     class ServiceClass(pydase.DataService):
         name = "World"
