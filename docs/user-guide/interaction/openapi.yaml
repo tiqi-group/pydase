@@ -44,24 +44,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/SerializedException'
               examples:
-                List:
-                  summary: List out of index
-                  value:
-                    docs: null
-                    full_access_path: ""
-                    name: SerializationPathError
-                    readonly: false
-                    type: Exception
-                    value: "Index '2': list index out of range"
                 Attribute:
-                  summary: Attribute or dict key does not exist
+                  summary: Attribute does not exist
                   value:
                     docs: null
                     full_access_path: ""
-                    name: SerializationPathError
-                    readonly: false
+                    name: AttributeError
+                    readonly: true
                     type: Exception
-                    value: "Key 'invalid_attribute': 'invalid_attribute'."
+                    value: "'MyService' object has no attribute 'invalid_attribute'"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
   /api/v1/update_value:
     put:
       tags:
@@ -86,24 +86,33 @@ paths:
               schema:
                 $ref: '#/components/schemas/SerializedException'
               examples:
-                List:
-                  summary: List out of index
-                  value:
-                    docs: null
-                    full_access_path: ""
-                    name: SerializationPathError
-                    readonly: false
-                    type: Exception
-                    value: "Index '2': list index out of range"
                 Attribute:
                   summary: Attribute does not exist
                   value:
                     docs: null
                     full_access_path: ""
-                    name: SerializationPathError
-                    readonly: false
+                    name: AttributeError
+                    readonly: true
                     type: Exception
-                    value: "Key 'invalid_attribute': 'invalid_attribute'."
+                    value: "'MyService' object has no attribute 'invalid_attribute'"
+                ReadOnly:
+                  summary: Attribute is read-only
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "property 'readonly_property' of 'MyService' object has no setter"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
   /api/v1/trigger_method:
     put:
       tags:
@@ -142,6 +151,49 @@ paths:
                     readonly: false
                     type: "float"
                     value: 23.2
+        '400':
+          description: Method does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SerializedException'
+              examples:
+                Args:
+                  summary: Wrong number of arguments
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: TypeError
+                    readonly: true
+                    type: Exception
+                    value: "MyService.some_function() takes 1 positional argument but 2 were given"
+                Attribute:
+                  summary: Attribute does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: AttributeError
+                    readonly: true
+                    type: Exception
+                    value: "'MyService' object has no attribute 'invalid_method'"
+                List:
+                  summary: List index out of range
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: IndexError
+                    readonly: true
+                    type: Exception
+                    value: "list index out of range"
+                Dict:
+                  summary: Dictionary key does not exist
+                  value:
+                    docs: null
+                    full_access_path: ""
+                    name: KeyError
+                    readonly: true
+                    type: Exception
+                    value: "invalid_key"
 components:
   schemas:
     UpdateValue:
@@ -261,7 +313,7 @@ components:
           example: SerializationPathError
         readonly:
           type: boolean
-          example: false
+          example: true
         type:
           type: string
           example: Exception
