@@ -14,6 +14,7 @@
   - [Connecting to the Service via Python Client](#connecting-to-the-service-via-python-client)
     - [Tab Completion Support](#tab-completion-support)
     - [Integration within Another Service](#integration-within-another-service)
+  - [RESTful API](#restful-api)
 - [Understanding the Component System](#understanding-the-component-system)
   - [Built-in Type and Enum Components](#built-in-type-and-enum-components)
   - [Method Components](#method-components)
@@ -208,6 +209,24 @@ if __name__ == "__main__":
 In this setup, the `MyService` class has a `proxy` attribute that connects to a `pydase` service located at `<ip_addr>:8001`.
 The `block_until_connected=False` argument allows the service to start up even if the initial connection attempt fails.
 This configuration is particularly useful in distributed systems where services may start in any order.
+
+### RESTful API
+The `pydase` RESTful API allows for standard HTTP-based interactions and provides access to various functionalities through specific routes. 
+
+For example, you can get a value like this:
+
+```python
+import json
+
+import requests
+
+response = requests.get(
+    "http://<hostname>:<port>/api/v1/get_value?access_path=<full_access_path>"
+)
+serialized_value = json.loads(response.text)
+```
+
+For more information, see [here](https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#restful-api).
 
 <!--usage-end-->
 
