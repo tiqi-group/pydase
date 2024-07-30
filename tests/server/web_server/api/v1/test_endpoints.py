@@ -8,7 +8,7 @@ import pydase
 import pytest
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def pydase_server() -> Generator[None, None, None]:
     class SubService(pydase.DataService):
         name = "SubService"
@@ -18,7 +18,7 @@ def pydase_server() -> Generator[None, None, None]:
     class MyService(pydase.DataService):
         def __init__(self) -> None:
             super().__init__()
-            self._name = "MyService"
+            self._readonly_attr = "MyService"
             self._my_property = 12.1
             self.sub_service = SubService()
             self.list_attr = [1, 2]
@@ -36,8 +36,8 @@ def pydase_server() -> Generator[None, None, None]:
             self._my_property = value
 
         @property
-        def name(self) -> str:
-            return self._name
+        def readonly_attr(self) -> str:
+            return self._readonly_attr
 
         def my_method(self, input_str: str) -> str:
             return input_str
@@ -53,11 +53,11 @@ def pydase_server() -> Generator[None, None, None]:
     "access_path, expected",
     [
         (
-            "name",
+            "readonly_attr",
             {
-                "full_access_path": "name",
+                "full_access_path": "readonly_attr",
                 "doc": None,
-                "readonly": True,
+                "readonly": False,
                 "type": "str",
                 "value": "MyService",
             },
@@ -103,11 +103,10 @@ def pydase_server() -> Generator[None, None, None]:
         ),
     ],
 )
-@pytest.mark.asyncio(scope="module")
+@pytest.mark.asyncio()
 async def test_get_value(
     access_path: str,
     expected: dict[str, Any],
-    caplog: pytest.LogCaptureFixture,
     pydase_server: None,
 ) -> None:
     async with aiohttp.ClientSession("http://localhost:9998") as session:
@@ -117,18 +116,8 @@ async def test_get_value(
 
 
 @pytest.mark.parametrize(
-    "access_path, new_value",
+    "access_path, new_value, ok",
     [
-        (
-            "name",
-            {
-                "full_access_path": "name",
-                "doc": None,
-                "readonly": True,
-                "type": "str",
-                "value": "Other Name",
-            },
-        ),
         (
             "sub_service.name",
             {
@@ -138,6 +127,7 @@ async def test_get_value(
                 "type": "str",
                 "value": "New Name",
             },
+            True,
         ),
         (
             "list_attr[0]",
@@ -148,6 +138,7 @@ async def test_get_value(
                 "type": "int",
                 "value": 11,
             },
+            True,
         ),
         (
             'dict_attr["foo"].name',
@@ -158,29 +149,46 @@ async def test_get_value(
                 "type": "str",
                 "value": "foo name",
             },
+            True,
         ),
         (
-            "my_property",
+            "readonly_attr",
             {
-                "full_access_path": "my_property",
+                "full_access_path": "readonly_attr",
+                "doc": None,
+                "readonly": True,
+                "type": "str",
+                "value": "Other Name",
+            },
+            False,
+        ),
+        (
+            "invalid_attribute",
+            {
+                "full_access_path": "invalid_attribute",
                 "doc": None,
                 "readonly": False,
                 "type": "float",
                 "value": 12.0,
             },
+            False,
         ),
     ],
 )
-@pytest.mark.asyncio(scope="module")
+@pytest.mark.asyncio()
 async def test_update_value(
     access_path: str,
     new_value: dict[str, Any],
-    caplog: pytest.LogCaptureFixture,
-    pydase_server: None,
+    ok: bool,
+    pydase_server: pydase.DataService,
 ) -> None:
     async with aiohttp.ClientSession("http://localhost:9998") as session:
         resp = await session.put(
             "/api/v1/update_value",
             json={"access_path": access_path, "value": new_value},
         )
-        assert resp.ok
+        assert resp.ok == ok
+        if resp.ok:
+            resp = await session.get(f"/api/v1/get_value?access_path={access_path}")
+            content = json.loads(await resp.text())
+            assert content == new_value
