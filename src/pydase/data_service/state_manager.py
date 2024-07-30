@@ -216,11 +216,6 @@ class StateManager:
                 "readonly": False,
             }
 
-        # This will also filter out methods as they are 'read-only'
-        if current_value_dict["readonly"]:
-            logger.debug("Attribute '%s' is read-only. Ignoring new value...", path)
-            return
-
         if "full_access_path" not in serialized_value:
             # Backwards compatibility for JSON files not containing the
             # full_access_path
