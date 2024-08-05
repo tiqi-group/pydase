@@ -61,7 +61,7 @@ class Task(pydase.DataService, Generic[P, R]):
 
             self._result = task.result()
 
-        logger.info("Starting task")
+        logger.info("Starting task %s", self._func.__name__)
         if inspect.iscoroutinefunction(self._bound_func):
             res: Coroutine[None, None, R] = self._bound_func(*args, **kwargs)
             self._task = asyncio.create_task(res)
