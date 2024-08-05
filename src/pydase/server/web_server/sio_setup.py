@@ -22,7 +22,6 @@ from pydase.utils.serialization.serializer import SerializedObject
 logger = logging.getLogger(__name__)
 
 # These functions can be monkey-patched by other libraries at runtime
-loads = pydase.utils.serialization.deserializer.loads
 dump = pydase.utils.serialization.serializer.dump
 
 
