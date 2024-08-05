@@ -36,6 +36,9 @@ class Task(pydase.DataService, Generic[P, R]):
         return self._status
 
     def start(self, *args: P.args, **kwargs: P.kwargs) -> None:
+        if self._task:
+            return
+
         def task_done_callback(task: asyncio.Task[R]) -> None:
             """Handles tasks that have finished.
 
