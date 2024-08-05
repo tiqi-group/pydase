@@ -15,6 +15,7 @@ from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
+    is_property_attribute,
     parse_full_access_path,
     parse_serialized_key,
 )
@@ -316,7 +317,7 @@ class Serializer:
             value[key] = serialized_object
 
             # If the DataService attribute is a property
-            if isinstance(getattr(obj.__class__, key, None), property):
+            if is_property_attribute(obj, key):
                 prop: property = getattr(obj.__class__, key)
                 value[key]["readonly"] = prop.fset is None
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc
