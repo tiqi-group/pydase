@@ -22,8 +22,7 @@ class TaskStatus(Enum):
 class Task(pydase.DataService, Generic[P, R]):
     def __init__(
         self,
-        func: Callable[Concatenate[Any, P], R | None]
-        | Callable[Concatenate[Any, P], Coroutine[Any, Any, R | None]],
+        func: Callable[Concatenate[Any, P], Coroutine[None, None, R | None]],
     ) -> None:
         super().__init__()
         self._func = func
