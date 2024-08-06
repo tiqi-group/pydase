@@ -26,6 +26,6 @@ def task(
                 logger.info("Task '%s' was cancelled", func.__name__)
                 return None
 
-        return Task(wrapper)
+        return Task(wrapper, autostart=autostart)
 
     return decorator
