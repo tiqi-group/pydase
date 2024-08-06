@@ -24,7 +24,7 @@ class Observable(ObservableObject):
         for name, value in class_attrs.items():
             if isinstance(value, property) or callable(value):
                 continue
-            elif is_descriptor(value):
+            if is_descriptor(value):
                 # Descriptors have to be stored as a class variable in another class to
                 # work properly. So don't make it an instance attribute.
                 self._initialise_new_objects(name, value)

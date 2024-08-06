@@ -197,6 +197,7 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
     # Check if there are any parameters left which would indicate additional arguments.
     return len(parameters) > 0
 
-def is_descriptor(obj):
+
+def is_descriptor(obj: object) -> bool:
     """Check if an object is a descriptor."""
     return any(hasattr(obj, method) for method in ("__get__", "__set__", "__delete__"))
