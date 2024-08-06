@@ -96,7 +96,11 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
                 logger.info("Starting task %r", self._func_name)
                 self._status = TaskStatus.RUNNING
                 res: Coroutine[None, None, R] = self._bound_func()
-                return await res
+                try:
+                    return await res
+                except asyncio.CancelledError:
+                    logger.info("Task '%s' was cancelled", self._func_name)
+                    return None
             logger.warning(
                 "Cannot start task %r. Function has not been bound yet", self._func_name
             )
