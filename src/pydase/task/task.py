@@ -12,7 +12,7 @@ from typing import (
 
 from typing_extensions import TypeIs
 
-import pydase
+import pydase.data_service.data_service
 from pydase.utils.helpers import current_event_loop_exists
 
 logging.basicConfig(level=logging.DEBUG)
@@ -34,7 +34,7 @@ class TaskStatus(Enum):
     NOT_RUNNING = "not_running"
 
 
-class Task(pydase.DataService, Generic[R]):
+class Task(pydase.data_service.data_service.DataService, Generic[R]):
     def __init__(
         self,
         func: Callable[[Any], Coroutine[None, None, R | None]]
