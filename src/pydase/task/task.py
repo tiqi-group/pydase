@@ -13,6 +13,7 @@ from typing import (
 from typing_extensions import TypeIs
 
 import pydase
+from pydase.utils.helpers import current_event_loop_exists
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -42,6 +43,11 @@ class Task(pydase.DataService, Generic[R]):
         autostart: bool = False,
     ) -> None:
         super().__init__()
+        if not current_event_loop_exists():
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
+        else:
+            self._loop = asyncio.get_event_loop()
         self._func_name = func.__name__
         self._bound_func: Callable[[], Coroutine[None, None, R | None]] | None = None
         if is_bound_method(func):
