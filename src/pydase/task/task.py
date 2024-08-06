@@ -72,8 +72,8 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         def task_done_callback(task: asyncio.Task[R | None]) -> None:
             """Handles tasks that have finished.
 
-            Removes a task from the tasks dictionary, calls the defined
-            callbacks, and logs and re-raises exceptions."""
+            Update task status, calls the defined callbacks, and logs and re-raises
+            exceptions."""
 
             self._task = None
             self._status = TaskStatus.NOT_RUNNING
