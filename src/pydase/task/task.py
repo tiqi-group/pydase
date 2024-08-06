@@ -1,16 +1,21 @@
 import asyncio
 import inspect
 import logging
+import sys
 from collections.abc import Callable, Coroutine
 from enum import Enum
 from typing import (
     Any,
     Generic,
-    Self,
     TypeVar,
 )
 
 from typing_extensions import TypeIs
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
 
 import pydase.data_service.data_service
 from pydase.utils.helpers import current_event_loop_exists
