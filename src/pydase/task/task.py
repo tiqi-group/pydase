@@ -80,7 +80,7 @@ class Task(pydase.DataService, Generic[P, R]):
         # containing the function
         if instance:
 
-            async def bound_func(*args, **kwargs) -> R | None:
+            async def bound_func(*args: P.args, **kwargs: P.kwargs) -> R | None:
                 return await self._func(instance, *args, **kwargs)
 
             self._bound_func = bound_func
