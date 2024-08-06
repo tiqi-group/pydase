@@ -2,26 +2,25 @@ import asyncio
 import functools
 import logging
 from collections.abc import Callable, Coroutine
-from typing import Any, Concatenate, ParamSpec, TypeVar
+from typing import Any, TypeVar
 
 from pydase.task.task import Task
 
 logger = logging.getLogger(__name__)
 
-P = ParamSpec("P")
 R = TypeVar("R")
 
 
 def task(
     *, autostart: bool = False
-) -> Callable[[Callable[Concatenate[Any, P], Coroutine[None, None, R]]], Task[P, R]]:
+) -> Callable[[Callable[[Any], Coroutine[None, None, R]]], Task[R]]:
     def decorator(
-        func: Callable[Concatenate[Any, P], Coroutine[None, None, R]],
-    ) -> Task[P, R]:
+        func: Callable[[Any], Coroutine[None, None, R]],
+    ) -> Task[R]:
         @functools.wraps(func)
-        async def wrapper(self: Any, *args: P.args, **kwargs: P.kwargs) -> R | None:
+        async def wrapper(self: Any) -> R | None:
             try:
-                return await func(self, *args, **kwargs)
+                return await func(self)
             except asyncio.CancelledError:
                 logger.info("Task '%s' was cancelled", func.__name__)
                 return None
