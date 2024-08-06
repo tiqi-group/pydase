@@ -102,12 +102,6 @@ class Task(pydase.DataService, Generic[R]):
     def __get__(self, instance: Any, owner: Any) -> Self:
         # need to use this descriptor to bind the function to the instance of the class
         # containing the function
-        if instance and self._bound_func is not None:
-
-            async def bound_func() -> R | None:
-                if not is_bound_method(self._func):
-                    return await self._func(instance)
-                return None
-
-            self._bound_func = bound_func
+        if instance and self._bound_func is None:
+            self._bound_func = self._func.__get__(instance, owner)
         return self
