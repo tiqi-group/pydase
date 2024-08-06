@@ -60,7 +60,7 @@ class PropertyObserver(Observer):
     def _process_nested_observables_properties(
         self, obj: Observable, deps: dict[str, Any], prefix: str
     ) -> None:
-        for k, value in vars(obj).items():
+        for k, value in {**vars(type(obj)), **vars(obj)}.items():
             prefix = (
                 f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
             )

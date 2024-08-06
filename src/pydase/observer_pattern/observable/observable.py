@@ -6,7 +6,7 @@ from pydase.observer_pattern.observable.decorators import (
     has_validate_set_decorator,
 )
 from pydase.observer_pattern.observable.observable_object import ObservableObject
-from pydase.utils.helpers import is_property_attribute
+from pydase.utils.helpers import is_descriptor, is_property_attribute
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,11 @@ class Observable(ObservableObject):
         }
         for name, value in class_attrs.items():
             if isinstance(value, property) or callable(value):
+                continue
+            if is_descriptor(value):
+                # Descriptors have to be stored as a class variable in another class to
+                # work properly. So don't make it an instance attribute.
+                self._initialise_new_objects(name, value)
                 continue
             self.__dict__[name] = self._initialise_new_objects(name, value)
 
