@@ -43,13 +43,10 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         autostart: bool = False,
     ) -> None:
         super().__init__()
-        if not current_event_loop_exists():
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-        else:
-            self._loop = asyncio.get_event_loop()
+        self._autostart = autostart
         self._func_name = func.__name__
         self._bound_func: Callable[[], Coroutine[None, None, R | None]] | None = None
+        self._set_up = False
         if is_bound_method(func):
             self._func = func
             self._bound_func = func
@@ -58,8 +55,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self._task: asyncio.Task[R | None] | None = None
         self._status = TaskStatus.NOT_RUNNING
         self._result: R | None = None
-        if autostart:
-            self.start()
 
     @property
     def status(self) -> TaskStatus:
@@ -111,8 +106,25 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
             self._task.cancel()
 
     def __get__(self, instance: Any, owner: Any) -> Self:
-        # need to use this descriptor to bind the function to the instance of the class
-        # containing the function
-        if instance and self._bound_func is None:
+        """Descriptor method used to correctly setup the task.
+
+        This descriptor method is called by the class instance containing the task.
+        We need to use this descriptor to bind the task function to that class instance.
+
+        As the __init__ function is called when a function is decorated with
+        @pydase.task.task, we should delay some of the setup until this descriptor
+        function is called.
+        """
+
+        if instance and not self._set_up:
+            if not current_event_loop_exists():
+                self._loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self._loop)
+            else:
+                self._loop = asyncio.get_event_loop()
             self._bound_func = self._func.__get__(instance, owner)
+            self._set_up = True
+
+            if self._autostart:
+                self.start()
         return self
