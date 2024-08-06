@@ -13,6 +13,7 @@ from pydase.config import ServiceConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server import WebServer
+from pydase.utils.helpers import current_event_loop_exists
 
 HANDLED_SIGNALS = (
     signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
@@ -156,13 +157,17 @@ class Server:
         self._web_port = web_port
         self._enable_web = enable_web
         self._kwargs = kwargs
-        self._loop: asyncio.AbstractEventLoop
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
         self._state_manager = StateManager(self._service, filename)
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
+        if not current_event_loop_exists():
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
+        else:
+            self._loop = asyncio.get_event_loop()
 
     def run(self) -> None:
         """
@@ -170,7 +175,7 @@ class Server:
 
         This method should be called to start the server after it's been instantiated.
         """
-        asyncio.run(self.serve())
+        self._loop.run_until_complete(self.serve())
 
     async def serve(self) -> None:
         process_id = os.getpid()
@@ -186,10 +191,8 @@ class Server:
         logger.info("Finished server process [%s]", process_id)
 
     async def startup(self) -> None:
-        self._loop = asyncio.get_running_loop()
         self._loop.set_exception_handler(self.custom_exception_handler)
         self.install_signal_handlers()
-        self._service._task_manager.start_autostart_tasks()
 
         for server in self._additional_servers:
             addin_server = server["server"](
