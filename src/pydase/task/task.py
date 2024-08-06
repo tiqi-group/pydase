@@ -70,10 +70,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
             Removes a task from the tasks dictionary, calls the defined
             callbacks, and logs and re-raises exceptions."""
 
-            # removing the finished task from the tasks i
             self._task = None
-
-            # emit the notification that the task was stopped
             self._status = TaskStatus.NOT_RUNNING
 
             exception = task.exception()
@@ -95,6 +92,9 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
                 self._status = TaskStatus.RUNNING
                 res: Coroutine[None, None, R] = self._bound_func()
                 return await res
+            logger.warning(
+                "Cannot start task %r. Function has not been bound yet", self._func_name
+            )
             return None
 
         logger.info("Creating task %r", self._func_name)
