@@ -41,6 +41,8 @@ class Task(pydase.DataService, Generic[P, R]):
         self,
         func: Callable[Concatenate[Any, P], Coroutine[None, None, R | None]]
         | Callable[P, Coroutine[None, None, R | None]],
+        *,
+        autostart: bool = False,
     ) -> None:
         super().__init__()
         self._func_name = func.__name__
@@ -53,6 +55,8 @@ class Task(pydase.DataService, Generic[P, R]):
         self._task: asyncio.Task[R] | None = None
         self._status = TaskStatus.NOT_RUNNING
         self._result: R | None = None
+        if autostart:
+            self.start()
 
     @property
     def status(self) -> TaskStatus:
