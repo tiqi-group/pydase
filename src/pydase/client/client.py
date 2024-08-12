@@ -80,12 +80,12 @@ class Client:
             if it were local.
 
     Args:
-        hostname (str):
-            Hostname of the exposed service this client attempts to connect to.
-            Default is "localhost".
-        port (int):
-            Port of the exposed service this client attempts to connect on.
-            Default is 8001.
+        url (str):
+            The URL of the pydase Socket.IO server. This should always contain the
+            protocol and the hostname.
+            Examples:
+                - wss://my-service.example.com  # for secure connections, use wss
+                - ws://localhost:8001
         block_until_connected (bool):
             If set to True, the constructor will block until the connection to the
             service has been established. This is useful for ensuring the client is
@@ -94,12 +94,11 @@ class Client:
 
     def __init__(
         self,
-        hostname: str,
-        port: int,
+        *,
+        url: str,
         block_until_connected: bool = True,
     ):
-        self._hostname = hostname
-        self._port = port
+        self._url = url
         self._sio = socketio.AsyncClient()
         self._loop = asyncio.new_event_loop()
         self.proxy = ProxyClass(sio_client=self._sio, loop=self._loop)
@@ -107,21 +106,33 @@ class Client:
             target=asyncio_loop_thread, args=(self._loop,), daemon=True
         )
         self._thread.start()
+        self.connect(block_until_connected=block_until_connected)
+
+    def connect(self, block_until_connected: bool = True) -> None:
         connection_future = asyncio.run_coroutine_threadsafe(
             self._connect(), self._loop
         )
         if block_until_connected:
             connection_future.result()
 
+    def disconnect(self) -> None:
+        connection_future = asyncio.run_coroutine_threadsafe(
+            self._disconnect(), self._loop
+        )
+        connection_future.result()
+
     async def _connect(self) -> None:
-        logger.debug("Connecting to server '%s:%s' ...", self._hostname, self._port)
+        logger.debug("Connecting to server '%s' ...", self._url)
         await self._setup_events()
         await self._sio.connect(
-            f"ws://{self._hostname}:{self._port}",
+            self._url,
             socketio_path="/ws/socket.io",
             transports=["websocket"],
             retry=True,
         )
+
+    async def _disconnect(self) -> None:
+        await self._sio.disconnect()
 
     async def _setup_events(self) -> None:
         self._sio.on("connect", self._handle_connect)
@@ -129,7 +140,7 @@ class Client:
         self._sio.on("notify", self._handle_update)
 
     async def _handle_connect(self) -> None:
-        logger.debug("Connected to '%s:%s' ...", self._hostname, self._port)
+        logger.debug("Connected to '%s' ...", self._url)
         serialized_object = cast(
             SerializedDataService, await self._sio.call("service_serialization")
         )
@@ -141,7 +152,7 @@ class Client:
         self.proxy._connected = True
 
     async def _handle_disconnect(self) -> None:
-        logger.debug("Disconnected from '%s:%s' ...", self._hostname, self._port)
+        logger.debug("Disconnected from '%s' ...", self._url)
         self.proxy._connected = False
 
     async def _handle_update(self, data: NotifyDict) -> None:
