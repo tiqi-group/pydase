@@ -45,7 +45,7 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
 
-    client = pydase.Client(hostname="localhost", port=9999)
+    client = pydase.Client(url="ws://localhost:9999")
 
     yield client
 
