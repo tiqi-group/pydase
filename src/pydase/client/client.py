@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 import threading
 from typing import TypedDict, cast
 
@@ -9,6 +10,12 @@ import pydase.components
 from pydase.client.proxy_loader import ProxyClassMixin, ProxyLoader
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.types import SerializedDataService, SerializedObject
+
+if sys.version_info < (3, 11):
+    from typing_extensions import Self
+else:
+    from typing import Self
+
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +31,10 @@ class NotifyDict(TypedDict):
 
 def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    except RuntimeError:
+        logger.debug("Tried starting even loop, but it is running already")
 
 
 class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
@@ -107,6 +117,13 @@ class Client:
         )
         self._thread.start()
         self.connect(block_until_connected=block_until_connected)
+
+    def __enter__(self) -> Self:
+        self.connect(block_until_connected=True)
+        return self
+
+    def __del__(self) -> None:
+        self.disconnect()
 
     def connect(self, block_until_connected: bool = True) -> None:
         connection_future = asyncio.run_coroutine_threadsafe(
