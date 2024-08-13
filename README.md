@@ -161,7 +161,7 @@ Once the server is running, you can access the web interface in a browser:
 
 In this interface, you can interact with the properties of your `Device` service.
 
-### Connecting to the Service via Python Client
+### Connecting to the Service via Python RPC Client
 
 You can connect to the service using the `pydase.Client`. Below is an example of how to establish a connection to a service and interact with it:
 
@@ -183,31 +183,7 @@ The proxy acts as a local representative of the remote service, enabling straigh
 
 The proxy class dynamically synchronizes with the server's exposed attributes. This synchronization allows the proxy to be automatically updated with any attributes or methods that the server exposes, essentially mirroring the server's API. This dynamic updating enables users to interact with the remote service as if they were working with a local object.
 
-#### Tab Completion Support
-
-In interactive environments such as Python interpreters and Jupyter notebooks, the proxy class supports tab completion, which allows users to explore available methods and attributes.
-
-#### Integration within Another Service
-
-You can also integrate a client proxy within another service. Here's how you can set it up:
-
-```python
-import pydase
-
-class MyService(pydase.DataService):
-    # Initialize the client without blocking the constructor
-    proxy = pydase.Client(url="ws://<ip_addr>:<service_port>", block_until_connected=False).proxy
-    # proxy = pydase.Client(url="wss://your-domain.ch", block_until_connected=False).proxy  # communicating with ssl-encrypted service
-
-if __name__ == "__main__":
-    service = MyService()
-    # Create a server that exposes this service; adjust the web_port as needed
-    server = pydase.Server(service, web_port=8002). run()
-```
-
-In this setup, the `MyService` class has a `proxy` attribute that connects to a `pydase` service located at `<ip_addr>:8001`.
-The `block_until_connected=False` argument allows the service to start up even if the initial connection attempt fails.
-This configuration is particularly useful in distributed systems where services may start in any order.
+The RPC client also supports tab completion support in the interpreter, can be used as a context manager and integrates very well with other pydase services. For more information, please refer to the [documentation](https://pydase.readthedocs.io/en/latest/user-guide/interaction/main/#python-client).
 
 ### RESTful API
 The `pydase` RESTful API allows for standard HTTP-based interactions and provides access to various functionalities through specific routes. 
