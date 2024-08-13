@@ -1,4 +1,4 @@
-# Python Client
+# Python RPC Client
 
 You can connect to the service using the `pydase.Client`. Below is an example of how to establish a connection to a service and interact with it:
 
@@ -19,6 +19,19 @@ This example demonstrates setting and retrieving the `voltage` attribute through
 The proxy acts as a local representative of the remote service, enabling straightforward interaction.
 
 The proxy class dynamically synchronizes with the server's exposed attributes. This synchronization allows the proxy to be automatically updated with any attributes or methods that the server exposes, essentially mirroring the server's API. This dynamic updating enables users to interact with the remote service as if they were working with a local object.
+
+## Context Manager
+
+You can also use the client as a context manager which automatically opens and closes the connection again:
+
+```python
+import pydase
+
+
+with pydase.Client(url="ws://localhost:8001") as client:
+    client.proxy.<my_method>()
+```
+
 
 ## Tab Completion Support
 
