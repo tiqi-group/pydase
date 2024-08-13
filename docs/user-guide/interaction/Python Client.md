@@ -5,9 +5,10 @@ You can connect to the service using the `pydase.Client`. Below is an example of
 ```python
 import pydase
 
-# Replace the hostname and port with the IP address and the port of the machine 
-# where the service is running, respectively
-client_proxy = pydase.Client(hostname="<ip_addr>", port=8001).proxy
+# Replace the hostname and port with the IP address and the port of the machine where 
+# the service is running, respectively
+client_proxy = pydase.Client(url="ws://<ip_addr>:<service_port>").proxy
+# client_proxy = pydase.Client(url="wss://your-domain.ch").proxy  # if your service uses ssl-encryption
 
 # Interact with the service attributes as if they were local
 client_proxy.voltage = 5.0
@@ -32,7 +33,8 @@ import pydase
 
 class MyService(pydase.DataService):
     # Initialize the client without blocking the constructor
-    proxy = pydase.Client(hostname="<ip_addr>", port=8001, block_until_connected=False).proxy
+    proxy = pydase.Client(url="ws://<ip_addr>:<service_port>", block_until_connected=False).proxy
+    # proxy = pydase.Client(url="wss://your-domain.ch", block_until_connected=False).proxy  # communicating with ssl-encrypted service
 
 if __name__ == "__main__":
     service = MyService()
