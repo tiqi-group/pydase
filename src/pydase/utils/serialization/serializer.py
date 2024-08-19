@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.task_manager import TaskStatus
+from pydase.task.task import TaskStatus
 from pydase.utils.decorators import render_in_frontend
 from pydase.utils.helpers import (
     get_attribute_doc,

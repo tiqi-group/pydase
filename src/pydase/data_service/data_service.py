@@ -5,7 +5,6 @@ from typing import Any
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.task_manager import TaskManager
 from pydase.observer_pattern.observable.observable import (
     Observable,
 )
@@ -24,11 +23,6 @@ logger = logging.getLogger(__name__)
 class DataService(AbstractDataService):
     def __init__(self) -> None:
         super().__init__()
-        self._task_manager = TaskManager(self)
-
-        if not hasattr(self, "_autostart_tasks"):
-            self._autostart_tasks = {}
-
         self.__check_instance_classes()
 
     def __setattr__(self, __name: str, __value: Any) -> None:

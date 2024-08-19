@@ -114,8 +114,6 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
 
     If an attribute exists at both the instance and class level,the value from the
     instance attribute takes precedence.
-    The __root__ object is removed as this will lead to endless recursion in the for
-    loops.
     """
 
     return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
