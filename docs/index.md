@@ -4,6 +4,7 @@
    end="<!--introduction-end-->"
 %}
 
+[License]: ./about/license.md
 [Observer Pattern]: ./dev-guide/Observer_Pattern_Implementation.md
 [Service Persistence]: ./user-guide/Service_Persistence.md
 [Defining DataService]: ./getting-started.md#defining-a-dataservice

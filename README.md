@@ -4,7 +4,7 @@
 [![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
 [![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=stable)](https://pydase.readthedocs.io/en/stable/)
-[![License: MIT](https://img.shields.io/github/license/tiqi-group/pydase)](https://github.com/tiqi-group/pydase/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/github/license/tiqi-group/pydase)][License]
 
 `pydase` is a Python library that simplifies the creation of remote control interfaces for Python objects. It exposes the public attributes of a user-defined class via a [Socket.IO](https://python-socketio.readthedocs.io/en/stable/) web server, ensuring they are always in sync with the service state. You can interact with these attributes using an RPC client, a RESTful API, or a web browser. The web browser frontend is auto-generated, displaying components that correspond to each public attribute of the class for direct interaction.
 `pydase` implements an [observer pattern][Observer Pattern] to provide the real-time updates, ensuring that changes to the class attributes are reflected across all clients.
@@ -275,8 +275,9 @@ We welcome contributions! Please see [contributing.md](https://pydase.readthedoc
 
 ## License
 
-`pydase` is licensed under the [MIT License](https://github.com/tiqi-group/pydase/blob/main/LICENSE).
+`pydase` is licensed under the [MIT License][License].
 
+[License]: ./LICENSE
 [Observer Pattern]: https://pydase.readthedocs.io/en/docs/dev-guide/Observer_Pattern_Implementation/
 [Service Persistence]: https://pydase.readthedocs.io/en/stable/user-guide/Service_Persistence
 [Defining DataService]: #defining-a-dataService
