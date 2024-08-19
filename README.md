@@ -1,9 +1,13 @@
 # pydase <!-- omit from toc -->
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=latest)](https://pydase.readthedocs.io/en/latest/?badge=latest)
+[![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
+[![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=latest)](https://pydase.readthedocs.io/en/latest/?badge=stable)
+[![License: MIT](https://img.shields.io/github/license/tiqi-group/pydase)](https://github.com/tiqi-group/pydase/blob/main/LICENSE)
 
-`pydase` is a Python library designed to streamline the creation of services that interface with devices and data. It offers a unified API, simplifying the process of data querying and device interaction. Whether you're managing lab sensors, network devices, or any abstract data entity, `pydase` facilitates rapid service development and deployment.
+`pydase` is a Python library that simplifies the creation of remote control interfaces for Python objects. It exposes the public attributes of a user-defined class via a Socket.IO web server. Users can interact with these attributes using an RPC client, a RESTful API, or a web browser. The web browser frontend is auto-generated, displaying components that correspond to each public attribute of the class for direct interaction. `pydase` leverages the observer pattern and Socket.IO to provide real-time updates, ensuring that changes to the class attributes are reflected across all clients.
+
+Whether you're managing lab sensors, network devices, or any abstract data entity, `pydase` facilitates service development and deployment.
 
 - [Features](#features)
 - [Installation](#installation)
