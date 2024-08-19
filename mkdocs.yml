@@ -7,6 +7,10 @@ nav:
   - User Guide:
     - Components Guide: user-guide/Components.md
     - Interacting with pydase Services: user-guide/interaction/main.md
+    - Achieving Service Persistence: user-guide/Service_Persistence.md
+    - Understanding Tasks: user-guide/Tasks.md
+    - Understanding Units: user-guide/Understanding-Units.md
+    - Validating Property Setters: user-guide/Validating-Property-Setters.md
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md
