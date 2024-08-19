@@ -14,15 +14,14 @@ Whether you're managing lab sensors, network devices, or any abstract data entit
 ## Features
 
 <!-- no toc -->
-- [Simple service definition through class-based interface](#defining-a-dataService)
-- [Auto-generated web interface for interactive access and control of your service](#accessing-the-web-interface)
-- [Python RPC client](#connecting-to-the-service-via-python-rpc-client)
-- [Customizable web interface](#customizing-the-web-interface)
-- [Saving and restoring the service state](https://pydase.readthedocs.io/en/latest/user-guide/Service_Persistence)
-- [Automated task management with built-in start/stop controls and optional autostart](#understanding-tasks-in-pydase)
-- [Support for units](#understanding-units-in-pydase)
-- [Validating Property Setters](#using-validate_set-to-validate-property-setters)
-<!-- Support for additional servers for specific use-cases -->
+- [Simple service definition through class-based interface][Defining DataService]
+- [Auto-generated web interface for interactive access and control of your service][Web Interface Access]
+- [Python RPC client][Short RPC Client]
+- [Customizable web interface][Customizing Web Interface]
+- [Saving and restoring the service state][Service Persistence]
+- [Automated task management with built-in start/stop controls and optional autostart][Task Management]
+- [Support for units][Units]
+- [Validating Property Setters][Property Validation]
 
 <!--introduction-end-->
 
@@ -53,8 +52,8 @@ Using `pydase` involves three main steps: defining a `pydase.DataService` subcla
 
 To use `pydase`, you'll first need to create a class that inherits from `pydase.DataService`.
 This class represents your custom service, which will be exposed via a web server.<br>
-Your class can implement synchronous and asynchronous methods, some [built-in types](https://docs.python.org/3/library/stdtypes.html) (like `int`, `float`, `str`, `bool`, `list` or `dict`) and [other components](https://pydase.readthedocs.io/en/latest/user-guide/Components/#custom-components-pydasecomponents) as attributes.
-For more information, please refer to the [documentation](https://pydase.readthedocs.io/en/latest/user-guide/Components/).
+Your class can implement synchronous and asynchronous methods, some [built-in types](https://docs.python.org/3/library/stdtypes.html) (like `int`, `float`, `str`, `bool`, `list` or `dict`) and [other components][Custom Components] as attributes.
+For more information, please refer to the [components guide][Components].
 
 Here's an example:
 
@@ -158,7 +157,7 @@ The proxy acts as a local representative of the remote service, enabling straigh
 
 The proxy class dynamically synchronizes with the server's exposed attributes. This synchronization allows the proxy to be automatically updated with any attributes or methods that the server exposes, essentially mirroring the server's API. This dynamic updating enables users to interact with the remote service as if they were working with a local object.
 
-The RPC client also supports tab completion support in the interpreter, can be used as a context manager and integrates very well with other pydase services. For more information, please refer to the [documentation](https://pydase.readthedocs.io/en/latest/user-guide/interaction/main/#python-client).
+The RPC client also supports tab completion support in the interpreter, can be used as a context manager and integrates very well with other pydase services. For more information, please refer to the [documentation][Python RPC Client].
 
 ### RESTful API
 The `pydase` RESTful API allows for standard HTTP-based interactions and provides access to various functionalities through specific routes. 
@@ -176,7 +175,7 @@ response = requests.get(
 serialized_value = json.loads(response.text)
 ```
 
-For more information, see [here](https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#restful-api).
+For more information, see [here][RESTful API].
 
 <!--getting-started-end-->
 
@@ -410,7 +409,7 @@ You have two primary ways to adjust the log levels in `pydase`:
 
 ## Documentation
 
-The full documentation provides more detailed information about `pydase`, including advanced usage examples, API references, and tips for troubleshooting common issues. See the [full documentation](https://pydase.readthedocs.io/en/latest/) for more information.
+The full documentation provides more detailed information about `pydase`, including advanced usage examples, API references, and tips for troubleshooting common issues. See the [full documentation](https://pydase.readthedocs.io/en/stable/) for more information.
 
 ## Contributing
 
@@ -419,3 +418,16 @@ We welcome contributions! Please see [contributing.md](https://pydase.readthedoc
 ## License
 
 `pydase` is licensed under the [MIT License](https://github.com/tiqi-group/pydase/blob/main/LICENSE).
+
+[Service Persistence]: https://pydase.readthedocs.io/en/stable/user-guide/Service_Persistence
+[Defining DataService]: #defining-a-dataService
+[Web Interface Access]: #accessing-the-web-interface
+[Short RPC Client]: #connecting-to-the-service-via-python-rpc-client
+[Customizing Web Interface]: #customizing-the-web-interface
+[Task Management]: #understanding-tasks-in-pydase
+[Units]: #understanding-units-in-pydase
+[Property Validation]: #using-validate_set-to-validate-property-setters
+[Custom Components]: https://pydase.readthedocs.io/en/latest/user-guide/Components/#custom-components-pydasecomponents
+[Components]: https://pydase.readthedocs.io/en/stable/user-guide/Components/
+[RESTful API]: https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#restful-api
+[Python RPC Client]: https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#python-rpc-client
