@@ -3,7 +3,7 @@
 
 [![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
-[![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=latest)](https://pydase.readthedocs.io/en/latest/?badge=stable)
+[![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=stable)](https://pydase.readthedocs.io/en/stable/)
 [![License: MIT](https://img.shields.io/github/license/tiqi-group/pydase)](https://github.com/tiqi-group/pydase/blob/main/LICENSE)
 
 `pydase` is a Python library that simplifies the creation of remote control interfaces for Python objects. It exposes the public attributes of a user-defined class via a [Socket.IO](https://python-socketio.readthedocs.io/en/stable/) web server, ensuring they are always in sync with the service state. You can interact with these attributes using an RPC client, a RESTful API, or a web browser. The web browser frontend is auto-generated, displaying components that correspond to each public attribute of the class for direct interaction.
@@ -244,45 +244,6 @@ if __name__ == "__main__":
 
 For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
 
-## Using `validate_set` to Validate Property Setters
-
-The `validate_set` decorator ensures that a property setter reads back the set value using the property getter and checks it against the desired value.
-This decorator can be used to validate that a parameter has been correctly set on a device within a specified precision and timeout.
-
-The decorator takes two keyword arguments: `timeout` and `precision`. The `timeout` argument specifies the maximum time (in seconds) to wait for the value to be within the precision boundary.
-If the value is not within the precision boundary after this time, an exception is raised.
-The `precision` argument defines the acceptable deviation from the desired value.
-If `precision` is `None`, the value must be exact.
-For example, if `precision` is set to `1e-5`, the value read from the device must be within ±0.00001 of the desired value.
-
-Here’s how to use the `validate_set` decorator in a `DataService` class:
-
-```python
-import pydase
-from pydase.observer_pattern.observable.decorators import validate_set
-
-
-class Service(pydase.DataService):
-    def __init__(self) -> None:
-        super().__init__()
-        self._device = RemoteDevice()  # dummy class
-
-    @property
-    def value(self) -> float:
-        # Implement how to get the value from the remote device...
-        return self._device.value
-
-    @value.setter
-    @validate_set(timeout=1.0, precision=1e-5)
-    def value(self, value: float) -> None:
-        # Implement how to set the value on the remote device...
-        self._device.value = value
-
-
-if __name__ == "__main__":
-    pydase.Server(Service()).run()
-```
-
 ## Configuring pydase via Environment Variables
 
 Configuring `pydase` through environment variables enhances flexibility, security, and reusability. This approach allows for easy adaptation of services across different environments without code changes, promoting scalability and maintainability. With that, it simplifies deployment processes and facilitates centralized configuration management. Moreover, environment variables enable separation of configuration from code, aiding in secure and collaborative development.
@@ -375,7 +336,7 @@ The full documentation provides more detailed information about `pydase`, includ
 
 ## Contributing
 
-We welcome contributions! Please see [contributing.md](https://pydase.readthedocs.io/en/latest/about/contributing/) for details on how to contribute.
+We welcome contributions! Please see [contributing.md](https://pydase.readthedocs.io/en/stable/about/contributing/) for details on how to contribute.
 
 ## License
 
@@ -389,8 +350,8 @@ We welcome contributions! Please see [contributing.md](https://pydase.readthedoc
 [Customizing Web Interface]: #customizing-the-web-interface
 [Task Management]: https://pydase.readthedocs.io/en/stable/user-guide/Tasks/
 [Units]: #understanding-units-in-pydase
-[Property Validation]: #using-validate_set-to-validate-property-setters
-[Custom Components]: https://pydase.readthedocs.io/en/latest/user-guide/Components/#custom-components-pydasecomponents
+[Property Validation]: https://pydase.readthedocs.io/en/stable/user-guide/Validating-Property-Setters/
+[Custom Components]: https://pydase.readthedocs.io/en/stable/user-guide/Components/#custom-components-pydasecomponents
 [Components]: https://pydase.readthedocs.io/en/stable/user-guide/Components/
 [RESTful API]: https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#restful-api
 [Python RPC Client]: https://pydase.readthedocs.io/en/stable/user-guide/interaction/main/#python-rpc-client

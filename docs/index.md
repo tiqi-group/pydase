@@ -12,4 +12,4 @@
 [Customizing Web Interface]: ./user-guide/interaction/main.md#customization-options
 [Task Management]: ./user-guide/Tasks.md
 [Units]: ./getting-started.md#understanding-units-in-pydase
-[Property Validation]: ./getting-started.md#using-validate_set-to-validate-property-setters
+[Property Validation]: ./user-guide/Validating-Property-Setters.md
