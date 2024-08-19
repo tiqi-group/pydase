@@ -4,6 +4,7 @@
    end="<!--introduction-end-->"
 %}
 
+[Observer Pattern]: ./dev-guide/Observer_Pattern_Implementation.md
 [Service Persistence]: ./user-guide/Service_Persistence.md
 [Defining DataService]: ./getting-started.md#defining-a-dataservice
 [Web Interface Access]: ./getting-started.md#accessing-the-web-interface

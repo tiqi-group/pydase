@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Observer Pattern is a fundamental design pattern in the `pydase` package, serving as the central communication mechanism for state updates to clients connected to a service.
+The [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern) is a fundamental design pattern in the `pydase` package, serving as the central communication mechanism for state updates to clients connected to a service.
 
 ## How it Works
 
