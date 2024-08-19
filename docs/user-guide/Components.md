@@ -36,7 +36,7 @@ class MyService(pydase.DataService):
             # ...
 ```
 
-![Method Components](docs/images/method_components.png)
+![Method Components](../images/method_components.png)
 
 You can still define synchronous tasks with arguments and call them using a python client. However, decorating them with the `@frontend` decorator will raise a `FunctionDefinitionError`. Defining a task with arguments will raise a `TaskDefinitionError`.
 I decided against supporting function arguments for functions rendered in the frontend due to the following reasons:
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     Server(service).run()
 ```
 
-![Nested Classes App](docs/images/Nested_Class_App.png)
+![Nested Classes App](../images/Nested_Class_App.png)
 
 **Note** that defining classes within `DataService` classes is not supported (see [this issue](https://github.com/tiqi-group/pydase/issues/16)).
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     pydase.Server(service_instance).run()
 ```
 
-![DeviceConnection Component](docs/images/DeviceConnection_component.png)
+![DeviceConnection Component](../images/DeviceConnection_component.png)
 
 #### Customizing Connection Logic
 
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     pydase.Server(service).run()
 ```
 
-![Image Component](docs/images/Image_component.png)
+![Image Component](../images/Image_component.png)
 
 ### `NumberSlider`
 
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
 In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value` properties. Users can make any of these properties read-only by omitting the corresponding setter method.
 
-![Slider Component](docs/images/Slider_component.png)
+![Slider Component](../images/Slider_component.png)
 
 - Accessing parent class resources in `NumberSlider`
 
@@ -424,7 +424,7 @@ my_service = StatusExample()
 my_service.status = MyStatus.FAILED
 ```
 
-![ColouredEnum Component](docs/images/ColouredEnum_component.png)
+![ColouredEnum Component](../images/ColouredEnum_component.png)
 
 **Note** that each enumeration name and value must be unique.
 This means that you should use different colour formats when you want to use a colour multiple times.
