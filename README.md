@@ -179,71 +179,6 @@ For more information, see [here][RESTful API].
 
 <!--getting-started-end-->
 
-## Understanding Units in pydase
-
-`pydase` integrates with the [`pint`](https://pint.readthedocs.io/en/stable/) package to allow you to work with physical quantities within your service. This enables you to define attributes with units, making your service more expressive and ensuring consistency in the handling of physical quantities.
-
-You can define quantities in your `DataService` subclass using `pydase`'s `units` functionality.
-
-Here's an example:
-
-```python
-from typing import Any
-
-import pydase.units as u
-from pydase import DataService, Server
-
-
-class ServiceClass(DataService):
-    voltage = 1.0 * u.units.V
-    _current: u.Quantity = 1.0 * u.units.mA
-
-    @property
-    def current(self) -> u.Quantity:
-        return self._current
-
-    @current.setter
-    def current(self, value: u.Quantity) -> None:
-        self._current = value
-
-
-if __name__ == "__main__":
-    service = ServiceClass()
-
-    service.voltage = 10.0 * u.units.V
-    service.current = 1.5 * u.units.mA
-
-    Server(service).run()
-```
-
-In the frontend, quantities are rendered as floats, with the unit displayed as additional text. This allows you to maintain a clear and consistent representation of physical quantities across both the backend and frontend of your service.
-![Web interface with rendered units](./docs/images/Units_App.png)
-
-Should you need to access the magnitude or the unit of a quantity, you can use the `.m` attribute or the `.u` attribute of the variable, respectively. For example, this could be necessary to set the periodicity of a task:
-
-```python
-import asyncio
-from pydase import DataService, Server
-import pydase.units as u
-
-
-class ServiceClass(DataService):
-    readout_wait_time = 1.0 * u.units.ms
-
-    async def read_sensor_data(self):
-        while True:
-            print("Reading out sensor ...")
-            await asyncio.sleep(self.readout_wait_time.to("s").m)
-
-
-if __name__ == "__main__":
-    service = ServiceClass()
-
-    Server(service).run()
-```
-
-For more information about what you can do with the units, please consult the documentation of [`pint`](https://pint.readthedocs.io/en/stable/).
-
 ## Configuring pydase via Environment Variables
 
 Configuring `pydase` through environment variables enhances flexibility, security, and reusability. This approach allows for easy adaptation of services across different environments without code changes, promoting scalability and maintainability. With that, it simplifies deployment processes and facilitates centralized configuration management. Moreover, environment variables enable separation of configuration from code, aiding in secure and collaborative development.
@@ -349,7 +284,7 @@ We welcome contributions! Please see [contributing.md](https://pydase.readthedoc
 [Short RPC Client]: #connecting-to-the-service-via-python-rpc-client
 [Customizing Web Interface]: #customizing-the-web-interface
 [Task Management]: https://pydase.readthedocs.io/en/stable/user-guide/Tasks/
-[Units]: #understanding-units-in-pydase
+[Units]: https://pydase.readthedocs.io/en/stable/user-guide/Understanding-Units/
 [Property Validation]: https://pydase.readthedocs.io/en/stable/user-guide/Validating-Property-Setters/
 [Custom Components]: https://pydase.readthedocs.io/en/stable/user-guide/Components/#custom-components-pydasecomponents
 [Components]: https://pydase.readthedocs.io/en/stable/user-guide/Components/

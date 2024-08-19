@@ -11,5 +11,5 @@
 [Short RPC Client]: ./getting-started.md#connecting-to-the-service-via-python-rpc-client
 [Customizing Web Interface]: ./user-guide/interaction/main.md#customization-options
 [Task Management]: ./user-guide/Tasks.md
-[Units]: ./getting-started.md#understanding-units-in-pydase
+[Units]: ./user-guide/Understanding-Units.md
 [Property Validation]: ./user-guide/Validating-Property-Setters.md
