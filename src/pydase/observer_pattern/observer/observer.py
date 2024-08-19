@@ -24,8 +24,7 @@ class Observer(ABC):
         self.on_change_start(changing_attribute)
 
     @abstractmethod
-    def on_change(self, full_access_path: str, value: Any) -> None:
-        ...
+    def on_change(self, full_access_path: str, value: Any) -> None: ...
 
     def on_change_start(self, full_access_path: str) -> None:
         return
