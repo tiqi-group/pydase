@@ -10,6 +10,6 @@
 [Web Interface Access]: ./getting-started.md#accessing-the-web-interface
 [Short RPC Client]: ./getting-started.md#connecting-to-the-service-via-python-rpc-client
 [Customizing Web Interface]: ./user-guide/interaction/main.md#customization-options
-[Task Management]: ./getting-started.md#understanding-tasks-in-pydase
+[Task Management]: ./user-guide/Tasks.md
 [Units]: ./getting-started.md#understanding-units-in-pydase
 [Property Validation]: ./getting-started.md#using-validate_set-to-validate-property-setters
