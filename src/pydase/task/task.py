@@ -3,7 +3,6 @@ import inspect
 import logging
 import sys
 from collections.abc import Callable, Coroutine
-from enum import Enum
 from typing import (
     Any,
     Generic,
@@ -11,6 +10,8 @@ from typing import (
 )
 
 from typing_extensions import TypeIs
+
+from pydase.task.task_status import TaskStatus
 
 if sys.version_info < (3, 11):
     from typing_extensions import Self
@@ -32,11 +33,6 @@ def is_bound_method(
 ) -> TypeIs[Callable[[], Coroutine[None, None, R | None]]]:
     """Check if instance method is bound to an object."""
     return inspect.ismethod(method)
-
-
-class TaskStatus(Enum):
-    RUNNING = "running"
-    NOT_RUNNING = "not_running"
 
 
 class Task(pydase.data_service.data_service.DataService, Generic[R]):

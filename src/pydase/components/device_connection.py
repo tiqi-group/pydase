@@ -1,7 +1,7 @@
 import asyncio
 
 import pydase.data_service
-import pydase.task
+import pydase.task.decorator
 
 
 class DeviceConnection(pydase.data_service.DataService):
@@ -70,7 +70,7 @@ class DeviceConnection(pydase.data_service.DataService):
         """
         return self._connected
 
-    @pydase.task.task(autostart=True)
+    @pydase.task.decorator.task(autostart=True)
     async def _handle_connection(self) -> None:
         """Automatically tries reconnecting to the device if it is not connected.
         This method leverages the `connect` method and the `connected` property to

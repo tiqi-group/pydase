@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.task.task import TaskStatus
+from pydase.task.task_status import TaskStatus
 from pydase.utils.decorators import render_in_frontend
 from pydase.utils.helpers import (
     get_attribute_doc,
@@ -309,10 +309,6 @@ class Serializer:
 
             path = f"{access_path}.{key}" if access_path else key
             serialized_object = cls.serialize_object(val, access_path=path)
-
-            # If there's a running task for this method
-            if serialized_object["type"] == "method" and key in obj._task_manager.tasks:
-                serialized_object["value"] = TaskStatus.RUNNING.name
 
             value[key] = serialized_object
 
