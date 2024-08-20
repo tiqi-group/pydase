@@ -127,15 +127,15 @@ def setup_sio_server(
 def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> None:  # noqa: C901
     @sio.event  # type: ignore
     async def connect(sid: str, environ: Any) -> None:
-        logging.debug("Client [%s] connected", click.style(str(sid), fg="cyan"))
+        logger.debug("Client [%s] connected", click.style(str(sid), fg="cyan"))
 
     @sio.event  # type: ignore
     async def disconnect(sid: str) -> None:
-        logging.debug("Client [%s] disconnected", click.style(str(sid), fg="cyan"))
+        logger.debug("Client [%s] disconnected", click.style(str(sid), fg="cyan"))
 
     @sio.event  # type: ignore
     async def service_serialization(sid: str) -> SerializedObject:
-        logging.debug(
+        logger.debug(
             "Client [%s] requested service serialization",
             click.style(str(sid), fg="cyan"),
         )
