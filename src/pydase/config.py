@@ -5,7 +5,7 @@ from confz import BaseConfig, EnvSource
 
 
 class OperationMode(BaseConfig):  # type: ignore[misc]
-    environment: Literal["development", "production"] = "development"
+    environment: Literal["testing", "development", "production"] = "development"
 
     CONFIG_SOURCES = EnvSource(allow=["ENVIRONMENT"])
 
