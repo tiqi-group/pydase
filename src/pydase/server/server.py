@@ -35,18 +35,18 @@ class AdditionalServerProtocol(Protocol):
 
     Args:
         data_service_observer:
-          Observer for the DataService, handling state updates and communication to
-          connected clients through injected callbacks. Can be utilized to access the
-          service and state manager, and to add custom state-update callbacks.
+            Observer for the DataService, handling state updates and communication to
+            connected clients through injected callbacks. Can be utilized to access the
+            service and state manager, and to add custom state-update callbacks.
         host:
-          Hostname or IP address where the server is accessible. Commonly '0.0.0.0' to
-          bind to all network interfaces.
+            Hostname or IP address where the server is accessible. Commonly '0.0.0.0' to
+            bind to all network interfaces.
         port:
-          Port number on which the server listens. Typically in the range 1024-65535
-          (non-standard ports).
+            Port number on which the server listens. Typically in the range 1024-65535
+            (non-standard ports).
         **kwargs:
-          Any additional parameters required for initializing the server. These
-          parameters are specific to the server's implementation.
+            Any additional parameters required for initializing the server. These
+            parameters are specific to the server's implementation.
     """
 
     def __init__(
@@ -64,18 +64,17 @@ class AdditionalServerProtocol(Protocol):
 
 
 class AdditionalServer(TypedDict):
-    """
-    A TypedDict that represents the configuration for an additional server to be run
+    """A TypedDict that represents the configuration for an additional server to be run
     alongside the main server.
-
-    This class is used to specify the server type, the port on which the server should
-    run, and any additional keyword arguments that should be passed to the server when
-    it's instantiated.
     """
 
     server: type[AdditionalServerProtocol]
+    """Server adhering to the
+    [`AdditionalServerProtocol`][pydase.server.server.AdditionalServerProtocol]."""
     port: int
+    """Port on which the server should run."""
     kwargs: dict[str, Any]
+    """Additional keyword arguments that will be passed to the server's constructor """
 
 
 class Server:
@@ -83,29 +82,20 @@ class Server:
     The `Server` class provides a flexible server implementation for the `DataService`.
 
     Args:
-        service: DataService
+        service:
             The DataService instance that this server will manage.
-        host: str
-            The host address for the server. Default is '0.0.0.0', which means all
+        host:
+            The host address for the server. Defaults to `'0.0.0.0'`, which means all
             available network interfaces.
-        web_port: int
-            The port number for the web server. Default is
-            `pydase.config.ServiceConfig().web_port`.
-        enable_web: bool
-            Whether to enable the web server. Default is True.
-        filename: str | Path | None
+        web_port:
+            The port number for the web server. Defaults to
+            [`ServiceConfig().web_port`][pydase.config.ServiceConfig.web_port].
+        enable_web:
+            Whether to enable the web server.
+        filename:
             Filename of the file managing the service state persistence.
-            Defaults to None.
-        additional_servers : list[AdditionalServer]
-            A list of additional servers to run alongside the main server. Each entry in
-            the list should be a dictionary with the following structure:
-                - server: A class that adheres to the AdditionalServerProtocol. This
-                    class should have an `__init__` method that accepts the DataService
-                    instance, port, host, and optional keyword arguments, and a `serve`
-                    method that is a coroutine responsible for starting the server.
-                - port: The port on which the additional server will be running.
-                - kwargs: A dictionary containing additional keyword arguments that will
-                    be passed to the server's `__init__` method.
+        additional_servers:
+            A list of additional servers to run alongside the main server.
 
             Here's an example of how you might define an additional server:
 
@@ -145,8 +135,8 @@ class Server:
             )
             server.run()
             ```
-        **kwargs: Any
-          Additional keyword arguments.
+        **kwargs:
+            Additional keyword arguments.
     """
 
     def __init__(  # noqa: PLR0913

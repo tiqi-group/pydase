@@ -123,3 +123,21 @@ SerializedObject = (
     | SerializedQuantity
     | SerializedNoValue
 )
+"""
+This type can be any of the following:
+
+- SerializedBool
+- SerializedFloat
+- SerializedInteger
+- SerializedString
+- SerializedDatetime
+- SerializedList
+- SerializedDict
+- SerializedNoneType
+- SerializedMethod
+- SerializedException
+- SerializedDataService
+- SerializedEnum
+- SerializedQuantity
+- SerializedNoValue
+"""

@@ -44,10 +44,35 @@ markdown_extensions:
 
 
 plugins:
-  - include-markdown
-  - search
-  - mkdocstrings
-  - swagger-ui-tag
+- include-markdown
+- search
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [src]  # search packages in the src folder
+        import:
+          - https://docs.python.org/3/objects.inv
+          - https://docs.pydantic.dev/latest/objects.inv
+          - https://confz.readthedocs.io/en/latest/objects.inv
+        options:
+          show_source: true
+          inherited_members: true
+          merge_init_into_class: true
+          show_signature_annotations: true
+          signature_crossrefs: true
+          separate_signature: true
+          docstring_options:
+            ignore_init_summary: true
+          # docstring_section_style: list
+          heading_level: 2
+          parameter_headings: true
+          show_root_heading: true
+          show_root_full_path: true
+          show_symbol_type_heading: true
+          show_symbol_type_toc: true
+          # summary: true
+          unwrap_annotated: true
+- swagger-ui-tag
 
 watch:
   - src/pydase

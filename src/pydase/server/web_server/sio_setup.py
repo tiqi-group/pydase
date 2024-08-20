@@ -54,12 +54,15 @@ class RunMethodDict(TypedDict):
     exposed DataService.
 
     Attributes:
-        name (str): The name of the method to be run.
-        parent_path (str): The access path for the parent object of the method to be
-            run. This is used to construct the full access path for the method. For
-            example, for an method with access path 'attr1.list_attr[0].method_name',
-            'attr1.list_attr[0]' would be the parent_path.
-        kwargs (dict[str, Any]): The arguments passed to the method.
+        name:
+            The name of the method to be run.
+        parent_path:
+            The access path for the parent object of the method to be run. This is used
+            to construct the full access path for the method. For example, for an method
+            with access path 'attr1.list_attr[0].method_name', 'attr1.list_attr[0]'
+            would be the parent_path.
+        kwargs:
+            The arguments passed to the method.
     """
 
     name: str
@@ -76,15 +79,15 @@ def setup_sio_server(
     Sets up and configures a Socket.IO asynchronous server.
 
     Args:
-        observer (DataServiceObserver):
-          The observer managing state updates and communication.
-        enable_cors (bool):
-          Flag indicating whether CORS should be enabled for the server.
-        loop (asyncio.AbstractEventLoop):
-          The event loop in which the server will run.
+        observer:
+            The observer managing state updates and communication.
+        enable_cors:
+            Flag indicating whether CORS should be enabled for the server.
+        loop:
+            The event loop in which the server will run.
 
     Returns:
-        socketio.AsyncServer: The configured Socket.IO asynchronous server.
+        The configured Socket.IO asynchronous server.
     """
 
     state_manager = observer.state_manager

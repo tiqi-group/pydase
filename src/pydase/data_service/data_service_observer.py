@@ -124,8 +124,10 @@ class DataServiceObserver(PropertyObserver):
         object.
 
         Args:
-            callback (Callable[[str, Any, dict[str, Any]]): The callback function to be
-            registered. The function should have the following signature:
+            callback:
+                The callback function to be registered. The function should have the
+                following signature:
+
                 - full_access_path (str): The full dot-notation access path of the
                   changed attribute. This path indicates the location of the changed
                   attribute within the observable object's structure.

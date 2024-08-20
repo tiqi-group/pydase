@@ -52,8 +52,27 @@ class SerializationPathError(Exception):
 
 
 class Serializer:
+    """Serializes objects into
+    [`SerializedObject`][pydase.utils.serialization.types.SerializedObject]
+    representations.
+    """
+
     @classmethod
     def serialize_object(cls, obj: Any, access_path: str = "") -> SerializedObject:  # noqa: C901
+        """Serialize `obj` to a
+        [`SerializedObject`][pydase.utils.serialization.types.SerializedObject].
+
+        Args:
+            obj:
+                Object to be serialized.
+            access_path:
+                String corresponding to the full access path of the object. This will be
+                prepended to the full_access_path in the SerializedObject entries.
+
+        Returns:
+            Dictionary representation of `obj`.
+        """
+
         result: SerializedObject
 
         if isinstance(obj, Exception):
@@ -313,6 +332,19 @@ class Serializer:
 
 
 def dump(obj: Any) -> SerializedObject:
+    """Serialize `obj` to a
+    [`SerializedObject`][pydase.utils.serialization.types.SerializedObject].
+
+    The [`Serializer`][pydase.utils.serialization.serializer.Serializer] is used for
+    encoding.
+
+    Args:
+        obj:
+            Object to be serialized.
+
+    Returns:
+        Dictionary representation of `obj`.
+    """
     return Serializer.serialize_object(obj)
 
 
@@ -321,12 +353,13 @@ def set_nested_value_by_path(
 ) -> None:
     """
     Set a value in a nested dictionary structure, which conforms to the serialization
-    format used by `pydase.utils.serializer.Serializer`, using a dot-notation path.
+    format used by [`Serializer`][pydase.utils.serialization.serializer.Serializer],
+    using a dot-notation path.
 
     Args:
         serialization_dict:
             The base dictionary representing data serialized with
-            `pydase.utils.serializer.Serializer`.
+            [`Serializer`][pydase.utils.serialization.serializer.Serializer].
         path:
             The dot-notation path (e.g., 'attr1.attr2[0].attr3') indicating where to
             set the value.
@@ -334,8 +367,8 @@ def set_nested_value_by_path(
             The new value to set at the specified path.
 
     Note:
-        - If the index equals the length of the list, the function will append the
-          serialized representation of the 'value' to the list.
+        If the index equals the length of the list, the function will append the
+        serialized representation of the 'value' to the list.
     """
 
     path_parts = parse_full_access_path(path)
@@ -438,26 +471,24 @@ def get_container_item_by_key(
 ) -> SerializedObject:
     """
     Retrieve an item from a container specified by the passed key. Add an item to the
-    container if allow_append is set to True.
+    container if `allow_append` is set to `True`.
 
     If specified keys or indexes do not exist, the function can append new elements to
     dictionaries and to lists if `allow_append` is True and the missing element is
     exactly the next sequential index (for lists).
 
     Args:
-        container: dict[str, SerializedObject] | list[SerializedObject]
+        container:
             The container representing serialized data.
-        key: str
+        key:
             The key name representing the attribute in the dictionary, which may include
             direct keys or indexes (e.g., 'attr_name', '["key"]' or '[0]').
-        allow_append: bool
+        allow_append:
             Flag to allow appending a new entry if the specified index is out of range
             by exactly one position.
 
     Returns:
-        SerializedObject
-            The dictionary or list item corresponding to the specified attribute and
-            index.
+        The dictionary or list item corresponding to the specified attribute and index.
 
     Raises:
         SerializationPathError:
@@ -485,13 +516,12 @@ def get_data_paths_from_serialized_object(  # noqa: C901
     Recursively extracts full access paths from a serialized object.
 
     Args:
-        serialized_obj (SerializedObject):
+        serialized_obj:
             The dictionary representing the serialization of an object. Produced by
             `pydase.utils.serializer.Serializer`.
 
     Returns:
-        list[str]:
-            A list of strings, each representing a full access path in the serialized
+        A list of strings, each representing a full access path in the serialized
             object.
     """
 
@@ -532,12 +562,11 @@ def generate_serialized_data_paths(
     Recursively extracts full access paths from a serialized DataService class instance.
 
     Args:
-        data (dict[str, SerializedObject]):
+        data:
             The value of the "value" key of a serialized DataService class instance.
 
     Returns:
-        list[str]:
-            A list of strings, each representing a full access path in the serialized
+        A list of strings, each representing a full access path in the serialized
             object.
     """
 
@@ -556,3 +585,6 @@ def serialized_dict_is_nested_object(serialized_dict: SerializedObject) -> bool:
     # We are excluding Quantity here as the value corresponding to the "value" key is
     # a dictionary of the form {"magnitude": ..., "unit": ...}
     return serialized_dict["type"] != "Quantity" and (isinstance(value, dict | list))
+
+
+__all__ = ["Serializer", "dump"]

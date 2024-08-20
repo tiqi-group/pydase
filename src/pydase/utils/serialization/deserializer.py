@@ -19,10 +19,15 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+import json
+
+json.loads
+
 
 class Deserializer:
     @classmethod
     def deserialize(cls, serialized_object: SerializedObject) -> Any:
+        """Deserialize `serialized_object` (a `dict`) to a Python object."""
         type_handler: dict[str | None, None | Callable[..., Any]] = {
             None: None,
             "int": cls.deserialize_primitive,
@@ -159,4 +164,5 @@ class Deserializer:
 
 
 def loads(serialized_object: SerializedObject) -> Any:
+    """Deserialize `serialized_object` (a `dict`) to a Python object."""
     return Deserializer.deserialize(serialized_object)

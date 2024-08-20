@@ -21,18 +21,20 @@ def convert_to_quantity(
     Convert a given value into a pint.Quantity object with the specified unit.
 
     Args:
-        value (QuantityDict | float | int | Quantity):
+        value:
             The value to be converted into a Quantity object.
+
             - If value is a float or int, it will be directly converted to the specified
               unit.
             - If value is a dict, it must have keys 'magnitude' and 'unit' to represent
               the value and unit.
             - If value is a Quantity object, it will remain unchanged.\n
-        unit (str, optional): The target unit for conversion. If empty and value is not
-            a Quantity object, it will assume a unitless quantity.
+        unit:
+            The target unit for conversion. If empty and value is not a Quantity object,
+            it will assume a unitless quantity.
 
     Returns:
-        Quantity: The converted value as a pint.Quantity object with the specified unit.
+        The converted value as a pint.Quantity object with the specified unit.
 
     Examples:
         >>> convert_to_quantity(5, 'm')
@@ -42,9 +44,9 @@ def convert_to_quantity(
         >>> convert_to_quantity(10.0 * u.units.V)
         <Quantity(10.0, 'volt')>
 
-    Notes:
-        - If unit is not provided and value is a float or int, the resulting Quantity
-          will be unitless.
+    Note:
+        If unit is not provided and value is a float or int, the resulting Quantity will
+        be unitless.
     """
 
     if isinstance(value, int | float):

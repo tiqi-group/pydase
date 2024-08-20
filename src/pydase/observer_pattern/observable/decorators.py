@@ -17,10 +17,10 @@ def validate_set(
     getter and check against the desired value.
 
     Args:
-        timeout (float):
+        timeout:
             The maximum time (in seconds) to wait for the value to be within the
             precision boundary.
-        precision (float | None):
+        precision:
             The acceptable deviation from the desired value. If None, the value must be
             exact.
     """
@@ -44,13 +44,11 @@ def has_validate_set_decorator(prop: property) -> bool:
     Checks if a property setter has been decorated with the `validate_set` decorator.
 
     Args:
-        prop (property):
+        prop:
             The property to check.
 
     Returns:
-        bool:
-            True if the property setter has the `validate_set` decorator, False
-            otherwise.
+        True if the property setter has the `validate_set` decorator, False otherwise.
     """
 
     property_setter = prop.fset
@@ -68,11 +66,11 @@ def _validate_value_was_correctly_set(
     specified `precision` and time `timeout`.
 
     Args:
-        obj (Observable):
+        obj:
             The instance of the class containing the property.
-        name (str):
+        name:
             The name of the property to validate.
-        value (Any):
+        value:
             The desired value to check against.
 
     Raises:
