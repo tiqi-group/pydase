@@ -295,16 +295,6 @@ class Serializer:
             if key.startswith("_"):
                 continue  # Skip attributes that start with underscore
 
-            # Skip keys that start with "start_" or "stop_" and end with an async
-            # method name
-            if key.startswith(("start_", "stop_")) and key.split("_", 1)[1] in {
-                name
-                for name, _ in inspect.getmembers(
-                    obj, predicate=inspect.iscoroutinefunction
-                )
-            }:
-                continue
-
             val = getattr(obj, key)
 
             path = f"{access_path}.{key}" if access_path else key
