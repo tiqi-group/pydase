@@ -16,7 +16,7 @@ In `pydase`, components are fundamental building blocks that bridge the Python b
 ## Method Components
 Within the `DataService` class of `pydase`, only methods devoid of arguments can be represented in the frontend, classified into two distinct categories
 
-1. [**Tasks**](#understanding-tasks-in-pydase): Argument-free asynchronous functions, identified within `pydase` as tasks, are inherently designed for frontend interaction. These tasks are automatically rendered with a start/stop button, allowing users to initiate or halt the task execution directly from the web interface. 
+1. [**Tasks**](./Tasks.md): Argument-free asynchronous functions, identified within `pydase` as tasks, are inherently designed for frontend interaction. These tasks are automatically rendered with a start/stop button, allowing users to initiate or halt the task execution directly from the web interface. 
 2. **Synchronous Methods with `@frontend` Decorator**: Synchronous methods without arguments can also be presented in the frontend. For this, they have to be decorated with the `@frontend` decorator.
 
 ```python
@@ -348,7 +348,7 @@ In this example, `MySlider` overrides the `min`, `max`, `step_size`, and `value`
 
 - Incorporating units in `NumberSlider`
 
-    The `NumberSlider` is capable of [displaying units](#understanding-units-in-pydase) alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
+    The `NumberSlider` is capable of [displaying units](./Understanding-Units.md) alongside values, enhancing its usability in contexts where unit representation is crucial. When utilizing `pydase.units`, you can specify units for the slider's value, allowing the component to reflect these units in the frontend.
 
     Here's how to implement a `NumberSlider` with unit display:
 
