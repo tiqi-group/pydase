@@ -6,7 +6,7 @@ nav:
   - Getting Started: getting-started.md
   - User Guide:
     - Components Guide: user-guide/Components.md
-    - Interacting with pydase Services: user-guide/interaction/main.md
+    - Interacting with pydase Services: user-guide/interaction/README.md
     - Achieving Service Persistence: user-guide/Service_Persistence.md
     - Understanding Tasks: user-guide/Tasks.md
     - Understanding Units: user-guide/Understanding-Units.md
