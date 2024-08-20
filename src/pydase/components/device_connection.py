@@ -19,22 +19,26 @@ class DeviceConnection(pydase.data_service.DataService):
     to the device. This method should update the `self._connected` attribute to reflect
     the connection status:
 
-    >>> class MyDeviceConnection(DeviceConnection):
-    ...     def connect(self) -> None:
-    ...         # Implementation to connect to the device
-    ...         # Update self._connected to `True` if connection is successful,
-    ...         # `False` otherwise
-    ...         ...
+    ```python
+    class MyDeviceConnection(DeviceConnection):
+        def connect(self) -> None:
+            # Implementation to connect to the device
+            # Update self._connected to `True` if connection is successful,
+            # `False` otherwise
+            ...
+    ```
 
     Optionally, if additional logic is needed to determine the connection status,
     the `connected` property can also be overridden:
 
-    >>> class MyDeviceConnection(DeviceConnection):
-    ...     @property
-    ...     def connected(self) -> bool:
-    ...         # Custom logic to determine connection status
-    ...         return some_custom_condition
-    ...
+    ```python
+    class MyDeviceConnection(DeviceConnection):
+        @property
+        def connected(self) -> bool:
+            # Custom logic to determine connection status
+            return some_custom_condition
+
+    ```
 
     Frontend Representation
     -----------------------

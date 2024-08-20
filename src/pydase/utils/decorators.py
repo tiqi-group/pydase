@@ -10,9 +10,9 @@ class FunctionDefinitionError(Exception):
 
 
 def frontend(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator to mark a DataService method for frontend rendering. Ensures that the
-    method does not contain arguments, as they are not supported for frontend rendering.
+    """Decorator to mark a [`DataService`][pydase.DataService] method for frontend
+    rendering. Ensures that the method does not contain arguments, as they are not
+    supported for frontend rendering.
     """
 
     if function_has_arguments(func):

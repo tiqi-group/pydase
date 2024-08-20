@@ -33,17 +33,19 @@ def load_state(func: Callable[..., Any]) -> Callable[..., Any]:
     the value should be loaded from the JSON file.
 
     Example:
-    >>>     class Service(pydase.DataService):
-    ...         _name = "Service"
-    ...
-    ...         @property
-    ...         def name(self) -> str:
-    ...             return self._name
-    ...
-    ...         @name.setter
-    ...         @load_state
-    ...         def name(self, value: str) -> None:
-    ...             self._name = value
+        ```python
+        class Service(pydase.DataService):
+            _name = "Service"
+
+            @property
+            def name(self) -> str:
+                return self._name
+
+            @name.setter
+            @load_state
+            def name(self, value: str) -> None:
+                self._name = value
+        ```
     """
 
     func._load_state = True  # type: ignore[attr-defined]
@@ -85,13 +87,11 @@ class StateManager:
     StateManager provides a snapshot of the DataService's state that is sufficiently
     accurate for initial rendering and interaction.
 
-    Attributes:
-        cache (dict[str, Any]):
-            A dictionary cache of the DataService's state.
-        filename (str):
-            The file name used for storing the DataService's state.
-        service (DataService):
+    Args:
+        service:
             The DataService instance whose state is being managed.
+        filename:
+            The file name used for storing the DataService's state.
 
     Note:
         The StateManager's cache updates are triggered by notifications and do not
@@ -200,9 +200,11 @@ class StateManager:
         It also handles type-specific conversions for the new value before setting it.
 
         Args:
-            path: A dot-separated string indicating the hierarchical path to the
+            path:
+                A dot-separated string indicating the hierarchical path to the
                 attribute.
-            value: The new value to set for the attribute.
+            serialized_value:
+                The serialized representation of the new value to set for the attribute.
         """
 
         try:

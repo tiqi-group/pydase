@@ -43,10 +43,10 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     via a socket.io client in an asyncio environment.
 
     Args:
-        sio_client (socketio.AsyncClient):
+        sio_client:
             The socket.io client instance used for asynchronous communication with the
             pydase service server.
-        loop (asyncio.AbstractEventLoop):
+        loop:
             The event loop in which the client operations are managed and executed.
 
     This class is used to create a proxy object that behaves like a local representation
@@ -54,20 +54,20 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     while actually communicating over network protocols.
     It can also be used as an attribute of a pydase service itself, e.g.
 
-        ```python
-        import pydase
+    ```python
+    import pydase
 
 
-        class MyService(pydase.DataService):
-            proxy = pydase.Client(
-                hostname="...", port=8001, block_until_connected=False
-            ).proxy
+    class MyService(pydase.DataService):
+        proxy = pydase.Client(
+            hostname="...", port=8001, block_until_connected=False
+        ).proxy
 
 
-        if __name__ == "__main__":
-            service = MyService()
-            server = pydase.Server(service, web_port=8002).run()
-        ```
+    if __name__ == "__main__":
+        service = MyService()
+        server = pydase.Server(service, web_port=8002).run()
+    ```
     """
 
     def __init__(
@@ -84,19 +84,16 @@ class Client:
     connection, disconnection, and updates, and ensures that the proxy object is
     up-to-date with the server state.
 
-    Attributes:
-        proxy (ProxyClass):
-            A proxy object representing the remote service, facilitating interaction as
-            if it were local.
-
     Args:
-        url (str):
+        url:
             The URL of the pydase Socket.IO server. This should always contain the
             protocol and the hostname.
+
             Examples:
-                - wss://my-service.example.com  # for secure connections, use wss
-                - ws://localhost:8001
-        block_until_connected (bool):
+
+            - `wss://my-service.example.com`  # for secure connections, use wss
+            - `ws://localhost:8001`
+        block_until_connected:
             If set to True, the constructor will block until the connection to the
             service has been established. This is useful for ensuring the client is
             ready to use immediately after instantiation. Default is True.
@@ -112,6 +109,8 @@ class Client:
         self._sio = socketio.AsyncClient()
         self._loop = asyncio.new_event_loop()
         self.proxy = ProxyClass(sio_client=self._sio, loop=self._loop)
+        """A proxy object representing the remote service, facilitating interaction as
+        if it were local."""
         self._thread = threading.Thread(
             target=asyncio_loop_thread, args=(self._loop,), daemon=True
         )
