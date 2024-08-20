@@ -19,10 +19,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-import json
-
-json.loads
-
 
 class Deserializer:
     @classmethod

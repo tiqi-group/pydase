@@ -48,8 +48,8 @@ class WebServer:
 
     Args:
         data_service_observer:
-            Observer for the [`DataService`][pydase.DataService], handling state updates and communication to
-            connected clients.
+            Observer for the [`DataService`][pydase.DataService], handling state updates
+            and communication to connected clients.
         host:
             Hostname or IP address where the server is accessible. Commonly '0.0.0.0'
             to bind to all network interfaces.
@@ -64,7 +64,8 @@ class WebServer:
             cross-origin requests. Defaults to True.
         config_dir:
             Path to the configuration directory where the web settings will be stored.
-            Defaults to [`ServiceConfig().config_dir`][pydase.config.ServiceConfig.config_dir].
+            Defaults to
+            [`ServiceConfig().config_dir`][pydase.config.ServiceConfig.config_dir].
         generate_web_settings:
             Flag to enable or disable generation of new web settings if the
             configuration file is missing. Defaults to
