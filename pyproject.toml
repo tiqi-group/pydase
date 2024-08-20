@@ -38,7 +38,7 @@ optional = true
 [tool.poetry.group.docs.dependencies]
 mkdocs-material = "^9.5.30"
 mkdocs-include-markdown-plugin = "^3.9.1"
-mkdocstrings = "^0.22.0"
+mkdocstrings = {extras = ["python"], version = "^0.25.2"}
 pymdown-extensions = "^10.1"
 mkdocs-swagger-ui-tag = "^0.6.10"
 
