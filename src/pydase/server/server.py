@@ -214,7 +214,7 @@ class Server:
             )
 
             server_task = self._loop.create_task(addin_server.serve())
-            server_task.add_done_callback(self.handle_server_shutdown)
+            server_task.add_done_callback(self._handle_server_shutdown)
             self.servers[server_name] = server_task
         if self._enable_web:
             self._web_server = WebServer(
@@ -225,10 +225,10 @@ class Server:
             )
             server_task = self._loop.create_task(self._web_server.serve())
 
-            server_task.add_done_callback(self.handle_server_shutdown)
+            server_task.add_done_callback(self._handle_server_shutdown)
             self.servers["web"] = server_task
 
-    def handle_server_shutdown(self, task: asyncio.Task[Any]) -> None:
+    def _handle_server_shutdown(self, task: asyncio.Task[Any]) -> None:
         """Handle server shutdown. If the service should exit, do nothing. Else, make
         the service exit."""
 
