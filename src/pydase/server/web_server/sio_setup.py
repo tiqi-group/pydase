@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 # These functions can be monkey-patched by other libraries at runtime
 dump = pydase.utils.serialization.serializer.dump
+sio_client_manager = None
 
 
 class UpdateDict(TypedDict):
@@ -93,9 +94,16 @@ def setup_sio_server(
     state_manager = observer.state_manager
 
     if enable_cors:
-        sio = socketio.AsyncServer(async_mode="aiohttp", cors_allowed_origins="*")
+        sio = socketio.AsyncServer(
+            async_mode="aiohttp",
+            cors_allowed_origins="*",
+            client_manager=sio_client_manager,
+        )
     else:
-        sio = socketio.AsyncServer(async_mode="aiohttp")
+        sio = socketio.AsyncServer(
+            async_mode="aiohttp",
+            client_manager=sio_client_manager,
+        )
 
     setup_sio_events(sio, state_manager)
     setup_logging_handler(sio)
