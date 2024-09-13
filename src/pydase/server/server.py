@@ -13,6 +13,7 @@ from pydase.config import ServiceConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server import WebServer
+from pydase.task.autostart import autostart_service_tasks
 from pydase.utils.helpers import current_event_loop_exists
 
 HANDLED_SIGNALS = (
@@ -163,6 +164,7 @@ class Server:
         self._state_manager = StateManager(self._service, filename)
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
+        autostart_service_tasks(self._service)
         if not current_event_loop_exists():
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
