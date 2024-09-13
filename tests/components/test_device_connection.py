@@ -3,6 +3,7 @@ import asyncio
 import pydase
 import pydase.components.device_connection
 import pytest
+from pydase.task.autostart import autostart_service_tasks
 from pytest import LogCaptureFixture
 
 
@@ -19,10 +20,9 @@ async def test_reconnection(caplog: LogCaptureFixture) -> None:
             self._connected = True
 
     service_instance = MyService()
+    autostart_service_tasks(service_instance)
 
     assert service_instance._connected is False
-
-    service_instance._task_manager.start_autostart_tasks()
 
     await asyncio.sleep(0.01)
     assert service_instance._connected is True
