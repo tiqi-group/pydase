@@ -58,6 +58,12 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self._result: R | None = None
 
     @property
+    def autostart(self) -> bool:
+        """Defines if the task should be started automatically when the `pydase.Server`
+        starts."""
+        return self._autostart
+
+    @property
     def status(self) -> TaskStatus:
         return self._status
 
@@ -129,7 +135,4 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
                 self._loop = asyncio.get_event_loop()
             self._bound_func = self._func.__get__(instance, owner)
             self._set_up = True
-
-            if self._autostart:
-                self.start()
         return self
