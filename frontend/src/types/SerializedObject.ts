@@ -77,7 +77,12 @@ type SerializedException = SerializedObjectBase & {
   type: "Exception";
 };
 
-type DataServiceTypes = "DataService" | "Image" | "NumberSlider" | "DeviceConnection";
+type DataServiceTypes =
+  | "DataService"
+  | "Image"
+  | "NumberSlider"
+  | "DeviceConnection"
+  | "Task";
 
 type SerializedDataService = SerializedObjectBase & {
   name: string;

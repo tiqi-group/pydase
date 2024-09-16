@@ -5,67 +5,51 @@ import { DocStringComponent } from "./DocStringComponent";
 import { LevelName } from "./NotificationsComponent";
 import useRenderCount from "../hooks/useRenderCount";
 
-interface AsyncMethodProps {
+export type TaskStatus = "RUNNING" | "NOT_RUNNING";
+
+interface TaskProps {
   fullAccessPath: string;
-  value: "RUNNING" | null;
   docString: string | null;
-  hideOutput?: boolean;
+  status: TaskStatus;
   addNotification: (message: string, levelname?: LevelName) => void;
   displayName: string;
   id: string;
-  render: boolean;
 }
 
-export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
-  const {
-    fullAccessPath,
-    docString,
-    value: runningTask,
-    addNotification,
-    displayName,
-    id,
-  } = props;
-
-  // Conditional rendering based on the 'render' prop.
-  if (!props.render) {
-    return null;
-  }
+export const TaskComponent = React.memo((props: TaskProps) => {
+  const { fullAccessPath, docString, status, addNotification, displayName, id } = props;
 
   const renderCount = useRenderCount();
   const formRef = useRef(null);
   const [spinning, setSpinning] = useState(false);
-  const name = fullAccessPath.split(".").at(-1)!;
-  const parentPath = fullAccessPath.slice(0, -(name.length + 1));
 
   useEffect(() => {
     let message: string;
 
-    if (runningTask === null) {
-      message = `${fullAccessPath} task was stopped.`;
-    } else {
+    if (status === "RUNNING") {
       message = `${fullAccessPath} was started.`;
+    } else {
+      message = `${fullAccessPath} was stopped.`;
     }
+
     addNotification(message);
     setSpinning(false);
-  }, [props.value]);
+  }, [status]);
 
   const execute = async (event: React.FormEvent) => {
     event.preventDefault();
-    let method_name: string;
 
-    if (runningTask !== undefined && runningTask !== null) {
-      method_name = `stop_${name}`;
-    } else {
-      method_name = `start_${name}`;
-    }
+    const method_name = status == "RUNNING" ? "stop" : "start";
 
-    const accessPath = [parentPath, method_name].filter((element) => element).join(".");
+    const accessPath = [fullAccessPath, method_name]
+      .filter((element) => element)
+      .join(".");
     setSpinning(true);
     runMethod(accessPath);
   };
 
   return (
-    <div className="component asyncMethodComponent" id={id}>
+    <div className="component taskComponent" id={id}>
       {process.env.NODE_ENV === "development" && <div>Render count: {renderCount}</div>}
       <Form onSubmit={execute} ref={formRef}>
         <InputGroup>
@@ -76,7 +60,7 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
           <Button id={`button-${id}`} type="submit">
             {spinning ? (
               <Spinner size="sm" role="status" aria-hidden="true" />
-            ) : runningTask === "RUNNING" ? (
+            ) : status === "RUNNING" ? (
               "Stop "
             ) : (
               "Start "
@@ -88,4 +72,4 @@ export const AsyncMethodComponent = React.memo((props: AsyncMethodProps) => {
   );
 });
 
-AsyncMethodComponent.displayName = "AsyncMethodComponent";
+TaskComponent.displayName = "TaskComponent";

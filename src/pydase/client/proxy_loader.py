@@ -351,7 +351,7 @@ class ProxyLoader:
     ) -> Any:
         # Custom types like Components or DataService classes
         component_class = cast(
-            type, Deserializer.get_component_class(serialized_object["type"])
+            type, Deserializer.get_service_base_class(serialized_object["type"])
         )
         class_bases = (
             ProxyClassMixin,

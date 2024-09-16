@@ -8,6 +8,7 @@ import socketio  # type: ignore
 
 import pydase.components
 from pydase.client.proxy_loader import ProxyClassMixin, ProxyLoader
+from pydase.utils.helpers import current_event_loop_exists
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.types import SerializedDataService, SerializedObject
 
@@ -74,6 +75,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
     ) -> None:
         super().__init__()
+        pydase.components.DeviceConnection.__init__(self)
         self._initialise(sio_client=sio_client, loop=loop)
 
 
@@ -107,7 +109,11 @@ class Client:
     ):
         self._url = url
         self._sio = socketio.AsyncClient()
-        self._loop = asyncio.new_event_loop()
+        if not current_event_loop_exists():
+            self._loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self._loop)
+        else:
+            self._loop = asyncio.get_event_loop()
         self.proxy = ProxyClass(sio_client=self._sio, loop=self._loop)
         """A proxy object representing the remote service, facilitating interaction as
         if it were local."""

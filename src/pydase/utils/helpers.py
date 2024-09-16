@@ -114,8 +114,6 @@ def get_class_and_instance_attributes(obj: object) -> dict[str, Any]:
 
     If an attribute exists at both the instance and class level,the value from the
     instance attribute takes precedence.
-    The __root__ object is removed as this will lead to endless recursion in the for
-    loops.
     """
 
     return dict(chain(type(obj).__dict__.items(), obj.__dict__.items()))
@@ -162,6 +160,12 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     return get_object_by_path_parts(target_obj, path_parts)
 
 
+def get_task_class() -> type:
+    from pydase.task.task import Task
+
+    return Task
+
+
 def get_component_classes() -> list[type]:
     """
     Returns references to the component classes in a list.
@@ -196,3 +200,15 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
 
     # Check if there are any parameters left which would indicate additional arguments.
     return len(parameters) > 0
+
+
+def is_descriptor(obj: object) -> bool:
+    """Check if an object is a descriptor."""
+    return any(hasattr(obj, method) for method in ("__get__", "__set__", "__delete__"))
+
+
+def current_event_loop_exists() -> bool:
+    """Check if an event loop has been set."""
+    import asyncio
+
+    return asyncio.get_event_loop_policy()._local._loop is not None  # type: ignore

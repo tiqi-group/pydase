@@ -36,8 +36,7 @@ def test_unexpected_type_change_warning(caplog: LogCaptureFixture) -> None:
 
 
 def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
-    class SubService(DataService):
-        ...
+    class SubService(DataService): ...
 
     class SomeEnum(Enum):
         HI = 0
@@ -57,11 +56,9 @@ def test_basic_inheritance_warning(caplog: LogCaptureFixture) -> None:
         def name(self) -> str:
             return self._name
 
-        def some_method(self) -> None:
-            ...
+        def some_method(self) -> None: ...
 
-        async def some_task(self) -> None:
-            ...
+        async def some_task(self) -> None: ...
 
     ServiceClass()
 
@@ -129,16 +126,11 @@ def test_exposing_methods(caplog: LogCaptureFixture) -> None:
                 return "some method"
 
     class ClassWithTask(pydase.DataService):
-        async def some_task(self, sleep_time: int) -> None:
-            pass
+        @frontend
+        def some_method(self) -> str:
+            return "some method"
 
     ClassWithTask()
-
-    assert (
-        "Async function 'some_task' is defined with at least one argument. If you want "
-        "to use it as a task, remove the argument(s) from the function definition."
-        in caplog.text
-    )
 
 
 def test_dynamically_added_attribute(caplog: LogCaptureFixture) -> None:

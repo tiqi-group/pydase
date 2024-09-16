@@ -9,12 +9,14 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pydase.units as u
 from pydase.data_service.abstract_data_service import AbstractDataService
-from pydase.data_service.task_manager import TaskStatus
+from pydase.task.task_status import TaskStatus
 from pydase.utils.decorators import render_in_frontend
 from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
+    get_task_class,
+    is_property_attribute,
     parse_full_access_path,
     parse_serialized_key,
 )
@@ -280,6 +282,10 @@ class Serializer:
         if component_base_cls:
             obj_type = component_base_cls.__name__  # type: ignore
 
+        elif isinstance(obj, get_task_class()):
+            # Check if obj is a pydase task
+            obj_type = "Task"
+
         # Get the set of DataService class attributes
         data_service_attr_set = set(dir(get_data_service_class_reference()))
         # Get the set of the object attributes
@@ -294,29 +300,15 @@ class Serializer:
             if key.startswith("_"):
                 continue  # Skip attributes that start with underscore
 
-            # Skip keys that start with "start_" or "stop_" and end with an async
-            # method name
-            if key.startswith(("start_", "stop_")) and key.split("_", 1)[1] in {
-                name
-                for name, _ in inspect.getmembers(
-                    obj, predicate=inspect.iscoroutinefunction
-                )
-            }:
-                continue
-
             val = getattr(obj, key)
 
             path = f"{access_path}.{key}" if access_path else key
             serialized_object = cls.serialize_object(val, access_path=path)
 
-            # If there's a running task for this method
-            if serialized_object["type"] == "method" and key in obj._task_manager.tasks:
-                serialized_object["value"] = TaskStatus.RUNNING.name
-
             value[key] = serialized_object
 
             # If the DataService attribute is a property
-            if isinstance(getattr(obj.__class__, key, None), property):
+            if is_property_attribute(obj, key):
                 prop: property = getattr(obj.__class__, key)
                 value[key]["readonly"] = prop.fset is None
                 value[key]["doc"] = get_attribute_doc(prop)  # overwrite the doc

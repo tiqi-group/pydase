@@ -1,4 +1,3 @@
-import asyncio
 import enum
 from datetime import datetime
 from enum import Enum
@@ -8,7 +7,7 @@ import pydase
 import pydase.units as u
 import pytest
 from pydase.components.coloured_enum import ColouredEnum
-from pydase.data_service.task_manager import TaskStatus
+from pydase.task.task_status import TaskStatus
 from pydase.utils.decorators import frontend
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
@@ -214,11 +213,9 @@ async def test_method_serialization() -> None:
             return "some method"
 
         async def some_task(self) -> None:
-            while True:
-                await asyncio.sleep(10)
+            pass
 
     instance = ClassWithMethod()
-    instance.start_some_task()  # type: ignore
 
     assert dump(instance)["value"] == {
         "some_method": {
@@ -234,7 +231,7 @@ async def test_method_serialization() -> None:
         "some_task": {
             "full_access_path": "some_task",
             "type": "method",
-            "value": TaskStatus.RUNNING.name,
+            "value": None,
             "readonly": True,
             "doc": None,
             "async": True,
