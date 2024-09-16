@@ -19,3 +19,9 @@ def autostart_service_tasks(
                 val.start()
             elif isinstance(val, pydase.DataService):
                 autostart_service_tasks(val)
+            elif isinstance(val, list):
+                for entry in val:
+                    autostart_service_tasks(entry)
+            elif isinstance(val, dict):
+                for entry in val.values():
+                    autostart_service_tasks(entry)
