@@ -12,7 +12,8 @@ def autostart_service_tasks(
     """Starts the service tasks defined with the `autostart` keyword argument.
 
     This method goes through the attributes of the passed service and its nested
-    `pydase.DataService` instances and calls the start method on autostart-tasks.
+    [`DataService`][pydase.DataService] instances and calls the start method on
+    autostart-tasks.
     """
 
     for attr in dir(service):

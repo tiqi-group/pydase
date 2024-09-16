@@ -13,6 +13,12 @@
 ::: pydase.components
     handler: python
 
+::: pydase.task
+    handler: python
+    options:
+      inherited_members: false
+      show_submodules: true
+
 ::: pydase.utils.serialization.serializer
     handler: python
 

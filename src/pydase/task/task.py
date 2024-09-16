@@ -36,6 +36,53 @@ def is_bound_method(
 
 
 class Task(pydase.data_service.data_service.DataService, Generic[R]):
+    """
+    A class representing a task within the `pydase` framework.
+
+    The `Task` class wraps an asynchronous function and provides methods to manage its
+    lifecycle, such as `start()` and `stop()`. It is typically used to perform periodic
+    or recurring jobs in a [`DataService`][pydase.DataService], like reading
+    sensor data, updating databases, or executing other background tasks.
+
+    When a function is decorated with the [`@task`][pydase.task.decorator.task]
+    decorator, it is replaced by a `Task` instance that controls the execution of the
+    original function.
+
+    Args:
+        func:
+            The asynchronous function that this task wraps. It must be a coroutine
+            without arguments.
+        autostart:
+            If set to True, the task will automatically start when the service is
+            initialized. Defaults to False.
+
+    Example:
+        ```python
+        import asyncio
+
+        import pydase
+        from pydase.task.decorator import task
+
+
+        class MyService(pydase.DataService):
+            @task(autostart=True)
+            async def my_task(self) -> None:
+                while True:
+                    # Perform some periodic work
+                    await asyncio.sleep(1)
+
+
+        if __name__ == "__main__":
+            service = MyService()
+            pydase.Server(service=service).run()
+        ```
+
+        In this example, `my_task` is defined as a task using the `@task` decorator, and
+        it will start automatically when the service is initialized because
+        `autostart=True` is set. You can manually start or stop the task using
+        `service.my_task.start()` and `service.my_task.stop()`, respectively.
+    """
+
     def __init__(
         self,
         func: Callable[[Any], Coroutine[None, None, R | None]]
@@ -59,23 +106,26 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
 
     @property
     def autostart(self) -> bool:
-        """Defines if the task should be started automatically when the `pydase.Server`
-        starts."""
+        """Defines if the task should be started automatically when the
+        [`Server`][pydase.Server] starts."""
         return self._autostart
 
     @property
     def status(self) -> TaskStatus:
+        """Returns the current status of the task."""
         return self._status
 
     def start(self) -> None:
+        """Starts the asynchronous task if it is not already running."""
         if self._task:
             return
 
         def task_done_callback(task: asyncio.Task[R | None]) -> None:
             """Handles tasks that have finished.
 
-            Update task status, calls the defined callbacks, and logs and re-raises
-            exceptions."""
+            Updates the task status, calls the defined callbacks, and logs and re-raises
+            exceptions.
+            """
 
             self._task = None
             self._status = TaskStatus.NOT_RUNNING
@@ -113,18 +163,20 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self._task.add_done_callback(task_done_callback)
 
     def stop(self) -> None:
+        """Stops the running asynchronous task by cancelling it."""
+
         if self._task:
             self._task.cancel()
 
     def __get__(self, instance: Any, owner: Any) -> Self:
-        """Descriptor method used to correctly setup the task.
+        """Descriptor method used to correctly set up the task.
 
         This descriptor method is called by the class instance containing the task.
-        We need to use this descriptor to bind the task function to that class instance.
+        It binds the task function to that class instance.
 
-        As the __init__ function is called when a function is decorated with
-        @pydase.task.task, we should delay some of the setup until this descriptor
-        function is called.
+        Since the `__init__` function is called when a function is decorated with
+        [`@task`][pydase.task.decorator.task], some setup is delayed until this
+        descriptor function is called.
         """
 
         if instance and not self._set_up:
