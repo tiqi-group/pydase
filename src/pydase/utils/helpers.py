@@ -160,6 +160,12 @@ def get_object_attr_from_path(target_obj: Any, path: str) -> Any:
     return get_object_by_path_parts(target_obj, path_parts)
 
 
+def get_task_class() -> type:
+    from pydase.task.task import Task
+
+    return Task
+
+
 def get_component_classes() -> list[type]:
     """
     Returns references to the component classes in a list.

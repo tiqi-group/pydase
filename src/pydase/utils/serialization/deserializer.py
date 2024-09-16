@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING, Any, NoReturn, cast
 import pydase
 import pydase.components
 import pydase.units as u
-from pydase.utils.helpers import get_component_classes
+from pydase.utils.helpers import (
+    get_component_classes,
+)
 from pydase.utils.serialization.types import (
     SerializedDatetime,
     SerializedException,
@@ -49,9 +51,9 @@ class Deserializer:
             return handler(serialized_object)
 
         # Custom types like Components or DataService classes
-        component_class = cls.get_component_class(serialized_object["type"])
-        if component_class:
-            return cls.deserialize_component_type(serialized_object, component_class)
+        service_base_class = cls.get_service_base_class(serialized_object["type"])
+        if service_base_class:
+            return cls.deserialize_data_service(serialized_object, service_base_class)
 
         return None
 
@@ -110,11 +112,11 @@ class Deserializer:
         raise exception(serialized_object["value"])
 
     @staticmethod
-    def get_component_class(type_name: str | None) -> type | None:
+    def get_service_base_class(type_name: str | None) -> type | None:
         for component_class in get_component_classes():
             if type_name == component_class.__name__:
                 return component_class
-        if type_name == "DataService":
+        if type_name in ("DataService", "Task"):
             import pydase
 
             return pydase.DataService
@@ -137,7 +139,7 @@ class Deserializer:
         return property(get, set)
 
     @classmethod
-    def deserialize_component_type(
+    def deserialize_data_service(
         cls, serialized_object: SerializedObject, base_class: type
     ) -> Any:
         def create_proxy_class(serialized_object: SerializedObject) -> type:

@@ -98,7 +98,9 @@ class SerializedException(SerializedObjectBase):
     type: Literal["Exception"]
 
 
-DataServiceTypes = Literal["DataService", "Image", "NumberSlider", "DeviceConnection"]
+DataServiceTypes = Literal[
+    "DataService", "Image", "NumberSlider", "DeviceConnection", "Task"
+]
 
 
 class SerializedDataService(SerializedObjectBase):

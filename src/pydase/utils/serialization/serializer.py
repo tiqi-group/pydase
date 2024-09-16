@@ -15,6 +15,7 @@ from pydase.utils.helpers import (
     get_attribute_doc,
     get_component_classes,
     get_data_service_class_reference,
+    get_task_class,
     is_property_attribute,
     parse_full_access_path,
     parse_serialized_key,
@@ -280,6 +281,10 @@ class Serializer:
         )
         if component_base_cls:
             obj_type = component_base_cls.__name__  # type: ignore
+
+        elif isinstance(obj, get_task_class()):
+            # Check if obj is a pydase task
+            obj_type = "Task"
 
         # Get the set of DataService class attributes
         data_service_attr_set = set(dir(get_data_service_class_reference()))
