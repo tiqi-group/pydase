@@ -1,5 +1,8 @@
+from typing import Any
+
 import pydase.data_service.data_service
 import pydase.task.task
+from pydase.task.task_status import TaskStatus
 from pydase.utils.helpers import is_property_attribute
 
 
@@ -13,15 +16,28 @@ def autostart_service_tasks(
     """
 
     for attr in dir(service):
-        if not is_property_attribute(service, attr):  # prevent eval of property attrs
-            val = getattr(service, attr)
-            if isinstance(val, pydase.task.task.Task) and val.autostart:
-                val.start()
-            elif isinstance(val, pydase.DataService):
-                autostart_service_tasks(val)
-            elif isinstance(val, list):
-                for entry in val:
-                    autostart_service_tasks(entry)
-            elif isinstance(val, dict):
-                for entry in val.values():
-                    autostart_service_tasks(entry)
+        if is_property_attribute(service, attr):  # prevent eval of property attrs
+            continue
+
+        val = getattr(service, attr)
+        if (
+            isinstance(val, pydase.task.task.Task)
+            and val.autostart
+            and val.status == TaskStatus.NOT_RUNNING
+        ):
+            val.start()
+        else:
+            autostart_nested_service_tasks(val)
+
+
+def autostart_nested_service_tasks(
+    service: pydase.data_service.data_service.DataService | list[Any] | dict[Any, Any],
+) -> None:
+    if isinstance(service, pydase.DataService):
+        autostart_service_tasks(service)
+    elif isinstance(service, list):
+        for entry in service:
+            autostart_service_tasks(entry)
+    elif isinstance(service, dict):
+        for entry in service.values():
+            autostart_service_tasks(entry)
