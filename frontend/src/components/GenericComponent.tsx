@@ -17,6 +17,7 @@ import { updateValue } from "../socket";
 import { DictComponent } from "./DictComponent";
 import { parseFullAccessPath } from "../utils/stateUtils";
 import { SerializedEnum, SerializedObject } from "../types/SerializedObject";
+import { TaskComponent, TaskStatus } from "./TaskComponent";
 
 interface GenericComponentProps {
   attribute: SerializedObject;
@@ -178,6 +179,17 @@ export const GenericComponent = React.memo(
           isInstantUpdate={isInstantUpdate}
           addNotification={addNotification}
           changeCallback={changeCallback}
+          displayName={displayName}
+          id={id}
+        />
+      );
+    } else if (attribute.type == "Task") {
+      return (
+        <TaskComponent
+          fullAccessPath={fullAccessPath}
+          docString={attribute.doc}
+          status={attribute.value["status"].value as TaskStatus}
+          addNotification={addNotification}
           displayName={displayName}
           id={id}
         />
