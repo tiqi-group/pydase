@@ -4,7 +4,6 @@ import { NumberComponent, NumberObject } from "./NumberComponent";
 import { SliderComponent } from "./SliderComponent";
 import { EnumComponent } from "./EnumComponent";
 import { MethodComponent } from "./MethodComponent";
-import { AsyncMethodComponent } from "./AsyncMethodComponent";
 import { StringComponent } from "./StringComponent";
 import { ListComponent } from "./ListComponent";
 import { DataServiceComponent, DataServiceJSON } from "./DataServiceComponent";
@@ -145,30 +144,16 @@ export const GenericComponent = React.memo(
         />
       );
     } else if (attribute.type === "method") {
-      if (!attribute.async) {
-        return (
-          <MethodComponent
-            fullAccessPath={fullAccessPath}
-            docString={attribute.doc}
-            addNotification={addNotification}
-            displayName={displayName}
-            id={id}
-            render={attribute.frontend_render}
-          />
-        );
-      } else {
-        return (
-          <AsyncMethodComponent
-            fullAccessPath={fullAccessPath}
-            docString={attribute.doc}
-            value={attribute.value as "RUNNING" | null}
-            addNotification={addNotification}
-            displayName={displayName}
-            id={id}
-            render={attribute.frontend_render}
-          />
-        );
-      }
+      return (
+        <MethodComponent
+          fullAccessPath={fullAccessPath}
+          docString={attribute.doc}
+          addNotification={addNotification}
+          displayName={displayName}
+          id={id}
+          render={attribute.frontend_render}
+        />
+      );
     } else if (attribute.type === "str") {
       return (
         <StringComponent
