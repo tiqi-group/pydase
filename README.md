@@ -105,7 +105,7 @@ class Device(pydase.DataService):
 
 if __name__ == "__main__":
     service = Device()
-    pydase.Server(service=service).run()
+    pydase.Server(service=service, web_port=8001).run()
 ```
 
 In the above example, we define a `Device` class that inherits from `pydase.DataService`. 
@@ -122,10 +122,13 @@ import pydase
 
 if __name__ == "__main__":
     service = Device()
-    pydase.Server(service=service).run()
+    pydase.Server(service=service, web_port=8001).run()
 ```
 
-This will start the server, making your `Device` service accessible on [http://localhost:8001](http://localhost:8001).
+This will start the server, making your `Device` service accessible on 
+[http://localhost:8001](http://localhost:8001). The port number for the web server can 
+be customised in the server constructor or through environment variables and defaults 
+to `8001`.
 
 ### Accessing the Web Interface
 
@@ -144,7 +147,7 @@ import pydase
 
 # Replace the hostname and port with the IP address and the port of the machine where 
 # the service is running, respectively
-client_proxy = pydase.Client(url="ws://<ip_addr>:<service_port>").proxy
+client_proxy = pydase.Client(url="ws://<ip_addr>:<web_port>").proxy
 # client_proxy = pydase.Client(url="wss://your-domain.ch").proxy  # if your service uses ssl-encryption
 
 # After the connection, interact with the service attributes as if they were local
@@ -170,7 +173,7 @@ import json
 import requests
 
 response = requests.get(
-    "http://<hostname>:<port>/api/v1/get_value?access_path=<full_access_path>"
+    "http://<hostname>:<web_port>/api/v1/get_value?access_path=<full_access_path>"
 )
 serialized_value = json.loads(response.text)
 ```
