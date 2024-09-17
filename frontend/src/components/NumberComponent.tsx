@@ -132,6 +132,8 @@ const handleNumericKey = (
   selectionStart: number,
   selectionEnd: number,
 ) => {
+  let newValue = value;
+
   // Check if a number key or a decimal point key is pressed
   if (key === "." && value.includes(".")) {
     // Check if value already contains a decimal. If so, ignore input.
@@ -139,14 +141,34 @@ const handleNumericKey = (
     return { value, selectionStart };
   }
 
-  let newValue = value;
+  // Handle minus sign input
+  if (key === "-") {
+    if (selectionStart === 0 && selectionEnd > selectionStart) {
+      // Replace selection with minus if selection starts at 0
+      newValue = "-" + value.slice(selectionEnd);
+      selectionStart = 1;
+    } else if (selectionStart === 0 && !value.startsWith("-")) {
+      // Add minus at the beginning if it doesn't exist
+      newValue = "-" + value;
+      selectionStart = 1;
+    } else if (
+      (selectionStart === 0 || selectionStart === 1) &&
+      value.startsWith("-")
+    ) {
+      // Remove minus if it exists
+      newValue = value.slice(1);
+      selectionStart = 0;
+    }
+
+    return { value: newValue, selectionStart };
+  }
 
   // Add the new key at the cursor's position
   if (selectionEnd > selectionStart) {
     // If there is a selection, replace it with the key
     newValue = value.slice(0, selectionStart) + key + value.slice(selectionEnd);
   } else {
-    // otherwise, append the key after the selection start
+    // Otherwise, insert the key at the cursor position
     newValue = value.slice(0, selectionStart) + key + value.slice(selectionStart);
   }
 
@@ -201,17 +223,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
       // Select everything when pressing Ctrl + a
       inputTarget.setSelectionRange(0, value.length);
       return;
-    } else if (key === "-") {
-      if (selectionStart === 0 && !value.startsWith("-")) {
-        newValue = "-" + value;
-        selectionStart++;
-      } else if (value.startsWith("-") && selectionStart === 1) {
-        newValue = value.substring(1); // remove minus sign
-        selectionStart--;
-      } else {
-        return; // Ignore "-" pressed in other positions
-      }
-    } else if (key >= "0" && key <= "9") {
+    } else if ((key >= "0" && key <= "9") || key === "-") {
       // Check if a number key or a decimal point key is pressed
       ({ value: newValue, selectionStart } = handleNumericKey(
         key,
