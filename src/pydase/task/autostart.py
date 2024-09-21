@@ -17,7 +17,9 @@ def autostart_service_tasks(
     """
 
     for attr in dir(service):
-        if is_property_attribute(service, attr):  # prevent eval of property attrs
+        if is_property_attribute(service, attr) or attr in {
+            "__dict__",
+        }:  # prevent eval of property attrs and recursion
             continue
 
         val = getattr(service, attr)
