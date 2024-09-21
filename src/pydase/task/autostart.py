@@ -18,6 +18,7 @@ def autostart_service_tasks(
 
     for attr in dir(service):
         if is_property_attribute(service, attr) or attr in {
+            "_observers",
             "__dict__",
         }:  # prevent eval of property attrs and recursion
             continue
@@ -40,7 +41,7 @@ def autostart_nested_service_tasks(
         autostart_service_tasks(service)
     elif isinstance(service, list):
         for entry in service:
-            autostart_service_tasks(entry)
+            autostart_nested_service_tasks(entry)
     elif isinstance(service, dict):
         for entry in service.values():
-            autostart_service_tasks(entry)
+            autostart_nested_service_tasks(entry)
