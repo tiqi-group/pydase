@@ -18,23 +18,30 @@ async def test_start_and_stop_task(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         @task()
         async def my_task(self) -> None:
+            logger.info("Triggered task.")
             while True:
-                logger.debug("Logging message")
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(1)
 
     # Your test code here
     service_instance = MyService()
     state_manager = StateManager(service_instance)
     DataServiceObserver(state_manager)
+
+    autostart_service_tasks(service_instance)
+    await asyncio.sleep(0.1)
+    assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
+
     service_instance.my_task.start()
     await asyncio.sleep(0.1)
+    assert service_instance.my_task.status == TaskStatus.RUNNING
 
     assert "'my_task.status' changed to 'TaskStatus.RUNNING'" in caplog.text
-    assert "Logging message" in caplog.text
+    assert "Triggered task." in caplog.text
     caplog.clear()
 
     service_instance.my_task.stop()
     await asyncio.sleep(0.1)
+    assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
     assert "Task 'my_task' was cancelled" in caplog.text
 
 
@@ -44,6 +51,8 @@ async def test_autostart_task(caplog: LogCaptureFixture) -> None:
         @task(autostart=True)
         async def my_task(self) -> None:
             logger.info("Triggered task.")
+            while True:
+                await asyncio.sleep(1)
 
     # Your test code here
     service_instance = MyService()
@@ -53,6 +62,7 @@ async def test_autostart_task(caplog: LogCaptureFixture) -> None:
     autostart_service_tasks(service_instance)
 
     await asyncio.sleep(0.1)
+    assert service_instance.my_task.status == TaskStatus.RUNNING
 
     assert "'my_task.status' changed to 'TaskStatus.RUNNING'" in caplog.text
 
@@ -65,6 +75,8 @@ async def test_nested_list_autostart_task(
         @task(autostart=True)
         async def my_task(self) -> None:
             logger.info("Triggered task.")
+            while True:
+                await asyncio.sleep(1)
 
     class MyService(pydase.DataService):
         sub_services_list = [MySubService() for i in range(2)]
@@ -75,6 +87,8 @@ async def test_nested_list_autostart_task(
     autostart_service_tasks(service_instance)
 
     await asyncio.sleep(0.1)
+    assert service_instance.sub_services_list[0].my_task.status == TaskStatus.RUNNING
+    assert service_instance.sub_services_list[1].my_task.status == TaskStatus.RUNNING
 
     assert (
         "'sub_services_list[0].my_task.status' changed to 'TaskStatus.RUNNING'"
@@ -110,6 +124,10 @@ async def test_nested_dict_autostart_task(
 
     assert (
         service_instance.sub_services_dict["first"].my_task.status == TaskStatus.RUNNING
+    )
+    assert (
+        service_instance.sub_services_dict["second"].my_task.status
+        == TaskStatus.RUNNING
     )
 
     assert (
