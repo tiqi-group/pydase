@@ -24,12 +24,11 @@ def autostart_service_tasks(
             continue
 
         val = getattr(service, attr)
-        if (
-            isinstance(val, pydase.task.task.Task)
-            and val.autostart
-            and val.status == TaskStatus.NOT_RUNNING
-        ):
-            val.start()
+        if isinstance(val, pydase.task.task.Task):
+            if val.autostart and val.status == TaskStatus.NOT_RUNNING:
+                val.start()
+            else:
+                continue
         else:
             autostart_nested_service_tasks(val)
 
