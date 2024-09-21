@@ -26,6 +26,9 @@ async def test_start_and_stop_task(caplog: LogCaptureFixture) -> None:
     service_instance = MyService()
     state_manager = StateManager(service_instance)
     DataServiceObserver(state_manager)
+
+    autostart_service_tasks(service_instance)
+
     service_instance.my_task.start()
     await asyncio.sleep(0.1)
 
