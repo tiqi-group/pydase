@@ -223,3 +223,25 @@ def current_event_loop_exists() -> bool:
     import asyncio
 
     return asyncio.get_event_loop_policy()._local._loop is not None  # type: ignore
+
+
+def normalize_full_access_path_string(s: str) -> str:
+    """Normalizes a string representing a full access path by converting double quotes
+    to single quotes.
+
+    This function is useful for ensuring consistency in strings that represent access
+    paths containing dictionary keys, by replacing all double quotes (`"`) with single
+    quotes (`'`).
+
+    Args:
+        s (str): The input string to be normalized.
+
+    Returns:
+        A new string with all double quotes replaced by single quotes.
+
+    Example:
+        >>> normalize_full_access_path_string('dictionary["first"].my_task')
+        "dictionary['first'].my_task"
+    """
+
+    return s.replace('"', "'")
