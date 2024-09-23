@@ -204,6 +204,17 @@ def function_has_arguments(func: Callable[..., Any]) -> bool:
 
 def is_descriptor(obj: object) -> bool:
     """Check if an object is a descriptor."""
+
+    # Exclude functions, methods, builtins and properties
+    if (
+        inspect.isfunction(obj)
+        or inspect.ismethod(obj)
+        or inspect.isbuiltin(obj)
+        or isinstance(obj, property)
+    ):
+        return False
+
+    # Check if it has any descriptor methods
     return any(hasattr(obj, method) for method in ("__get__", "__set__", "__delete__"))
 
 
