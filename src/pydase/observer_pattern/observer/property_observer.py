@@ -5,6 +5,7 @@ from typing import Any
 
 from pydase.observer_pattern.observable.observable import Observable
 from pydase.observer_pattern.observer.observer import Observer
+from pydase.utils.helpers import is_descriptor
 
 logger = logging.getLogger(__name__)
 
@@ -61,17 +62,27 @@ class PropertyObserver(Observer):
         self, obj: Observable, deps: dict[str, Any], prefix: str
     ) -> None:
         for k, value in {**vars(type(obj)), **vars(obj)}.items():
+            actual_value = value
             prefix = (
                 f"{prefix}." if prefix != "" and not prefix.endswith(".") else prefix
             )
             parent_path = f"{prefix}{k}"
-            if isinstance(value, Observable):
+
+            # Get value from descriptor
+            if not isinstance(value, property) and is_descriptor(value):
+                actual_value = getattr(obj, k)
+
+            if isinstance(actual_value, Observable):
                 new_prefix = f"{parent_path}."
                 deps.update(
-                    self._get_properties_and_their_dependencies(value, new_prefix)
+                    self._get_properties_and_their_dependencies(
+                        actual_value, new_prefix
+                    )
                 )
             elif isinstance(value, list | dict):
-                self._process_collection_item_properties(value, deps, parent_path)
+                self._process_collection_item_properties(
+                    actual_value, deps, parent_path
+                )
 
     def _process_collection_item_properties(
         self,
