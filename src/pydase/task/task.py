@@ -1,21 +1,14 @@
 import asyncio
 import inspect
 import logging
-import sys
 from collections.abc import Callable, Coroutine
 from typing import (
     Generic,
     TypeVar,
 )
 
-from pydase.task.task_status import TaskStatus
-
-if sys.version_info < (3, 11):
-    pass
-else:
-    pass
-
 import pydase.data_service.data_service
+from pydase.task.task_status import TaskStatus
 from pydase.utils.helpers import current_event_loop_exists
 
 logging.basicConfig(level=logging.DEBUG)
