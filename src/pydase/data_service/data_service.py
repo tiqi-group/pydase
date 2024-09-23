@@ -10,6 +10,7 @@ from pydase.observer_pattern.observable.observable import (
 )
 from pydase.utils.helpers import (
     get_class_and_instance_attributes,
+    is_descriptor,
     is_property_attribute,
 )
 from pydase.utils.serialization.serializer import (
@@ -68,7 +69,7 @@ class DataService(AbstractDataService):
         if not issubclass(
             value_class,
             (int | float | bool | str | list | dict | Enum | u.Quantity | Observable),
-        ):
+        ) and not is_descriptor(__value):
             logger.warning(
                 "Class '%s' does not inherit from DataService. This may lead to"
                 " unexpected behaviour!",
