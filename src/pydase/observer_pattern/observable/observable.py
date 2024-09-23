@@ -22,12 +22,9 @@ class Observable(ObservableObject):
             - {"__annotations__"}
         }
         for name, value in class_attrs.items():
-            if isinstance(value, property) or callable(value):
-                continue
-            if is_descriptor(value):
-                # Descriptors have to be stored as a class variable in another class to
-                # work properly. So don't make it an instance attribute.
-                self._initialise_new_objects(name, value)
+            if isinstance(value, property) or callable(value) or is_descriptor(value):
+                # Properties, methods and descriptors have to be stored as class
+                # attributes to work properly. So don't make it an instance attribute.
                 continue
             self.__dict__[name] = self._initialise_new_objects(name, value)
 
