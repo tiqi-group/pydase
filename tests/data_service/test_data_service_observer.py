@@ -5,7 +5,7 @@ import pydase
 import pytest
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
-from pydase.utils.serialization.serializer import SerializationError
+from pydase.utils.serialization.serializer import SerializationError, dump
 
 logger = logging.getLogger()
 
@@ -146,3 +146,41 @@ def test_private_attribute_does_not_have_to_be_serializable() -> None:
         service_instance.change_publ_attr()
 
     service_instance.change_priv_attr()
+
+
+def test_normalized_attr_path_in_dependent_property_changes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    class SubService(pydase.DataService):
+        _prop = 10.0
+
+        @property
+        def prop(self) -> float:
+            return self._prop
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.service_dict = {"one": SubService()}
+
+    service_instance = MyService()
+    state_manager = StateManager(service=service_instance)
+    observer = DataServiceObserver(state_manager=state_manager)
+
+    assert observer.property_deps_dict["service_dict['one']._prop"] == [
+        "service_dict['one'].prop"
+    ]
+
+    # We can use dict key path encoded with double quotes
+    state_manager.set_service_attribute_value_by_path(
+        'service_dict["one"]._prop', dump(11.0)
+    )
+    assert service_instance.service_dict["one"].prop == 11.0
+    assert "'service_dict[\"one\"].prop' changed to '11.0'" in caplog.text
+
+    # We can use dict key path encoded with single quotes
+    state_manager.set_service_attribute_value_by_path(
+        "service_dict['one']._prop", dump(12.0)
+    )
+    assert service_instance.service_dict["one"].prop == 12.0
+    assert "'service_dict[\"one\"].prop' changed to '12.0'" in caplog.text
