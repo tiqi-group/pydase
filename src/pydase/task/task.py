@@ -11,7 +11,6 @@ import pydase.data_service.data_service
 from pydase.task.task_status import TaskStatus
 from pydase.utils.helpers import current_event_loop_exists
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 R = TypeVar("R")
