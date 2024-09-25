@@ -31,10 +31,7 @@ class NotifyDict(TypedDict):
 
 def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
-    try:
-        loop.run_forever()
-    except RuntimeError:
-        logger.debug("Tried starting even loop, but it is running already")
+    loop.run_forever()
 
 
 class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
