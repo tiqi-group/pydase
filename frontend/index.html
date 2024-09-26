@@ -9,7 +9,8 @@
 </head>
 
 <script>
-    window.__FORWARDED_PREFIX__ = "";  // this will be used if the service is behind a proxy which strips a prefix
+    // this will be set by the python backend if the service is behind a proxy which strips a prefix. The frontend can use this to build the paths to the resources.
+    window.__FORWARDED_PREFIX__ = "";
 </script>`
 
 <body>
