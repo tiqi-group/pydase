@@ -2,10 +2,10 @@ import { io } from "socket.io-client";
 import { serializeDict, serializeList } from "./utils/serializationUtils";
 import { SerializedObject } from "./types/SerializedObject";
 
-export const hostname =
+const hostname =
   process.env.NODE_ENV === "development" ? `localhost` : window.location.hostname;
-export const port =
-  process.env.NODE_ENV === "development" ? 8001 : window.location.port;
+const port = process.env.NODE_ENV === "development" ? 8001 : window.location.port;
+
 // Get the forwarded prefix from the global variable
 export const forwardedPrefix: string =
   (window as any) /* eslint-disable-line @typescript-eslint/no-explicit-any */
@@ -15,7 +15,6 @@ export const authority = `${hostname}:${port}${forwardedPrefix}`;
 
 const URL = `ws://${hostname}:${port}/`;
 console.debug("Websocket: ", URL);
-
 export const socket = io(URL, {
   path: `${forwardedPrefix}/ws/socket.io`,
   transports: ["websocket"],
