@@ -1,10 +1,13 @@
 import asyncio
 import logging
+from typing import cast
 
 import socketio  # type: ignore
 
 import pydase.components
 from pydase.client.proxy_loader import ProxyClassMixin
+from pydase.utils.helpers import get_attribute_doc
+from pydase.utils.serialization.types import SerializedDataService, SerializedObject
 
 logger = logging.getLogger(__name__)
 
@@ -48,3 +51,24 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         super().__init__()
         pydase.components.DeviceConnection.__init__(self)
         self._initialise(sio_client=sio_client, loop=loop)
+
+    def serialize(self) -> SerializedObject:
+        readonly = False
+        doc = get_attribute_doc(self)
+        obj_name = self.__class__.__name__
+        serialization_future = cast(
+            asyncio.Future[SerializedDataService],
+            asyncio.run_coroutine_threadsafe(
+                self._sio.call("service_serialization"), self._loop
+            ),
+        )
+        value = serialization_future.result()["value"]
+
+        return {
+            "full_access_path": "",
+            "name": obj_name,
+            "type": "DeviceConnection",
+            "value": value,
+            "readonly": readonly,
+            "doc": doc,
+        }
