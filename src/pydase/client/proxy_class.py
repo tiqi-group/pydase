@@ -53,6 +53,11 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         self._initialise(sio_client=sio_client, loop=loop)
 
     def serialize(self) -> SerializedObject:
+        device_connection_value = cast(
+            dict[str, SerializedObject],
+            pydase.components.DeviceConnection().serialize()["value"],
+        )
+
         readonly = False
         doc = get_attribute_doc(self)
         obj_name = self.__class__.__name__
@@ -62,7 +67,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
                 self._sio.call("service_serialization"), self._loop
             ),
         )
-        value = serialization_future.result()["value"]
+        value = {**serialization_future.result()["value"], **device_connection_value}
 
         return {
             "full_access_path": "",
