@@ -333,7 +333,7 @@ class Serializer:
         cls, obj: ProxyClass, access_path: str = ""
     ) -> SerializedDataService:
         # Get serialization value from the remote service and adapt the full_access_path
-        return add_prefix_to_full_access_path(obj.serialize(), access_path + ".")
+        return add_prefix_to_full_access_path(obj.serialize(), access_path)
 
 
 def dump(obj: Any) -> SerializedObject:
@@ -603,7 +603,7 @@ def add_prefix_to_full_access_path(
     Example:
         ```python
         >>> data = {
-        ...     "full_access_path": "some_path",
+        ...     "full_access_path": "",
         ...     "value": {
         ...         "item": {
         ...             "full_access_path": "some_item_path",
@@ -612,34 +612,30 @@ def add_prefix_to_full_access_path(
         ...     }
         ... }
         ...
-        ... modified_data = add_prefix_to_full_access_path(data, 'prefix.')
-        {"full_access_path": "prefix.some_path", "value": {"item": {"full_access_path":
+        ... modified_data = add_prefix_to_full_access_path(data, 'prefix')
+        {"full_access_path": "prefix", "value": {"item": {"full_access_path":
         "prefix.some_item_path", "value": 1.0}}}
         ```
     """
 
     try:
-        serialized_obj["full_access_path"] = prefix + serialized_obj["full_access_path"]
+        if serialized_obj.get("full_access_path", None) is not None:
+            serialized_obj["full_access_path"] = (
+                prefix + "." + serialized_obj["full_access_path"]
+                if serialized_obj["full_access_path"] != ""
+                else prefix
+            )
 
         if isinstance(serialized_obj["value"], list):
             for value in serialized_obj["value"]:
-                value["full_access_path"] = prefix + value["full_access_path"]
-                add_prefix_to_full_access_path(
-                    cast(SerializedObject, value["value"]), prefix
-                )
+                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
 
         elif isinstance(serialized_obj["value"], dict):
             for value in cast(
                 dict[str, SerializedObject], serialized_obj["value"]
             ).values():
-                value["full_access_path"] = prefix + value["full_access_path"]
-                add_prefix_to_full_access_path(
-                    cast(SerializedObject, value["value"]), prefix
-                )
-    except TypeError:
-        # passed object is not a dict (cannot use __get__ on it)
-        pass
-    except KeyError:
+                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
+    except (TypeError, KeyError, AttributeError):
         # passed dictionary is not a serialized object
         pass
     return serialized_obj

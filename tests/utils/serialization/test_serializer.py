@@ -1086,7 +1086,7 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                     }
                 },
             },
-            "prefix.",
+            "prefix",
             {
                 "full_access_path": "prefix.new_attr",
                 "value": {
@@ -1107,7 +1107,7 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                     }
                 ],
             },
-            "prefix.",
+            "prefix",
             {
                 "full_access_path": "prefix.new_attr",
                 "value": [
@@ -1128,7 +1128,7 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                     }
                 },
             },
-            "prefix.",
+            "prefix",
             {
                 "full_access_path": "prefix.new_attr",
                 "value": {
@@ -1144,7 +1144,7 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                 "full_access_path": "new_attr",
                 "value": {"magnitude": 10, "unit": "meter"},
             },
-            "prefix.",
+            "prefix",
             {
                 "full_access_path": "prefix.new_attr",
                 "value": {"magnitude": 10, "unit": "meter"},
@@ -1160,7 +1160,7 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                     }
                 ],
             },
-            "prefix.",
+            "prefix",
             {
                 "full_access_path": "prefix.quantity_list",
                 "value": [
@@ -1169,6 +1169,53 @@ def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
                         "value": {"magnitude": 1.0, "unit": "A"},
                     }
                 ],
+            },
+        ),
+        (
+            {
+                "full_access_path": "",
+                "value": {
+                    "dict_attr": {
+                        "type": "dict",
+                        "full_access_path": "dict_attr",
+                        "value": {
+                            "foo": {
+                                "full_access_path": 'dict_attr["foo"]',
+                                "type": "dict",
+                                "value": {
+                                    "some_int": {
+                                        "full_access_path": 'dict_attr["foo"].some_int',
+                                        "type": "int",
+                                        "value": 1,
+                                    },
+                                },
+                            },
+                        },
+                    }
+                },
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix",
+                "value": {
+                    "dict_attr": {
+                        "type": "dict",
+                        "full_access_path": "prefix.dict_attr",
+                        "value": {
+                            "foo": {
+                                "full_access_path": 'prefix.dict_attr["foo"]',
+                                "type": "dict",
+                                "value": {
+                                    "some_int": {
+                                        "full_access_path": 'prefix.dict_attr["foo"].some_int',
+                                        "type": "int",
+                                        "value": 1,
+                                    },
+                                },
+                            },
+                        },
+                    }
+                },
             },
         ),
     ],
