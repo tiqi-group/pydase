@@ -42,6 +42,8 @@ from pydase.utils.serialization.types import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from pydase.client.proxy_class import ProxyClass
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +76,7 @@ class Serializer:
         Returns:
             Dictionary representation of `obj`.
         """
+        from pydase.client.client import ProxyClass
 
         result: SerializedObject
 
@@ -82,6 +85,9 @@ class Serializer:
 
         elif isinstance(obj, datetime):
             result = cls._serialize_datetime(obj, access_path=access_path)
+
+        elif isinstance(obj, ProxyClass):
+            result = cls._serialize_proxy_class(obj, access_path=access_path)
 
         elif isinstance(obj, AbstractDataService):
             result = cls._serialize_data_service(obj, access_path=access_path)
@@ -321,6 +327,13 @@ class Serializer:
             "readonly": readonly,
             "doc": doc,
         }
+
+    @classmethod
+    def _serialize_proxy_class(
+        cls, obj: ProxyClass, access_path: str = ""
+    ) -> SerializedDataService:
+        # Get serialization value from the remote service and adapt the full_access_path
+        return add_prefix_to_full_access_path(obj.serialize(), access_path + ".")
 
 
 def dump(obj: Any) -> SerializedObject:
