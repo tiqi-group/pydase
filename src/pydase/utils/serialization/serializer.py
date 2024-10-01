@@ -572,6 +572,66 @@ def generate_serialized_data_paths(
     return paths
 
 
+def add_prefix_to_full_access_path(
+    serialized_obj: SerializedObject, prefix: str
+) -> Any:
+    """Recursively adds a specified prefix to all full access paths of the serialized
+    object.
+
+    Args:
+        data:
+            The serialized object to process.
+        prefix:
+            The prefix string to prepend to each full access path.
+
+    Returns:
+        The modified serialized object with the prefix added to all full access paths.
+
+    Example:
+        ```python
+        >>> data = {
+        ...     "full_access_path": "some_path",
+        ...     "value": {
+        ...         "item": {
+        ...             "full_access_path": "some_item_path",
+        ...             "value": 1.0
+        ...         }
+        ...     }
+        ... }
+        ...
+        ... modified_data = add_prefix_to_full_access_path(data, 'prefix.')
+        {"full_access_path": "prefix.some_path", "value": {"item": {"full_access_path":
+        "prefix.some_item_path", "value": 1.0}}}
+        ```
+    """
+
+    try:
+        serialized_obj["full_access_path"] = prefix + serialized_obj["full_access_path"]
+
+        if isinstance(serialized_obj["value"], list):
+            for value in serialized_obj["value"]:
+                value["full_access_path"] = prefix + value["full_access_path"]
+                add_prefix_to_full_access_path(
+                    cast(SerializedObject, value["value"]), prefix
+                )
+
+        elif isinstance(serialized_obj["value"], dict):
+            for value in cast(
+                dict[str, SerializedObject], serialized_obj["value"]
+            ).values():
+                value["full_access_path"] = prefix + value["full_access_path"]
+                add_prefix_to_full_access_path(
+                    cast(SerializedObject, value["value"]), prefix
+                )
+    except TypeError:
+        # passed object is not a dict (cannot use __get__ on it)
+        pass
+    except KeyError:
+        # passed dictionary is not a serialized object
+        pass
+    return serialized_obj
+
+
 def serialized_dict_is_nested_object(serialized_dict: SerializedObject) -> bool:
     value = serialized_dict["value"]
     # We are excluding Quantity here as the value corresponding to the "value" key is
