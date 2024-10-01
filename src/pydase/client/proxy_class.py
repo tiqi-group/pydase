@@ -1,6 +1,7 @@
 import asyncio
 import logging
-from typing import cast
+from copy import deepcopy
+from typing import TYPE_CHECKING, cast
 
 import socketio  # type: ignore
 
@@ -48,11 +49,29 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     def __init__(
         self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
     ) -> None:
+        if TYPE_CHECKING:
+            self._service_representation: None | SerializedObject = None
+
         super().__init__()
         pydase.components.DeviceConnection.__init__(self)
         self._initialise(sio_client=sio_client, loop=loop)
+        object.__setattr__(self, "_service_representation", None)
 
     def serialize(self) -> SerializedObject:
+        if self._service_representation is None:
+            serialization_future = cast(
+                asyncio.Future[SerializedDataService],
+                asyncio.run_coroutine_threadsafe(
+                    self._sio.call("service_serialization"), self._loop
+                ),
+            )
+            # need to use object.__setattr__ to not trigger an observer notification
+            object.__setattr__(
+                self, "_service_representation", serialization_future.result()
+            )
+            if TYPE_CHECKING:
+                self._service_representation = serialization_future.result()
+
         device_connection_value = cast(
             dict[str, SerializedObject],
             pydase.components.DeviceConnection().serialize()["value"],
@@ -61,13 +80,16 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         readonly = False
         doc = get_attribute_doc(self)
         obj_name = self.__class__.__name__
-        serialization_future = cast(
-            asyncio.Future[SerializedDataService],
-            asyncio.run_coroutine_threadsafe(
-                self._sio.call("service_serialization"), self._loop
+
+        value = {
+            **cast(
+                dict[str, SerializedObject],
+                # need to deepcopy to not overwrite the _service_representation dict
+                # when adding a prefix with add_prefix_to_full_access_path
+                deepcopy(self._service_representation["value"]),
             ),
-        )
-        value = {**serialization_future.result()["value"], **device_connection_value}
+            **device_connection_value,
+        }
 
         return {
             "full_access_path": "",
