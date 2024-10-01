@@ -12,6 +12,7 @@ from pydase.utils.decorators import frontend
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
     SerializedObject,
+    add_prefix_to_full_access_path,
     dump,
     generate_serialized_data_paths,
     get_container_item_by_key,
@@ -1070,3 +1071,156 @@ def test_get_data_paths_from_serialized_object(obj: Any, expected: list[str]) ->
 )
 def test_generate_serialized_data_paths(obj: Any, expected: list[str]) -> None:
     assert generate_serialized_data_paths(dump(obj=obj)["value"]) == expected
+
+
+@pytest.mark.parametrize(
+    "serialized_obj, prefix, expected",
+    [
+        (
+            {
+                "full_access_path": "new_attr",
+                "value": {
+                    "name": {
+                        "full_access_path": "new_attr.name",
+                        "value": "MyService",
+                    }
+                },
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix.new_attr",
+                "value": {
+                    "name": {
+                        "full_access_path": "prefix.new_attr.name",
+                        "value": "MyService",
+                    }
+                },
+            },
+        ),
+        (
+            {
+                "full_access_path": "new_attr",
+                "value": [
+                    {
+                        "full_access_path": "new_attr[0]",
+                        "value": 1.0,
+                    }
+                ],
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix.new_attr",
+                "value": [
+                    {
+                        "full_access_path": "prefix.new_attr[0]",
+                        "value": 1.0,
+                    }
+                ],
+            },
+        ),
+        (
+            {
+                "full_access_path": "new_attr",
+                "value": {
+                    "key": {
+                        "full_access_path": 'new_attr["key"]',
+                        "value": 1.0,
+                    }
+                },
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix.new_attr",
+                "value": {
+                    "key": {
+                        "full_access_path": 'prefix.new_attr["key"]',
+                        "value": 1.0,
+                    }
+                },
+            },
+        ),
+        (
+            {
+                "full_access_path": "new_attr",
+                "value": {"magnitude": 10, "unit": "meter"},
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix.new_attr",
+                "value": {"magnitude": 10, "unit": "meter"},
+            },
+        ),
+        (
+            {
+                "full_access_path": "quantity_list",
+                "value": [
+                    {
+                        "full_access_path": "quantity_list[0]",
+                        "value": {"magnitude": 1.0, "unit": "A"},
+                    }
+                ],
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix.quantity_list",
+                "value": [
+                    {
+                        "full_access_path": "prefix.quantity_list[0]",
+                        "value": {"magnitude": 1.0, "unit": "A"},
+                    }
+                ],
+            },
+        ),
+        (
+            {
+                "full_access_path": "",
+                "value": {
+                    "dict_attr": {
+                        "type": "dict",
+                        "full_access_path": "dict_attr",
+                        "value": {
+                            "foo": {
+                                "full_access_path": 'dict_attr["foo"]',
+                                "type": "dict",
+                                "value": {
+                                    "some_int": {
+                                        "full_access_path": 'dict_attr["foo"].some_int',
+                                        "type": "int",
+                                        "value": 1,
+                                    },
+                                },
+                            },
+                        },
+                    }
+                },
+            },
+            "prefix",
+            {
+                "full_access_path": "prefix",
+                "value": {
+                    "dict_attr": {
+                        "type": "dict",
+                        "full_access_path": "prefix.dict_attr",
+                        "value": {
+                            "foo": {
+                                "full_access_path": 'prefix.dict_attr["foo"]',
+                                "type": "dict",
+                                "value": {
+                                    "some_int": {
+                                        "full_access_path": 'prefix.dict_attr["foo"].some_int',
+                                        "type": "int",
+                                        "value": 1,
+                                    },
+                                },
+                            },
+                        },
+                    }
+                },
+            },
+        ),
+    ],
+)
+def test_add_prefix_to_full_access_path(
+    serialized_obj: SerializedObject, prefix: str, expected: SerializedObject
+) -> None:
+    assert add_prefix_to_full_access_path(serialized_obj, prefix) == expected

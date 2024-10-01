@@ -42,6 +42,8 @@ from pydase.utils.serialization.types import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from pydase.client.proxy_class import ProxyClass
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +76,7 @@ class Serializer:
         Returns:
             Dictionary representation of `obj`.
         """
+        from pydase.client.client import ProxyClass
 
         result: SerializedObject
 
@@ -82,6 +85,9 @@ class Serializer:
 
         elif isinstance(obj, datetime):
             result = cls._serialize_datetime(obj, access_path=access_path)
+
+        elif isinstance(obj, ProxyClass):
+            result = cls._serialize_proxy_class(obj, access_path=access_path)
 
         elif isinstance(obj, AbstractDataService):
             result = cls._serialize_data_service(obj, access_path=access_path)
@@ -321,6 +327,13 @@ class Serializer:
             "readonly": readonly,
             "doc": doc,
         }
+
+    @classmethod
+    def _serialize_proxy_class(
+        cls, obj: ProxyClass, access_path: str = ""
+    ) -> SerializedDataService:
+        # Get serialization value from the remote service and adapt the full_access_path
+        return add_prefix_to_full_access_path(obj.serialize(), access_path)
 
 
 def dump(obj: Any) -> SerializedObject:
@@ -570,6 +583,62 @@ def generate_serialized_data_paths(
         if serialized_dict_is_nested_object(value):
             paths.extend(get_data_paths_from_serialized_object(value, key))
     return paths
+
+
+def add_prefix_to_full_access_path(
+    serialized_obj: SerializedObject, prefix: str
+) -> Any:
+    """Recursively adds a specified prefix to all full access paths of the serialized
+    object.
+
+    Args:
+        data:
+            The serialized object to process.
+        prefix:
+            The prefix string to prepend to each full access path.
+
+    Returns:
+        The modified serialized object with the prefix added to all full access paths.
+
+    Example:
+        ```python
+        >>> data = {
+        ...     "full_access_path": "",
+        ...     "value": {
+        ...         "item": {
+        ...             "full_access_path": "some_item_path",
+        ...             "value": 1.0
+        ...         }
+        ...     }
+        ... }
+        ...
+        ... modified_data = add_prefix_to_full_access_path(data, 'prefix')
+        {"full_access_path": "prefix", "value": {"item": {"full_access_path":
+        "prefix.some_item_path", "value": 1.0}}}
+        ```
+    """
+
+    try:
+        if serialized_obj.get("full_access_path", None) is not None:
+            serialized_obj["full_access_path"] = (
+                prefix + "." + serialized_obj["full_access_path"]
+                if serialized_obj["full_access_path"] != ""
+                else prefix
+            )
+
+        if isinstance(serialized_obj["value"], list):
+            for value in serialized_obj["value"]:
+                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
+
+        elif isinstance(serialized_obj["value"], dict):
+            for value in cast(
+                dict[str, SerializedObject], serialized_obj["value"]
+            ).values():
+                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
+    except (TypeError, KeyError, AttributeError):
+        # passed dictionary is not a serialized object
+        pass
+    return serialized_obj
 
 
 def serialized_dict_is_nested_object(serialized_dict: SerializedObject) -> bool:
