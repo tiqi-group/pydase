@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 import threading
-from typing import TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import socketio  # type: ignore
 
@@ -121,7 +121,13 @@ class Client:
             self.proxy, serialized_object=serialized_object
         )
         serialized_object["type"] = "DeviceConnection"
-        self.proxy._notify_changed("", loads(serialized_object))
+        if self.proxy._service_representation is not None:
+            # need to use object.__setattr__ to not trigger an observer notification
+            object.__setattr__(self.proxy, "_service_representation", serialized_object)
+
+            if TYPE_CHECKING:
+                self.proxy._service_representation = serialized_object  # type: ignore
+        self.proxy._notify_changed("", self.proxy)
         self.proxy._connected = True
 
     async def _handle_disconnect(self) -> None:
