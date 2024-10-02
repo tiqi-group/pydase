@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from collections.abc import Callable
 from copy import deepcopy
 from typing import TYPE_CHECKING, cast
 
@@ -24,6 +25,8 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
             pydase service server.
         loop:
             The event loop in which the client operations are managed and executed.
+        reconnect:
+            The method that is called periodically when the client is not connected.
 
     This class is used to create a proxy object that behaves like a local representation
     of a remote pydase service, facilitating direct interaction as if it were local
@@ -47,7 +50,10 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     """
 
     def __init__(
-        self, sio_client: socketio.AsyncClient, loop: asyncio.AbstractEventLoop
+        self,
+        sio_client: socketio.AsyncClient,
+        loop: asyncio.AbstractEventLoop,
+        reconnect: Callable[..., None],
     ) -> None:
         if TYPE_CHECKING:
             self._service_representation: None | SerializedObject = None
@@ -56,6 +62,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         pydase.components.DeviceConnection.__init__(self)
         self._initialise(sio_client=sio_client, loop=loop)
         object.__setattr__(self, "_service_representation", None)
+        self.reconnect = reconnect
 
     def serialize(self) -> SerializedObject:
         if self._service_representation is None:
@@ -99,3 +106,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
             "readonly": readonly,
             "doc": doc,
         }
+
+    def connect(self) -> None:
+        if not self._sio.reconnection or self._sio.reconnection_attempts > 0:
+            self.reconnect(block_until_connected=False)
