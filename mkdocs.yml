@@ -54,6 +54,7 @@ plugins:
           - https://docs.python.org/3/objects.inv
           - https://docs.pydantic.dev/latest/objects.inv
           - https://confz.readthedocs.io/en/latest/objects.inv
+          - https://python-socketio.readthedocs.io/en/stable/objects.inv
         options:
           show_source: true
           inherited_members: true
