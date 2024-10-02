@@ -86,7 +86,9 @@ class Client:
         self._url = url
         self._sio = socketio.AsyncClient(**sio_client_kwargs)
         self._loop = asyncio.new_event_loop()
-        self.proxy = ProxyClass(sio_client=self._sio, loop=self._loop)
+        self.proxy = ProxyClass(
+            sio_client=self._sio, loop=self._loop, reconnect=self.connect
+        )
         """A proxy object representing the remote service, facilitating interaction as
         if it were local."""
         self._thread = threading.Thread(
