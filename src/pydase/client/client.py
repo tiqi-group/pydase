@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 import threading
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import socketio  # type: ignore
 
@@ -45,15 +45,35 @@ class Client:
         url:
             The URL of the pydase Socket.IO server. This should always contain the
             protocol and the hostname.
-
-            Examples:
-
-            - `wss://my-service.example.com`  # for secure connections, use wss
-            - `ws://localhost:8001`
         block_until_connected:
             If set to True, the constructor will block until the connection to the
             service has been established. This is useful for ensuring the client is
             ready to use immediately after instantiation. Default is True.
+        sio_client_kwargs:
+            Additional keyword arguments passed to the underlying
+            [`AsyncClient`][socketio.AsyncClient]. This allows fine-tuning of the
+            client's behaviour (e.g., reconnection attempts or reconnection delay).
+            Default is an empty dictionary.
+
+    Example:
+        The following example demonstrates a `Client` instance that connects to another
+        pydase service, while customising some of the connection settings for the
+        underlying [`AsyncClient`][socketio.AsyncClient].
+
+        ```python
+        pydase.Client(url="ws://localhost:8001", sio_client_kwargs={
+            "reconnection_attempts": 2,
+            "reconnection_delay": 2,
+            "reconnection_delay_max": 8,
+        })
+        ```
+
+        When connecting to a server over a secure connection (i.e., the server is using
+        SSL/TLS encryption), make sure that the `wss` protocol is used instead of `ws`:
+
+        ```python
+        pydase.Client(url="wss://my-service.example.com")
+        ```
     """
 
     def __init__(
@@ -61,9 +81,10 @@ class Client:
         *,
         url: str,
         block_until_connected: bool = True,
+        sio_client_kwargs: dict[str, Any] = {},
     ):
         self._url = url
-        self._sio = socketio.AsyncClient()
+        self._sio = socketio.AsyncClient(**sio_client_kwargs)
         self._loop = asyncio.new_event_loop()
         self.proxy = ProxyClass(sio_client=self._sio, loop=self._loop)
         """A proxy object representing the remote service, facilitating interaction as
