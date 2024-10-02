@@ -1,60 +1,86 @@
 # Python RPC Client
 
-You can connect to the service using the `pydase.Client`. Below is an example of how to establish a connection to a service and interact with it:
+The [`pydase.Client`][pydase.Client] allows you to connect to a remote `pydase` service using socket.io, facilitating interaction with the service as though it were running locally.
+
+## Basic Usage
 
 ```python
 import pydase
 
-# Replace the hostname and port with the IP address and the port of the machine where 
-# the service is running, respectively
+# Replace <ip_addr> and <service_port> with the appropriate values for your service
 client_proxy = pydase.Client(url="ws://<ip_addr>:<service_port>").proxy
-# client_proxy = pydase.Client(url="wss://your-domain.ch").proxy  # if your service uses ssl-encryption
+# For SSL-encrypted services, use the wss protocol
+# client_proxy = pydase.Client(url="wss://your-domain.ch").proxy
 
 # Interact with the service attributes as if they were local
 client_proxy.voltage = 5.0
 print(client_proxy.voltage)  # Expected output: 5.0
 ```
 
-This example demonstrates setting and retrieving the `voltage` attribute through the client proxy.
-The proxy acts as a local representative of the remote service, enabling straightforward interaction.
+This example shows how to set and retrieve the `voltage` attribute through the client proxy.
+The proxy acts as a local representation of the remote service, enabling intuitive interaction.
 
-The proxy class dynamically synchronizes with the server's exposed attributes. This synchronization allows the proxy to be automatically updated with any attributes or methods that the server exposes, essentially mirroring the server's API. This dynamic updating enables users to interact with the remote service as if they were working with a local object.
+The proxy class automatically synchronizes with the server's attributes and methods, keeping itself up-to-date with any changes. This dynamic synchronization essentially mirrors the server's API, making it feel like you're working with a local object.
 
-## Context Manager
+## Context Manager Support
 
-You can also use the client as a context manager which automatically opens and closes the connection again:
+You can also use the client within a context manager, which automatically handles connection management (i.e., opening and closing the connection):
 
 ```python
 import pydase
 
 
 with pydase.Client(url="ws://localhost:8001") as client:
-    client.proxy.<my_method>()
+    client.proxy.my_method()
 ```
 
+Using the context manager ensures that connections are cleanly closed once the block of code finishes executing.
 
 ## Tab Completion Support
 
-In interactive environments such as Python interpreters and Jupyter notebooks, the proxy class supports tab completion, which allows users to explore available methods and attributes.
+In interactive environments like Python interpreters or Jupyter notebooks, the proxy supports tab completion. This allows users to explore available methods and attributes.
 
-## Integration within Other Services
+## Integrating the Client into Another Service
 
-You can also integrate a client proxy within another service. Here's how you can set it up:
+You can integrate a `pydase` client proxy within another service. Here's an example of how to set this up:
 
 ```python
 import pydase
 
 class MyService(pydase.DataService):
-    # Initialize the client without blocking the constructor
-    proxy = pydase.Client(url="ws://<ip_addr>:<service_port>", block_until_connected=False).proxy
-    # proxy = pydase.Client(url="wss://your-domain.ch", block_until_connected=False).proxy  # communicating with ssl-encrypted service
+    proxy = pydase.Client(
+        url="ws://<ip_addr>:<service_port>",
+        block_until_connected=False
+    ).proxy
+    # For SSL-encrypted services, use the wss protocol
+    # proxy = pydase.Client(
+    #     url="wss://your-domain.ch",
+    #     block_until_connected=False
+    # ).proxy
 
 if __name__ == "__main__":
     service = MyService()
-    # Create a server that exposes this service; adjust the web_port as needed
-    server = pydase.Server(service, web_port=8002). run()
+    # Create a server that exposes this service
+    server = pydase.Server(service, web_port=8002).run()
 ```
 
-In this setup, the `MyService` class has a `proxy` attribute that connects to a `pydase` service located at `<ip_addr>:8001`.
-The `block_until_connected=False` argument allows the service to start up even if the initial connection attempt fails.
-This configuration is particularly useful in distributed systems where services may start in any order.
+In this example:
+- The `MyService` class has a `proxy` attribute that connects to a `pydase` service at `<ip_addr>:<service_port>`.
+- By setting `block_until_connected=False`, the service can start without waiting for the connection to succeed, which is particularly useful in distributed systems where services may initialize in any order.
+
+## Custom `socketio.AsyncClient` Connection Parameters
+
+You can also configure advanced connection options by passing additional arguments to the underlying [`AsyncClient`][socketio.AsyncClient] via `sio_client_kwargs`. This allows you to fine-tune reconnection behaviour, delays, and other settings:
+
+```python
+client = pydase.Client(
+    url="ws://localhost:8001",
+    sio_client_kwargs={
+        "reconnection_attempts": 3,
+        "reconnection_delay": 2,
+        "reconnection_delay_max": 10,
+    }
+).proxy
+```
+
+In this setup, the client will attempt to reconnect three times, with an initial delay of 2 seconds (each successive attempt doubles this delay) and a maximum delay of 10 seconds between attempts.
