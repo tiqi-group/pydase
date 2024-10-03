@@ -20,7 +20,6 @@ from pydase.utils.helpers import (
 from pydase.utils.serialization.serializer import generate_serialized_data_paths
 
 logger = logging.getLogger(__name__)
-API_VERSION = "v1"
 
 
 class WebServer:

@@ -17,8 +17,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-API_VERSION = "v1"
-
 STATUS_OK = 200
 STATUS_FAILED = 400
 
