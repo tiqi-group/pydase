@@ -1,4 +1,5 @@
 import asyncio
+import html
 import json
 import logging
 from pathlib import Path
@@ -107,20 +108,23 @@ class WebServer:
             forwarded_prefix = request.headers.get("X-Forwarded-Prefix", "")
 
             if forwarded_prefix != "":
+                # Escape the forwarded prefix to prevent XSS
+                escaped_prefix = html.escape(forwarded_prefix)
+
                 # Read the index.html file
                 index_file_path = self.frontend_src / "index.html"
 
                 async with await anyio.open_file(index_file_path) as f:
                     html_content = await f.read()
 
-                # Inject the forwarded prefix into the HTML
+                # Inject the escaped forwarded prefix into the HTML
                 modified_html = html_content.replace(
                     'window.__FORWARDED_PREFIX__ = "";',
-                    f'window.__FORWARDED_PREFIX__ = "{forwarded_prefix}";',
+                    f'window.__FORWARDED_PREFIX__ = "{escaped_prefix}";',
                 )
                 modified_html = modified_html.replace(
                     "/assets/",
-                    f"{forwarded_prefix}/assets/",
+                    f"{escaped_prefix}/assets/",
                 )
 
                 return aiohttp.web.Response(
