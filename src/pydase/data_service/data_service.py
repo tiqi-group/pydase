@@ -1,5 +1,6 @@
 import inspect
 import logging
+from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
@@ -68,7 +69,18 @@ class DataService(AbstractDataService):
 
         if not issubclass(
             value_class,
-            (int | float | bool | str | list | dict | Enum | u.Quantity | Observable),
+            (
+                int
+                | float
+                | bool
+                | str
+                | list
+                | dict
+                | Enum
+                | u.Quantity
+                | Observable
+                | Callable
+            ),
         ) and not is_descriptor(__value):
             logger.warning(
                 "Class '%s' does not inherit from DataService. This may lead to"
