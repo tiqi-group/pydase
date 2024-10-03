@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import threading
+import urllib.parse
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import socketio  # type: ignore
@@ -83,6 +84,16 @@ class Client:
         block_until_connected: bool = True,
         sio_client_kwargs: dict[str, Any] = {},
     ):
+        # Parse the URL to separate base URL and path prefix
+        parsed_url = urllib.parse.urlparse(url)
+
+        # Construct the base URL without the path
+        self._base_url = urllib.parse.urlunparse(
+            (parsed_url.scheme, parsed_url.netloc, "", "", "", "")
+        )
+
+        # Store the path prefix (e.g., "/service" in "ws://localhost:8081/service")
+        self._path_prefix = parsed_url.path.rstrip("/")  # Remove trailing slash if any
         self._url = url
         self._sio = socketio.AsyncClient(**sio_client_kwargs)
         self._loop = asyncio.new_event_loop()
@@ -121,8 +132,8 @@ class Client:
         logger.debug("Connecting to server '%s' ...", self._url)
         await self._setup_events()
         await self._sio.connect(
-            self._url,
-            socketio_path="/ws/socket.io",
+            self._base_url,
+            socketio_path=f"{self._path_prefix}/ws/socket.io",
             transports=["websocket"],
             retry=True,
         )
