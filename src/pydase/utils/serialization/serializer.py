@@ -592,7 +592,7 @@ def add_prefix_to_full_access_path(
     object.
 
     Args:
-        data:
+        serialized_obj:
             The serialized object to process.
         prefix:
             The prefix string to prepend to each full access path.
@@ -602,7 +602,7 @@ def add_prefix_to_full_access_path(
 
     Example:
         ```python
-        >>> data = {
+        >>> serialized_obj = {
         ...     "full_access_path": "",
         ...     "value": {
         ...         "item": {
@@ -612,7 +612,7 @@ def add_prefix_to_full_access_path(
         ...     }
         ... }
         ...
-        ... modified_data = add_prefix_to_full_access_path(data, 'prefix')
+        ... modified_data = add_prefix_to_full_access_path(serialized_obj, 'prefix')
         {"full_access_path": "prefix", "value": {"item": {"full_access_path":
         "prefix.some_item_path", "value": 1.0}}}
         ```
