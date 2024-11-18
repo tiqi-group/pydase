@@ -1,4 +1,5 @@
 import asyncio
+import html
 import json
 import logging
 from pathlib import Path
@@ -6,6 +7,7 @@ from typing import Any
 
 import aiohttp.web
 import aiohttp_middlewares.cors
+import anyio
 
 from pydase.config import ServiceConfig, WebServerConfig
 from pydase.data_service.data_service_observer import DataServiceObserver
@@ -99,7 +101,35 @@ class WebServer:
         self._loop = asyncio.get_running_loop()
         self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
 
-        async def index(request: aiohttp.web.Request) -> aiohttp.web.FileResponse:
+        async def index(
+            request: aiohttp.web.Request,
+        ) -> aiohttp.web.Response | aiohttp.web.FileResponse:
+            # Read the X-Forwarded-Prefix header from the request
+            forwarded_prefix = request.headers.get("X-Forwarded-Prefix", "")
+
+            if forwarded_prefix != "":
+                # Escape the forwarded prefix to prevent XSS
+                escaped_prefix = html.escape(forwarded_prefix)
+
+                # Read the index.html file
+                index_file_path = self.frontend_src / "index.html"
+
+                async with await anyio.open_file(index_file_path) as f:
+                    html_content = await f.read()
+
+                # Inject the escaped forwarded prefix into the HTML
+                modified_html = html_content.replace(
+                    'window.__FORWARDED_PREFIX__ = "";',
+                    f'window.__FORWARDED_PREFIX__ = "{escaped_prefix}";',
+                )
+                modified_html = modified_html.replace(
+                    "/assets/",
+                    f"{escaped_prefix}/assets/",
+                )
+
+                return aiohttp.web.Response(
+                    text=modified_html, content_type="text/html"
+                )
             return aiohttp.web.FileResponse(self.frontend_src / "index.html")
 
         app = aiohttp.web.Application()
