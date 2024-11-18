@@ -184,37 +184,33 @@ For more information, see [here][RESTful API].
 
 ## Configuring pydase via Environment Variables
 
-Configuring `pydase` through environment variables enhances flexibility, security, and reusability. This approach allows for easy adaptation of services across different environments without code changes, promoting scalability and maintainability. With that, it simplifies deployment processes and facilitates centralized configuration management. Moreover, environment variables enable separation of configuration from code, aiding in secure and collaborative development.
+`pydase` services work out of the box without requiring any configuration. However, you
+might want to change some options, such as the web server port or logging level. To 
+accommodate such customizations, `pydase` allows configuration through environment 
+variables, such as:
 
-`pydase` offers various configurable options:
+- **`ENVIRONMENT`**:  
+  Defines the operation mode (`"development"` or `"production"`), which influences 
+  behaviour such as logging (see [Logging in pydase](#logging-in-pydase)).
 
-- **`ENVIRONMENT`**: Sets the operation mode to either "development" or "production". Affects logging behaviour (see [logging section](#logging-in-pydase)).
-- **`SERVICE_CONFIG_DIR`**: Specifies the directory for service configuration files, like `web_settings.json`. This directory can also be used to hold user-defined configuration files. Default is the `config` folder in the service root folder. The variable can be accessed through:
+- **`SERVICE_CONFIG_DIR`**:  
+  Specifies the directory for configuration files (e.g., `web_settings.json`). Defaults
+  to the `config` folder in the service root. Access this programmatically using:
 
     ```python
     import pydase.config
     pydase.config.ServiceConfig().config_dir
     ```
 
-- **`SERVICE_WEB_PORT`**: Defines the port number for the web server. This has to be different for each services running on the same host. Default is 8001.
-- **`GENERATE_WEB_SETTINGS`**: When set to true, generates / updates the `web_settings.json` file. If the file already exists, only new entries are appended.
+- **`SERVICE_WEB_PORT`**:  
+  Defines the web server’s port. Ensure each service on the same host uses a unique 
+  port. Default: `8001`.
 
-Some of those settings can also be altered directly in code when initializing the server: 
+- **`GENERATE_WEB_SETTINGS`**:  
+  When `true`, generates or updates the `web_settings.json` file. Existing entries are 
+  preserved, and new entries are appended.
 
-```python
-import pathlib
-
-from pydase import Server
-from your_service_module import YourService
-
-
-server = Server(
-    YourService(),
-    web_port=8080,
-    config_dir=pathlib.Path("other_config_dir"),  # note that you need to provide an argument of type pathlib.Path
-    generate_web_settings=True
-).run()
-```
+For more information, see [Configuring pydase](https://pydase.readthedocs.io/en/stable/user-guide/Configuration/).
 
 ## Customizing the Web Interface
 
