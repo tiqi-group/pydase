@@ -68,7 +68,7 @@ const App = () => {
 
   useEffect(() => {
     // Allow the user to add a custom css file
-    fetch(`http://${authority}/custom.css`)
+    fetch(`http://${authority}/custom.css`, { credentials: "include" })
       .then((response) => {
         if (response.ok) {
           // If the file exists, create a link element for the custom CSS
@@ -83,7 +83,7 @@ const App = () => {
 
     socket.on("connect", () => {
       // Fetch data from the API when the client connects
-      fetch(`http://${authority}/service-properties`)
+      fetch(`http://${authority}/service-properties`, { credentials: "include" })
         .then((response) => response.json())
         .then((data: State) => {
           dispatch({ type: "SET_DATA", data });
@@ -91,7 +91,7 @@ const App = () => {
 
           document.title = data.name; // Setting browser tab title
         });
-      fetch(`http://${authority}/web-settings`)
+      fetch(`http://${authority}/web-settings`, { credentials: "include" })
         .then((response) => response.json())
         .then((data: Record<string, WebSetting>) => setWebSettings(data));
       setConnectionStatus("connected");
