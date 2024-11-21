@@ -104,6 +104,21 @@ class WebServer:
         async def index(
             request: aiohttp.web.Request,
         ) -> aiohttp.web.Response | aiohttp.web.FileResponse:
+            forwarded_proto = request.headers["X-Forwarded-Proto"]
+            escaped_proto = html.escape(forwarded_proto)
+
+            # Read the index.html file
+            index_file_path = self.frontend_src / "index.html"
+
+            async with await anyio.open_file(index_file_path) as f:
+                html_content = await f.read()
+
+            # Inject the escaped forwarded protocol into the HTML
+            modified_html = html_content.replace(
+                'window.__FORWARDED_PROTO__ = "";',
+                f'window.__FORWARDED_PROTO__ = "{escaped_proto}";',
+            )
+
             # Read the X-Forwarded-Prefix header from the request
             forwarded_prefix = request.headers.get("X-Forwarded-Prefix", "")
 
@@ -111,14 +126,8 @@ class WebServer:
                 # Escape the forwarded prefix to prevent XSS
                 escaped_prefix = html.escape(forwarded_prefix)
 
-                # Read the index.html file
-                index_file_path = self.frontend_src / "index.html"
-
-                async with await anyio.open_file(index_file_path) as f:
-                    html_content = await f.read()
-
                 # Inject the escaped forwarded prefix into the HTML
-                modified_html = html_content.replace(
+                modified_html = modified_html.replace(
                     'window.__FORWARDED_PREFIX__ = "";',
                     f'window.__FORWARDED_PREFIX__ = "{escaped_prefix}";',
                 )
