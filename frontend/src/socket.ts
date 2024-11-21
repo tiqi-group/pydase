@@ -10,10 +10,16 @@ const port = process.env.NODE_ENV === "development" ? 8001 : window.location.por
 export const forwardedPrefix: string =
   (window as any) /* eslint-disable-line @typescript-eslint/no-explicit-any */
     .__FORWARDED_PREFIX__ || "";
+// Get the forwarded protocol type from the global variable
+export const forwardedProto: string =
+  (window as any) /* eslint-disable-line @typescript-eslint/no-explicit-any */
+    .__FORWARDED_PROTO__ || "http";
 
 export const authority = `${hostname}:${port}${forwardedPrefix}`;
 
-const URL = `ws://${hostname}:${port}/`;
+const wsProto = forwardedProto === "http" ? "ws" : "wss";
+
+const URL = `${wsProto}://${hostname}:${port}/`;
 console.debug("Websocket: ", URL);
 export const socket = io(URL, {
   path: `${forwardedPrefix}/ws/socket.io`,
