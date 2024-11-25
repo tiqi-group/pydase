@@ -25,6 +25,7 @@ nav:
     - License: about/license.md
 
 theme: 
+  logo: images/logo-colour.png
   name: material
   features:
     - content.code.copy
