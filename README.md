@@ -1,6 +1,6 @@
 <!--introduction-start-->
 <p align="center">
-  <img src="./docs/images/logo-with-text.svg" alt="pydase" />
+  <img src="./docs/images/logo-with-text.png" alt="pydase" />
 </p>
 
 [![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
