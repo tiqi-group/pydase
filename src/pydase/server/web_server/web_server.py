@@ -152,6 +152,7 @@ class WebServer:
         # Define routes
         self._sio.attach(app, socketio_path="/ws/socket.io")
         app.router.add_static("/assets", self.frontend_src / "assets")
+        app.router.add_get("/favicon.ico", self._favicon_route)
         app.router.add_get("/service-properties", self._service_properties_route)
         app.router.add_get("/web-settings", self._web_settings_route)
         app.router.add_get("/custom.css", self._styles_route)
@@ -168,6 +169,12 @@ class WebServer:
             print=logger.info,
             shutdown_timeout=0.1,
         )
+
+    async def _favicon_route(
+        self,
+        request: aiohttp.web.Request,
+    ) -> aiohttp.web.FileResponse:
+        return aiohttp.web.FileResponse(self.frontend_src / "favicon.ico")
 
     async def _service_properties_route(
         self,
