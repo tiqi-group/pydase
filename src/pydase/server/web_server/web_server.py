@@ -60,6 +60,8 @@ class WebServer:
         css:
             Path to a custom CSS file for styling the frontend. If None, no custom
             styles are applied. Defaults to None.
+        favicon_path:
+            Path to a custom favicon.ico file. Defaults to None.
         enable_cors:
             Flag to enable or disable CORS policy. When True, CORS is enabled, allowing
             cross-origin requests. Defaults to True.
@@ -78,7 +80,9 @@ class WebServer:
         data_service_observer: DataServiceObserver,
         host: str,
         port: int,
+        *,
         css: str | Path | None = None,
+        favicon_path: str | Path | None = None,
         enable_cors: bool = True,
         config_dir: Path = ServiceConfig().config_dir,
         generate_web_settings: bool = WebServerConfig().generate_web_settings,
@@ -92,6 +96,11 @@ class WebServer:
         self.css = css
         self.enable_cors = enable_cors
         self.frontend_src = frontend_src
+        self.favicon_path: Path | str = favicon_path  # type: ignore
+
+        if self.favicon_path is None:
+            self.favicon_path = self.frontend_src / "favicon.ico"
+
         self._service_config_dir = config_dir
         self._generate_web_settings = generate_web_settings
         self._loop: asyncio.AbstractEventLoop
@@ -136,6 +145,11 @@ class WebServer:
                     f"{escaped_prefix}/assets/",
                 )
 
+                modified_html = modified_html.replace(
+                    "/favicon.ico",
+                    f"{escaped_prefix}/favicon.ico",
+                )
+
                 return aiohttp.web.Response(
                     text=modified_html, content_type="text/html"
                 )
@@ -174,7 +188,7 @@ class WebServer:
         self,
         request: aiohttp.web.Request,
     ) -> aiohttp.web.FileResponse:
-        return aiohttp.web.FileResponse(self.frontend_src / "favicon.ico")
+        return aiohttp.web.FileResponse(self.favicon_path)
 
     async def _service_properties_route(
         self,
