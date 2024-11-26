@@ -104,7 +104,7 @@ class WebServer:
         async def index(
             request: aiohttp.web.Request,
         ) -> aiohttp.web.Response | aiohttp.web.FileResponse:
-            forwarded_proto = request.headers["X-Forwarded-Proto"]
+            forwarded_proto = request.headers.get("X-Forwarded-Proto", "http")
             escaped_proto = html.escape(forwarded_proto)
 
             # Read the index.html file
