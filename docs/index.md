@@ -4,6 +4,7 @@
    end="<!--introduction-end-->"
 %}
 
+[pydase Banner]: ./images/logo-with-text.png
 [License]: ./about/license.md
 [Observer Pattern]: ./dev-guide/Observer_Pattern_Implementation.md
 [Service Persistence]: ./user-guide/Service_Persistence.md

@@ -1,7 +1,5 @@
 <!--introduction-start-->
-<p align="center">
-  <img src="./docs/images/logo-with-text.png" alt="pydase" />
-</p>
+![pydase Banner](./docs/images/logo-with-text.png)
 
 [![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
@@ -279,6 +277,7 @@ We welcome contributions! Please see [contributing.md](https://pydase.readthedoc
 
 `pydase` is licensed under the [MIT License][License].
 
+[pydase Banner]: ./docs/images/logo-with-text.png
 [License]: ./LICENSE
 [Observer Pattern]: https://pydase.readthedocs.io/en/docs/dev-guide/Observer_Pattern_Implementation/
 [Service Persistence]: https://pydase.readthedocs.io/en/stable/user-guide/Service_Persistence
