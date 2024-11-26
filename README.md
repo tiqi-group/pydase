@@ -1,5 +1,7 @@
 <!--introduction-start-->
-# pydase <!-- omit from toc -->
+<p align="center">
+  <img src="./docs/images/logo-with-text.svg" alt="pydase" />
+</p>
 
 [![Version](https://img.shields.io/pypi/v/pydase?style=flat)](https://pypi.org/project/pydase/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
