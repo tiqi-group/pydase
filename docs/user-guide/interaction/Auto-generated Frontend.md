@@ -21,7 +21,8 @@ The frontend uses a component-based approach, representing various data types an
 `pydase` allows you to enhance the user experience by customizing the web interface's appearance through
 
 1. a custom CSS file, and
-2. tailoring the frontend component layout and display style.
+2. a custom favicon image, and
+3. tailoring the frontend component layout and display style.
 
 For more advanced customization, you can provide a completely custom frontend source.
 
@@ -50,6 +51,34 @@ if __name__ == "__main__":
 This will apply the styles defined in `custom.css` to the web interface, allowing you to maintain branding consistency or improve visual accessibility.
 
 Please ensure that the CSS file path is accessible from the server's running location. Relative or absolute paths can be used depending on your setup.
+
+
+### Custom favicon image
+
+You can customize the favicon displayed in the browser tab by providing your own favicon image file during the server initialization.
+
+Here's how you can use this feature:
+
+1. Prepare your custom favicon image (e.g. a `.png` file).
+2. Pass the path to your favicon file as the `favicon_path` argument when initializing the `Server` class.
+
+Here’s an example:
+
+```python
+import pydase
+
+
+class MyService(pydase.DataService):
+    # ... your service definition ...
+
+
+if __name__ == "__main__":
+    service = MyService()
+    pydase.Server(service, favicon_path="./my/local/my-favicon.png").run()
+```
+
+This will serve the specified image instead of the default `pydase` logo.
+
 
 ### Tailoring Frontend Component Layout
 

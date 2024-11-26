@@ -219,7 +219,8 @@ For more information, see [Configuring pydase](https://pydase.readthedocs.io/en/
 `pydase` allows you to enhance the user experience by customizing the web interface's appearance through
 
 1. a custom CSS file, and
-2. tailoring the frontend component layout and display style.
+2. a custom favicon image, and
+3. tailoring the frontend component layout and display style.
 
 You can also provide a custom frontend source if you need even more flexibility.
 
