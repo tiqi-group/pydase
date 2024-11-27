@@ -185,6 +185,7 @@ async def test_update_value(
     new_value: dict[str, Any],
     ok: bool,
     pydase_server: pydase.DataService,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     async with aiohttp.ClientSession("http://localhost:9998") as session:
         resp = await session.put(
@@ -250,3 +251,43 @@ async def test_trigger_method(
         if resp.ok:
             content = Deserializer.deserialize(json.loads(await resp.text()))
             assert content == expected
+
+
+@pytest.mark.parametrize(
+    "headers, log_id",
+    [
+        ({}, "id=None"),
+        (
+            {
+                "X-Client-Id": "client-header",
+            },
+            "id=client-header",
+        ),
+        (
+            {
+                "Remote-User": "Remote User",
+            },
+            "user=Remote User",
+        ),
+        (
+            {
+                "X-Client-Id": "client-header",
+                "Remote-User": "Remote User",
+            },
+            "id=client-header",
+        ),
+    ],
+)
+@pytest.mark.asyncio()
+async def test_client_information_logging(
+    headers: dict[str, str],
+    log_id: str,
+    pydase_server: pydase.DataService,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async with aiohttp.ClientSession("http://localhost:9998") as session:
+        await session.get(
+            "/api/v1/get_value?access_path=readonly_attr", headers=headers
+        )
+
+    assert log_id in caplog.text
