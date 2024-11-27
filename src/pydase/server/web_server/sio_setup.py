@@ -138,22 +138,41 @@ def setup_sio_server(
 def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> None:  # noqa: C901
     @sio.event  # type: ignore
     async def connect(sid: str, environ: Any) -> None:
-        logger.debug("Client [%s] connected", click.style(str(sid), fg="cyan"))
+        client_id_header = environ.get("HTTP_X_CLIENT_ID", None)
+        remote_username_header = environ.get("HTTP_REMOTE_USER", None)
+
+        if client_id_header is not None:
+            log_id = f"id={click.style(client_id_header, fg='cyan')}"
+        elif remote_username_header is not None:
+            log_id = f"user={click.style(remote_username_header, fg='cyan')}"
+        else:
+            log_id = f"sid={click.style(sid, fg='cyan')}"
+
+        async with sio.session(sid) as session:
+            session["client_id"] = log_id
+            logger.info("Client [%s] connected", session["client_id"])
 
     @sio.event  # type: ignore
     async def disconnect(sid: str) -> None:
-        logger.debug("Client [%s] disconnected", click.style(str(sid), fg="cyan"))
+        async with sio.session(sid) as session:
+            logger.info("Client [%s] disconnected", session["client_id"])
 
     @sio.event  # type: ignore
     async def service_serialization(sid: str) -> SerializedObject:
-        logger.debug(
-            "Client [%s] requested service serialization",
-            click.style(str(sid), fg="cyan"),
-        )
+        async with sio.session(sid) as session:
+            logger.info(
+                "Client [%s] requested service serialization", session["client_id"]
+            )
         return state_manager.cache_manager.cache
 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:
+        async with sio.session(sid) as session:
+            logger.info(
+                "Client [%s] is updating the value of '%s'",
+                session["client_id"],
+                data["access_path"],
+            )
         try:
             pydase.server.web_server.api.v1.endpoints.update_value(
                 state_manager=state_manager, data=data
@@ -165,6 +184,12 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
+        async with sio.session(sid) as session:
+            logger.info(
+                "Client [%s] is getting the value of '%s'",
+                session["client_id"],
+                access_path,
+            )
         try:
             return pydase.server.web_server.api.v1.endpoints.get_value(
                 state_manager=state_manager, access_path=access_path
@@ -175,6 +200,12 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
+        async with sio.session(sid) as session:
+            logger.debug(
+                "Client [%s] is triggering the method '%s'",
+                session["client_id"],
+                data["access_path"],
+            )
         try:
             return pydase.server.web_server.api.v1.endpoints.trigger_method(
                 state_manager=state_manager, data=data
