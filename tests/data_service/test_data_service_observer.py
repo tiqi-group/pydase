@@ -184,3 +184,22 @@ def test_normalized_attr_path_in_dependent_property_changes(
     )
     assert service_instance.service_dict["one"].prop == 12.0
     assert "'service_dict[\"one\"].prop' changed to '12.0'" in caplog.text
+
+
+def test_read_only_dict_property(caplog: pytest.LogCaptureFixture) -> None:
+    class MyObservable(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self._dict_attr = {"dotted.key": 1.0}
+
+        @property
+        def dict_attr(self) -> dict[str, Any]:
+            return self._dict_attr
+
+    service_instance = MyObservable()
+    state_manager = StateManager(service=service_instance)
+    DataServiceObserver(state_manager)
+
+    service_instance._dict_attr["dotted.key"] = 2.0
+
+    assert "'dict_attr[\"dotted.key\"]' changed to '2.0'" in caplog.text

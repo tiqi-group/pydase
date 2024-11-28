@@ -102,8 +102,9 @@ class DataServiceObserver(PropertyObserver):
         )
 
     def _notify_dependent_property_changes(self, changed_attr_path: str) -> None:
-        normalized_attr_path = normalize_full_access_path_string(changed_attr_path)
-        changed_props = self.property_deps_dict.get(normalized_attr_path, [])
+        changed_props = self._get_changed_props_from_changed_attr_path(
+            changed_attr_path
+        )
         for prop in changed_props:
             # only notify about changing attribute if it is not currently being
             # "changed" e.g. when calling the getter of a property within another
@@ -113,6 +114,17 @@ class DataServiceObserver(PropertyObserver):
                     prop,
                     get_object_attr_from_path(self.observable, prop),
                 )
+
+    def _get_changed_props_from_changed_attr_path(
+        self, changed_attr_path: str
+    ) -> list[str]:
+        changed_props: list[str] = []
+        normalized_attr_path = normalize_full_access_path_string(changed_attr_path)
+        for key, value in self.property_deps_dict.items():
+            if normalized_attr_path.startswith(key):
+                changed_props.extend(value)
+
+        return changed_props
 
     def add_notification_callback(
         self, callback: Callable[[str, Any, SerializedObject], None]
