@@ -149,3 +149,15 @@ def test_tab_completion(pydase_client: pydase.Client) -> None:
             "sub_service",
         ]
     )
+
+
+def test_context_manager(pydase_client: pydase.Client) -> None:
+    client = pydase.Client(url="ws://localhost:9999")
+
+    assert client.proxy.connected
+
+    with client:
+        client.proxy.my_property = 1337.01
+        assert client.proxy.my_property == 1337.01
+
+    assert not client.proxy.connected
