@@ -6,6 +6,7 @@ from typing import Any
 import aiohttp
 import pydase
 import pytest
+from pydase.utils.serialization.deserializer import Deserializer
 
 
 @pytest.fixture()
@@ -40,7 +41,10 @@ def pydase_server() -> Generator[None, None, None]:
             return self._readonly_attr
 
         def my_method(self, input_str: str) -> str:
-            return input_str
+            return f"{input_str}: my_method"
+
+        async def my_async_method(self, input_str: str) -> str:
+            return f"{input_str}: my_async_method"
 
     server = pydase.Server(MyService(), web_port=9998)
     thread = threading.Thread(target=server.run, daemon=True)
@@ -192,3 +196,57 @@ async def test_update_value(
             resp = await session.get(f"/api/v1/get_value?access_path={access_path}")
             content = json.loads(await resp.text())
             assert content == new_value
+
+
+@pytest.mark.parametrize(
+    "access_path, expected, ok",
+    [
+        (
+            "my_method",
+            "Hello from function: my_method",
+            True,
+        ),
+        (
+            "my_async_method",
+            "Hello from function: my_async_method",
+            True,
+        ),
+        (
+            "invalid_method",
+            None,
+            False,
+        ),
+    ],
+)
+@pytest.mark.asyncio()
+async def test_trigger_method(
+    access_path: str,
+    expected: Any,
+    ok: bool,
+    pydase_server: pydase.DataService,
+) -> None:
+    async with aiohttp.ClientSession("http://localhost:9998") as session:
+        resp = await session.put(
+            "/api/v1/trigger_method",
+            json={
+                "access_path": access_path,
+                "kwargs": {
+                    "full_access_path": "",
+                    "type": "dict",
+                    "value": {
+                        "input_str": {
+                            "docs": None,
+                            "full_access_path": "",
+                            "readonly": False,
+                            "type": "str",
+                            "value": "Hello from function",
+                        },
+                    },
+                },
+            },
+        )
+        assert resp.ok == ok
+
+        if resp.ok:
+            content = Deserializer.deserialize(json.loads(await resp.text()))
+            assert content == expected

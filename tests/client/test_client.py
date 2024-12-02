@@ -41,6 +41,9 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
         def my_method(self, input_str: str) -> str:
             return input_str
 
+        async def my_async_method(self, input_str: str) -> str:
+            return input_str
+
     server = pydase.Server(MyService(), web_port=9999)
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
@@ -77,6 +80,14 @@ def test_method_execution(pydase_client: pydase.Client) -> None:
 
     with pytest.raises(TypeError):
         pydase_client.proxy.my_method(kwarg="hello")
+
+
+def test_async_method_execution(pydase_client: pydase.Client) -> None:
+    assert pydase_client.proxy.my_async_method("My return string") == "My return string"
+    assert (
+        pydase_client.proxy.my_async_method(input_str="My return string")
+        == "My return string"
+    )
 
 
 def test_nested_service(pydase_client: pydase.Client) -> None:

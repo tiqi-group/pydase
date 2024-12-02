@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from collections.abc import Iterable
-from copy import copy
 from typing import TYPE_CHECKING, Any, cast
 
 import socketio  # type: ignore
@@ -202,25 +201,8 @@ class ProxyClassMixin:
     def _handle_serialized_method(
         self, attr_name: str, serialized_object: SerializedObject
     ) -> None:
-        def add_prefix_to_last_path_element(s: str, prefix: str) -> str:
-            parts = s.split(".")
-            parts[-1] = f"{prefix}_{parts[-1]}"
-            return ".".join(parts)
-
         if serialized_object["type"] == "method":
-            if serialized_object["async"] is True:
-                start_method = copy(serialized_object)
-                start_method["full_access_path"] = add_prefix_to_last_path_element(
-                    start_method["full_access_path"], "start"
-                )
-                stop_method = copy(serialized_object)
-                stop_method["full_access_path"] = add_prefix_to_last_path_element(
-                    stop_method["full_access_path"], "stop"
-                )
-                self._add_method_proxy(f"start_{attr_name}", start_method)
-                self._add_method_proxy(f"stop_{attr_name}", stop_method)
-            else:
-                self._add_method_proxy(attr_name, serialized_object)
+            self._add_method_proxy(attr_name, serialized_object)
 
     def _add_method_proxy(
         self, attr_name: str, serialized_object: SerializedObject

@@ -1,7 +1,10 @@
 import asyncio
+import inspect
 import logging
 import sys
 from typing import Any, TypedDict
+
+from pydase.utils.helpers import get_object_attr_from_path
 
 if sys.version_info < (3, 11):
     from typing_extensions import NotRequired
@@ -11,11 +14,11 @@ else:
 import click
 import socketio  # type: ignore[import-untyped]
 
-import pydase.server.web_server.api.v1.endpoints
 import pydase.utils.serialization.deserializer
 import pydase.utils.serialization.serializer
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
+from pydase.server.web_server.api.v1 import endpoints
 from pydase.utils.logging import SocketIOHandler
 from pydase.utils.serialization.serializer import SerializedObject
 
@@ -155,9 +158,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def update_value(sid: str, data: UpdateDict) -> SerializedObject | None:
         try:
-            pydase.server.web_server.api.v1.endpoints.update_value(
-                state_manager=state_manager, data=data
-            )
+            endpoints.update_value(state_manager=state_manager, data=data)
         except Exception as e:
             logger.exception(e)
             return dump(e)
@@ -166,7 +167,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def get_value(sid: str, access_path: str) -> SerializedObject:
         try:
-            return pydase.server.web_server.api.v1.endpoints.get_value(
+            return endpoints.get_value(
                 state_manager=state_manager, access_path=access_path
             )
         except Exception as e:
@@ -175,10 +176,14 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
+        method = get_object_attr_from_path(state_manager.service, data["access_path"])
+
         try:
-            return pydase.server.web_server.api.v1.endpoints.trigger_method(
-                state_manager=state_manager, data=data
-            )
+            if inspect.iscoroutinefunction(method):
+                return await endpoints.trigger_async_method(
+                    state_manager=state_manager, data=data
+                )
+            return endpoints.trigger_method(state_manager=state_manager, data=data)
         except Exception as e:
             logger.error(e)
             return dump(e)
