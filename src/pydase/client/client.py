@@ -3,6 +3,7 @@ import logging
 import sys
 import threading
 import urllib.parse
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import socketio  # type: ignore
@@ -109,10 +110,14 @@ class Client:
         self.connect(block_until_connected=block_until_connected)
 
     def __enter__(self) -> Self:
-        self.connect(block_until_connected=True)
         return self
 
-    def __del__(self) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.disconnect()
 
     def connect(self, block_until_connected: bool = True) -> None:
