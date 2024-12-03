@@ -18,7 +18,10 @@ Provide steps to reproduce the behaviour, including a minimal code snippet (if a
 ## Expected behaviour
 A clear and concise description of what you expected to happen.
 
-## Screenshot/Video
+## Actual behaviour
+Describe what you see instead of the expected behaviour.
+
+### Screenshot/Video
 If applicable, add visual content that helps explain your problem.
 
 ## Additional context
