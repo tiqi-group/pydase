@@ -247,6 +247,7 @@ You have two primary ways to adjust the log levels in `pydase`:
    # logging.getLogger("pydase.data_service").setLevel(logging.DEBUG)
 
    # Your logger for the current script
+   logging.basicConfig(level=logging.INFO)
    logger = logging.getLogger(__name__)
    logger.info("My info message.")
    ```
