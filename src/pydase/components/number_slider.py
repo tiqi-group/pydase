@@ -13,11 +13,11 @@ class NumberSlider(DataService):
 
     Args:
         value:
-            The initial value of the slider. Defaults to 0.
+            The initial value of the slider. Defaults to 0.0.
         min_:
-            The minimum value of the slider. Defaults to 0.
+            The minimum value of the slider. Defaults to 0.0.
         max_:
-            The maximum value of the slider. Defaults to 100.
+            The maximum value of the slider. Defaults to 100.0.
         step_size:
             The increment/decrement step size of the slider. Defaults to 1.0.
 
@@ -84,9 +84,9 @@ class NumberSlider(DataService):
     def __init__(
         self,
         value: Any = 0.0,
-        min_: float = 0.0,
-        max_: float = 100.0,
-        step_size: float = 1.0,
+        min_: Any = 0.0,
+        max_: Any = 100.0,
+        step_size: Any = 1.0,
     ) -> None:
         super().__init__()
         self._step_size = step_size
@@ -95,17 +95,17 @@ class NumberSlider(DataService):
         self._max = max_
 
     @property
-    def min(self) -> float:
+    def min(self) -> Any:
         """The min property."""
         return self._min
 
     @property
-    def max(self) -> float:
+    def max(self) -> Any:
         """The min property."""
         return self._max
 
     @property
-    def step_size(self) -> float:
+    def step_size(self) -> Any:
         """The min property."""
         return self._step_size
 
