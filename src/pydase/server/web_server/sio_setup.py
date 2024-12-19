@@ -185,7 +185,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
                 )
             return endpoints.trigger_method(state_manager=state_manager, data=data)
         except Exception as e:
-            logger.error(e)
+            logger.exception(e)
             return dump(e)
 
 
