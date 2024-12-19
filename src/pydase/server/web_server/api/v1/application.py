@@ -1,5 +1,6 @@
 import inspect
 import logging
+from functools import partial
 from typing import TYPE_CHECKING
 
 import aiohttp.web
@@ -25,7 +26,7 @@ STATUS_FAILED = 400
 
 
 async def _get_value(
-    state_manager: StateManager, request: aiohttp.web.Request
+    request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
     logger.info("Handle api request: %s", request)
 
@@ -42,7 +43,7 @@ async def _get_value(
 
 
 async def _update_value(
-    state_manager: StateManager, request: aiohttp.web.Request
+    request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
     data: UpdateDict = await request.json()
 
@@ -56,7 +57,7 @@ async def _update_value(
 
 
 async def _trigger_method(
-    state_manager: StateManager, request: aiohttp.web.Request
+    request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
     data: TriggerMethodDict = await request.json()
 
@@ -83,16 +84,13 @@ def create_api_application(state_manager: StateManager) -> aiohttp.web.Applicati
     )
 
     api_application.router.add_get(
-        "/get_value",
-        lambda request: _get_value(state_manager=state_manager, request=request),
+        "/get_value", partial(_get_value, state_manager=state_manager)
     )
     api_application.router.add_put(
-        "/update_value",
-        lambda request: _update_value(state_manager=state_manager, request=request),
+        "/update_value", partial(_update_value, state_manager=state_manager)
     )
     api_application.router.add_put(
-        "/trigger_method",
-        lambda request: _trigger_method(state_manager=state_manager, request=request),
+        "/trigger_method", partial(_trigger_method, state_manager=state_manager)
     )
 
     return api_application
