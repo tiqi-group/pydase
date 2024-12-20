@@ -100,7 +100,7 @@ class PropertyObserver(Observer):
         elif isinstance(collection, dict):
             for key, val in collection.items():
                 if isinstance(val, Observable):
-                    new_prefix = f"{parent_path}['{key}']"
+                    new_prefix = f'{parent_path}["{key}"]'
                     deps.update(
                         self._get_properties_and_their_dependencies(val, new_prefix)
                     )

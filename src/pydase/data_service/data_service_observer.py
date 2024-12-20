@@ -10,7 +10,6 @@ from pydase.observer_pattern.observer.property_observer import (
 )
 from pydase.utils.helpers import (
     get_object_attr_from_path,
-    normalize_full_access_path_string,
 )
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
@@ -102,8 +101,7 @@ class DataServiceObserver(PropertyObserver):
         )
 
     def _notify_dependent_property_changes(self, changed_attr_path: str) -> None:
-        normalized_attr_path = normalize_full_access_path_string(changed_attr_path)
-        changed_props = self.property_deps_dict.get(normalized_attr_path, [])
+        changed_props = self.property_deps_dict.get(changed_attr_path, [])
         for prop in changed_props:
             # only notify about changing attribute if it is not currently being
             # "changed" e.g. when calling the getter of a property within another
