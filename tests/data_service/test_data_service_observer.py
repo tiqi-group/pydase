@@ -184,3 +184,41 @@ def test_normalized_attr_path_in_dependent_property_changes(
     )
     assert service_instance.service_dict["one"].prop == 12.0
     assert "'service_dict[\"one\"].prop' changed to '12.0'" in caplog.text
+
+
+def test_nested_dict_property_changes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    def get_voltage() -> float:
+        """Mocking a remote device."""
+        return 2.0
+
+    def set_voltage(value: float) -> None:
+        """Mocking a remote device."""
+
+    class OtherService(pydase.DataService):
+        _voltage = 1.0
+
+        @property
+        def voltage(self) -> float:
+            # Property dependency _voltage changes within the property itself.
+            # This should be handled gracefully, i.e. not introduce recursion
+            self._voltage = get_voltage()
+            return self._voltage
+
+        @voltage.setter
+        def voltage(self, value: float) -> None:
+            self._voltage = value
+            set_voltage(self._voltage)
+
+    class MyService(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self.my_dict = {"key": OtherService()}
+
+    service = MyService()
+    pydase.Server(service)
+
+    # Changing the _voltage attribute should re-evaluate the voltage property, but avoid
+    # recursion
+    service.my_dict["key"].voltage = 1.2
