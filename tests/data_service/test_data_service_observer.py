@@ -167,8 +167,8 @@ def test_normalized_attr_path_in_dependent_property_changes(
     state_manager = StateManager(service=service_instance)
     observer = DataServiceObserver(state_manager=state_manager)
 
-    assert observer.property_deps_dict["service_dict['one']._prop"] == [
-        "service_dict['one'].prop"
+    assert observer.property_deps_dict['service_dict["one"]._prop'] == [
+        'service_dict["one"].prop'
     ]
 
     # We can use dict key path encoded with double quotes
