@@ -111,8 +111,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
 
             exception = task.exception()
             if exception is not None:
-                # Handle the exception, or you can re-raise it.
-                logger.error(
+                logger.exception(
                     "Task '%s' encountered an exception: %s: %s",
                     self._func_name,
                     type(exception).__name__,

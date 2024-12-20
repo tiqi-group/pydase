@@ -393,7 +393,7 @@ def set_nested_value_by_path(
             current_dict, path_parts[-1], allow_append=True
         )
     except (SerializationPathError, KeyError) as e:
-        logger.error("Error occured trying to change %a: %s", path, e)
+        logger.exception("Error occured trying to change %a: %s", path, e)
         return
 
     if next_level_serialized_object["type"] == "method":  # state change of task

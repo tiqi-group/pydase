@@ -258,7 +258,7 @@ class Server:
             except asyncio.CancelledError:
                 logger.debug("Cancelled '%s' server.", server_name)
             except Exception as e:
-                logger.error("Unexpected exception: %s", e)
+                logger.exception("Unexpected exception: %s", e)
 
     async def __cancel_tasks(self) -> None:
         for task in asyncio.all_tasks(self._loop):
