@@ -199,16 +199,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { key, target } = event;
 
-    // Typecast
     const inputTarget = target as HTMLInputElement;
-    if (
-      key === "F1" ||
-      key === "F5" ||
-      key === "F12" ||
-      key === "Tab" ||
-      key === "ArrowRight" ||
-      key === "ArrowLeft"
-    ) {
+    if (key === "F1" || key === "F5" || key === "F12" || key === "Tab") {
       return;
     }
     event.preventDefault();
@@ -222,6 +214,11 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     if (event.ctrlKey && key === "a") {
       // Select everything when pressing Ctrl + a
       inputTarget.setSelectionRange(0, value.length);
+      return;
+    } else if (key === "ArrowRight" || key === "ArrowLeft") {
+      // Move the cursor with the arrow keys and store its position
+      selectionStart = key === "ArrowRight" ? selectionStart + 1 : selectionStart - 1;
+      setCursorPosition(selectionStart);
       return;
     } else if ((key >= "0" && key <= "9") || key === "-") {
       // Check if a number key or a decimal point key is pressed
