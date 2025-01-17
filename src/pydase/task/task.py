@@ -1,5 +1,4 @@
 import asyncio
-import inspect
 import logging
 import os
 import signal
@@ -163,58 +162,53 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
                 self._result = task.result()
 
         async def run_task() -> R | None:
-            if inspect.iscoroutinefunction(self._func):
-                logger.info("Starting task %r", self._func_name)
-                self._status = TaskStatus.RUNNING
-                attempts = 0
-                start_time = None
+            logger.info("Starting task %r", self._func_name)
+            self._status = TaskStatus.RUNNING
+            attempts = 0
+            start_time = None
 
-                if self._timeout_start_sec:
-                    # Wait for timeout_start_sec seconds
-                    await asyncio.sleep(self._timeout_start_sec)
+            if self._timeout_start_sec:
+                # Wait for timeout_start_sec seconds
+                await asyncio.sleep(self._timeout_start_sec)
 
-                while True:
-                    res: Coroutine[None, None, R | None] = self._func()
+            while True:
+                res: Coroutine[None, None, R | None] = self._func()
 
-                    try:
-                        await res
-                    except asyncio.CancelledError:
-                        logger.info("Task '%s' was cancelled", self._func_name)
-                        raise
-                    except Exception as e:
-                        if start_time is None:
+                try:
+                    await res
+                except asyncio.CancelledError:
+                    logger.info("Task '%s' was cancelled", self._func_name)
+                    raise
+                except Exception as e:
+                    if start_time is None:
+                        start_time = time()
+
+                    attempts += 1
+                    logger.exception(
+                        "Task %r encountered an exception: %r [attempt %s since %s].",
+                        self._func.__name__,
+                        e,
+                        attempts,
+                        datetime.fromtimestamp(start_time),
+                    )
+                    if not self._restart_on_failure:
+                        if self._exit_on_failure:
+                            raise e
+                        break
+                    if self._start_limit_interval_sec is not None:
+                        if (time() - start_time) > self._start_limit_interval_sec:
+                            # reset attempts if start_limit_interval_sec is exceeded
                             start_time = time()
-
-                        attempts += 1
-                        logger.exception(
-                            "Task %r encountered an exception: %r [attempt %s since %s].",
-                            self._func.__name__,
-                            e,
-                            attempts,
-                            datetime.fromtimestamp(start_time),
-                        )
-                        if not self._restart_on_failure:
+                            attempts = 1
+                        elif attempts > self._start_limit_burst:
+                            logger.error(
+                                "Task %r exceeded restart burst limit. Stopping.",
+                                self._func.__name__,
+                            )
                             if self._exit_on_failure:
                                 raise e
                             break
-                        if self._start_limit_interval_sec is not None:
-                            if (time() - start_time) > self._start_limit_interval_sec:
-                                # reset attempts if start_limit_interval_sec is exceeded
-                                start_time = time()
-                                attempts = 1
-                            elif attempts > self._start_limit_burst:
-                                logger.error(
-                                    "Task %r exceeded restart burst limit. Stopping.",
-                                    self._func.__name__,
-                                )
-                                if self._exit_on_failure:
-                                    raise e
-                                break
-                        await asyncio.sleep(self._restart_sec)
-                return None
-            logger.warning(
-                "Cannot start task %r. Function has not been bound yet", self._func_name
-            )
+                    await asyncio.sleep(self._restart_sec)
             return None
 
         logger.info("Creating task %r", self._func_name)
