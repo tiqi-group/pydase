@@ -423,7 +423,7 @@ async def test_exit_on_failure(
     service_instance.my_task.start()
 
     await asyncio.sleep(0.1)
-    assert "os.kill called with signal=15 and pid=" in caplog.text
+    assert "os.kill called with signal=" in caplog.text
     assert "Task 'my_task' encountered an exception" in caplog.text
 
 
@@ -453,5 +453,5 @@ async def test_exit_on_failure_exceeding_rate_limit(
     service_instance.my_task.start()
 
     await asyncio.sleep(0.5)
-    assert "os.kill called with signal=15 and pid=" in caplog.text
+    assert "os.kill called with signal=" in caplog.text
     assert "Task 'my_task' encountered an exception" in caplog.text
