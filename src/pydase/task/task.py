@@ -92,13 +92,13 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self,
         func: Callable[[], Coroutine[None, None, R | None]],
         *,
-        autostart: bool = False,
-        restart_on_failure: bool = False,
-        restart_sec: float = 1.0,
-        start_limit_interval_sec: float | None = None,
-        start_limit_burst: int = 3,
-        timeout_start_sec: float = 0.0,
-        exit_on_failure: bool = False,
+        autostart: bool,
+        restart_on_failure: bool,
+        restart_sec: float,
+        start_limit_interval_sec: float | None,
+        start_limit_burst: int,
+        timeout_start_sec: float,
+        exit_on_failure: bool,
     ) -> None:
         super().__init__()
         self._autostart = autostart

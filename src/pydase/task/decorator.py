@@ -30,13 +30,13 @@ class PerInstanceTaskDescriptor(Generic[R]):
         self,
         func: Callable[[Any], Coroutine[None, None, R]]
         | Callable[[], Coroutine[None, None, R]],
-        autostart: bool = False,
-        restart_on_failure: bool = False,
-        restart_sec: float = 1.0,
-        start_limit_interval_sec: float | None = None,
-        start_limit_burst: int = 3,
-        timeout_start_sec: float = 0.0,
-        exit_on_failure: bool = False,
+        autostart: bool,
+        restart_on_failure: bool,
+        restart_sec: float,
+        start_limit_interval_sec: float | None,
+        start_limit_burst: int,
+        timeout_start_sec: float,
+        exit_on_failure: bool,
     ) -> None:
         self.__func = func
         self.__autostart = autostart
