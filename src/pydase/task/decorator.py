@@ -97,7 +97,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
 def task(  # noqa: PLR0913
     *,
     autostart: bool = False,
-    restart_on_failure: bool = False,
+    restart_on_failure: bool = True,
     restart_sec: float = 1.0,
     start_limit_interval_sec: float | None = None,
     start_limit_burst: int = 3,
