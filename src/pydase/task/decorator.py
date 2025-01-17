@@ -36,6 +36,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
         start_limit_interval_sec: float | None = None,
         start_limit_burst: int = 3,
         timeout_start_sec: float = 0.0,
+        exit_on_failure: bool = False,
     ) -> None:
         self.__func = func
         self.__autostart = autostart
@@ -45,6 +46,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
         self.__start_limit_interval_sec = start_limit_interval_sec
         self.__start_limit_burst = start_limit_burst
         self.__timeout_start_sec = timeout_start_sec
+        self.__exit_on_failure = exit_on_failure
 
     def __set_name__(self, owner: type[DataService], name: str) -> None:
         """Stores the name of the task within the owning class. This method is called
@@ -85,6 +87,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
                     start_limit_interval_sec=self.__start_limit_interval_sec,
                     start_limit_burst=self.__start_limit_burst,
                     timeout_start_sec=self.__timeout_start_sec,
+                    exit_on_failure=self.__exit_on_failure,
                 ),
             )
 
@@ -99,6 +102,7 @@ def task(  # noqa: PLR0913
     start_limit_interval_sec: float | None = None,
     start_limit_burst: int = 3,
     timeout_start_sec: float = 0.0,
+    exit_on_failure: bool = False,
 ) -> Callable[
     [
         Callable[[Any], Coroutine[None, None, R]]
@@ -143,6 +147,9 @@ def task(  # noqa: PLR0913
             not permitted to start any more. Defaults to 3.
         timeout_start_sec:
             Configures the time to wait for start-up. Defaults to 0.0.
+        exit_on_failure:
+            If True, exit the service if the task fails and restart_on_failure is False
+            or burst limits are exceeded.
     Returns:
         A decorator that wraps an asynchronous function in a
         [`PerInstanceTaskDescriptor`][pydase.task.decorator.PerInstanceTaskDescriptor]
@@ -188,6 +195,7 @@ def task(  # noqa: PLR0913
             start_limit_interval_sec=start_limit_interval_sec,
             start_limit_burst=start_limit_burst,
             timeout_start_sec=timeout_start_sec,
+            exit_on_failure=exit_on_failure,
         )
 
     return decorator
