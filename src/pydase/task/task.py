@@ -54,8 +54,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
             Configures unit start rate limiting. Tasks which are started more than
             `start_limit_burst` times within an `start_limit_interval_sec` time span are
             not permitted to start any more. Defaults to 3.
-        timeout_start_sec:
-            Configures the time to wait for start-up. Defaults to 0.0.
         exit_on_failure:
             If True, exit the service if the task fails and restart_on_failure is False
             or burst limits are exceeded.
@@ -96,7 +94,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         restart_sec: float,
         start_limit_interval_sec: float | None,
         start_limit_burst: int,
-        timeout_start_sec: float,
         exit_on_failure: bool,
     ) -> None:
         super().__init__()
@@ -105,7 +102,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self._restart_sec = restart_sec
         self._start_limit_interval_sec = start_limit_interval_sec
         self._start_limit_burst = start_limit_burst
-        self._timeout_start_sec = timeout_start_sec
         self._exit_on_failure = exit_on_failure
         self._func_name = func.__name__
         self._func = func
@@ -171,8 +167,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         attempts = 0
         start_time_of_start_limit_interval = None
 
-        await self._handle_startup_timeout()
-
         while True:
             try:
                 await self._func()
@@ -193,11 +187,6 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
                     break
                 await asyncio.sleep(self._restart_sec)
         return None
-
-    async def _handle_startup_timeout(self) -> None:
-        """Wait for the configured startup timeout."""
-        if self._timeout_start_sec:
-            await asyncio.sleep(self._timeout_start_sec)
 
     def _handle_task_exception(
         self,

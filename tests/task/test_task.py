@@ -384,25 +384,6 @@ async def test_non_exceeding_start_limit_interval_sec_and_burst(
 
 
 @pytest.mark.asyncio(scope="function")
-async def test_timeout_start_sec(caplog: LogCaptureFixture) -> None:
-    class MyService(pydase.DataService):
-        @task(timeout_start_sec=0.2)
-        async def my_task(self) -> None:
-            logger.info("Starting task.")
-            await asyncio.sleep(1)
-
-    service_instance = MyService()
-    state_manager = StateManager(service_instance)
-    DataServiceObserver(state_manager)
-    service_instance.my_task.start()
-
-    await asyncio.sleep(0.1)
-    assert "Starting task." not in caplog.text
-    await asyncio.sleep(0.2)
-    assert "Starting task." in caplog.text
-
-
-@pytest.mark.asyncio(scope="function")
 async def test_exit_on_failure(
     monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
 ) -> None:

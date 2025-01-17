@@ -35,7 +35,6 @@ class PerInstanceTaskDescriptor(Generic[R]):
         restart_sec: float,
         start_limit_interval_sec: float | None,
         start_limit_burst: int,
-        timeout_start_sec: float,
         exit_on_failure: bool,
     ) -> None:
         self.__func = func
@@ -45,7 +44,6 @@ class PerInstanceTaskDescriptor(Generic[R]):
         self.__restart_sec = restart_sec
         self.__start_limit_interval_sec = start_limit_interval_sec
         self.__start_limit_burst = start_limit_burst
-        self.__timeout_start_sec = timeout_start_sec
         self.__exit_on_failure = exit_on_failure
 
     def __set_name__(self, owner: type[DataService], name: str) -> None:
@@ -86,7 +84,6 @@ class PerInstanceTaskDescriptor(Generic[R]):
                     restart_sec=self.__restart_sec,
                     start_limit_interval_sec=self.__start_limit_interval_sec,
                     start_limit_burst=self.__start_limit_burst,
-                    timeout_start_sec=self.__timeout_start_sec,
                     exit_on_failure=self.__exit_on_failure,
                 ),
             )
@@ -101,7 +98,6 @@ def task(  # noqa: PLR0913
     restart_sec: float = 1.0,
     start_limit_interval_sec: float | None = None,
     start_limit_burst: int = 3,
-    timeout_start_sec: float = 0.0,
     exit_on_failure: bool = False,
 ) -> Callable[
     [
@@ -145,8 +141,6 @@ def task(  # noqa: PLR0913
             Configures unit start rate limiting. Tasks which are started more than
             `start_limit_burst` times within an `start_limit_interval_sec` time span are
             not permitted to start any more. Defaults to 3.
-        timeout_start_sec:
-            Configures the time to wait for start-up. Defaults to 0.0.
         exit_on_failure:
             If True, exit the service if the task fails and restart_on_failure is False
             or burst limits are exceeded.
@@ -194,7 +188,6 @@ def task(  # noqa: PLR0913
             restart_sec=restart_sec,
             start_limit_interval_sec=start_limit_interval_sec,
             start_limit_burst=start_limit_burst,
-            timeout_start_sec=timeout_start_sec,
             exit_on_failure=exit_on_failure,
         )
 
