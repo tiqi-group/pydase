@@ -41,7 +41,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         autostart:
             If set to True, the task will automatically start when the service is
             initialized. Defaults to False.
-        restart_on_failure:
+        restart_on_exception:
             Configures whether the task shall be restarted when it exits with an
             exception other than [`asyncio.CancelledError`][asyncio.CancelledError].
         restart_sec:
@@ -55,8 +55,8 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
             `start_limit_burst` times within an `start_limit_interval_sec` time span are
             not permitted to start any more. Defaults to 3.
         exit_on_failure:
-            If True, exit the service if the task fails and restart_on_failure is False
-            or burst limits are exceeded.
+            If True, exit the service if the task fails and restart_on_exception is
+            False or burst limits are exceeded.
 
     Example:
         ```python
@@ -90,7 +90,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         func: Callable[[], Coroutine[None, None, R | None]],
         *,
         autostart: bool,
-        restart_on_failure: bool,
+        restart_on_exception: bool,
         restart_sec: float,
         start_limit_interval_sec: float | None,
         start_limit_burst: int,
@@ -98,7 +98,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
     ) -> None:
         super().__init__()
         self._autostart = autostart
-        self._restart_on_failure = restart_on_failure
+        self._restart_on_exception = restart_on_exception
         self._restart_sec = restart_sec
         self._start_limit_interval_sec = start_limit_interval_sec
         self._start_limit_burst = start_limit_burst
@@ -212,7 +212,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
         self, attempts: int, start_time_of_start_limit_interval: float
     ) -> bool:
         """Determine if the task should be restarted."""
-        if not self._restart_on_failure:
+        if not self._restart_on_exception:
             return False
 
         if self._start_limit_interval_sec is not None:

@@ -292,9 +292,9 @@ async def test_manual_start_with_multiple_service_instances(
 
 
 @pytest.mark.asyncio(scope="function")
-async def test_restart_on_failure(caplog: LogCaptureFixture) -> None:
+async def test_restart_on_exception(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
-        @task(restart_on_failure=True, restart_sec=0.1)
+        @task(restart_on_exception=True, restart_sec=0.1)
         async def my_task(self) -> None:
             logger.info("Triggered task.")
             raise Exception("Task failure")
@@ -316,7 +316,7 @@ async def test_restart_on_failure(caplog: LogCaptureFixture) -> None:
 @pytest.mark.asyncio(scope="function")
 async def test_restart_sec(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
-        @task(restart_on_failure=True, restart_sec=0.1)
+        @task(restart_on_exception=True, restart_sec=0.1)
         async def my_task(self) -> None:
             logger.info("Triggered task.")
             raise Exception("Task failure")
@@ -341,7 +341,7 @@ async def test_exceeding_start_limit_interval_sec_and_burst(
 ) -> None:
     class MyService(pydase.DataService):
         @task(
-            restart_on_failure=True,
+            restart_on_exception=True,
             restart_sec=0.0,
             start_limit_interval_sec=1.0,
             start_limit_burst=2,
@@ -365,7 +365,7 @@ async def test_non_exceeding_start_limit_interval_sec_and_burst(
 ) -> None:
     class MyService(pydase.DataService):
         @task(
-            restart_on_failure=True,
+            restart_on_exception=True,
             restart_sec=0.1,
             start_limit_interval_sec=0.1,
             start_limit_burst=2,
@@ -388,7 +388,7 @@ async def test_exit_on_failure(
     monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
 ) -> None:
     class MyService(pydase.DataService):
-        @task(restart_on_failure=False, exit_on_failure=True)
+        @task(restart_on_exception=False, exit_on_failure=True)
         async def my_task(self) -> None:
             logger.info("Triggered task.")
             raise Exception("Critical failure")
@@ -414,7 +414,7 @@ async def test_exit_on_failure_exceeding_rate_limit(
 ) -> None:
     class MyService(pydase.DataService):
         @task(
-            restart_on_failure=True,
+            restart_on_exception=True,
             restart_sec=0.0,
             start_limit_interval_sec=0.1,
             start_limit_burst=2,

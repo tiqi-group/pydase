@@ -44,11 +44,11 @@ The [`@task`][pydase.task.decorator.task] decorator replaces the function with a
 The [`@task`][pydase.task.decorator.task] decorator supports several options inspired by systemd unit services, allowing fine-grained control over task behavior:
 
 - **`autostart`**: Automatically starts the task when the service initializes. Defaults to `False`.
-- **`restart_on_failure`**: Configures whether the task should restart if it exits due to an exception (other than `asyncio.CancelledError`). Defaults to `True`.
+- **`restart_on_exception`**: Configures whether the task should restart if it exits due to an exception (other than `asyncio.CancelledError`). Defaults to `True`.
 - **`restart_sec`**: Specifies the delay (in seconds) before restarting a failed task. Defaults to `1.0`.
 - **`start_limit_interval_sec`**: Configures a time window (in seconds) for rate limiting task restarts. If the task restarts more than `start_limit_burst` times within this interval, it will no longer restart. Defaults to `None` (disabled).
 - **`start_limit_burst`**: Defines the maximum number of restarts allowed within the interval specified by `start_limit_interval_sec`. Defaults to `3`.
-- **`exit_on_failure`**: If set to `True`, the service will exit if the task fails and either `restart_on_failure` is `False` or the start rate limiting is exceeded. Defaults to `False`.
+- **`exit_on_failure`**: If set to `True`, the service will exit if the task fails and either `restart_on_exception` is `False` or the start rate limiting is exceeded. Defaults to `False`.
 
 ### Example with Advanced Options
 
@@ -65,7 +65,7 @@ class AdvancedTaskService(pydase.DataService):
 
     @task(
         autostart=True,
-        restart_on_failure=True,
+        restart_on_exception=True,
         restart_sec=2.0,
         start_limit_interval_sec=10.0,
         start_limit_burst=5,
@@ -80,10 +80,3 @@ if __name__ == "__main__":
     service = AdvancedTaskService()
     pydase.Server(service=service).run()
 ```
-
-## Key Points
-
-1. **Restart Behavior**: Tasks configured with `restart_on_failure=True` will restart after a failure, subject to the limits specified by `start_limit_interval_sec` and `start_limit_burst`.
-2. **Graceful Shutdown**: Tasks that are manually stopped or cancelled will not trigger restarts.
-3. **Critical Failures**: If `exit_on_failure=True`, the service will terminate if the task fails irrecoverably.
-
