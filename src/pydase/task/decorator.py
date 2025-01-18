@@ -31,7 +31,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
         func: Callable[[Any], Coroutine[None, None, R]]
         | Callable[[], Coroutine[None, None, R]],
         autostart: bool,
-        restart_on_failure: bool,
+        restart_on_exception: bool,
         restart_sec: float,
         start_limit_interval_sec: float | None,
         start_limit_burst: int,
@@ -40,7 +40,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
         self.__func = func
         self.__autostart = autostart
         self.__task_instances: dict[object, Task[R]] = {}
-        self.__restart_on_failure = restart_on_failure
+        self.__restart_on_exception = restart_on_exception
         self.__restart_sec = restart_sec
         self.__start_limit_interval_sec = start_limit_interval_sec
         self.__start_limit_burst = start_limit_burst
@@ -80,7 +80,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
                 Task(
                     self.__func.__get__(instance, owner),
                     autostart=self.__autostart,
-                    restart_on_failure=self.__restart_on_failure,
+                    restart_on_exception=self.__restart_on_exception,
                     restart_sec=self.__restart_sec,
                     start_limit_interval_sec=self.__start_limit_interval_sec,
                     start_limit_burst=self.__start_limit_burst,
@@ -94,7 +94,7 @@ class PerInstanceTaskDescriptor(Generic[R]):
 def task(  # noqa: PLR0913
     *,
     autostart: bool = False,
-    restart_on_failure: bool = True,
+    restart_on_exception: bool = True,
     restart_sec: float = 1.0,
     start_limit_interval_sec: float | None = None,
     start_limit_burst: int = 3,
@@ -128,7 +128,7 @@ def task(  # noqa: PLR0913
         autostart:
             If set to True, the task will automatically start when the service is
             initialized. Defaults to False.
-        restart_on_failure:
+        restart_on_exception:
             Configures whether the task shall be restarted when it exits with an
             exception other than [`asyncio.CancelledError`][asyncio.CancelledError].
         restart_sec:
@@ -142,8 +142,8 @@ def task(  # noqa: PLR0913
             `start_limit_burst` times within an `start_limit_interval_sec` time span are
             not permitted to start any more. Defaults to 3.
         exit_on_failure:
-            If True, exit the service if the task fails and restart_on_failure is False
-            or burst limits are exceeded.
+            If True, exit the service if the task fails and restart_on_exception is
+            False or burst limits are exceeded.
     Returns:
         A decorator that wraps an asynchronous function in a
         [`PerInstanceTaskDescriptor`][pydase.task.decorator.PerInstanceTaskDescriptor]
@@ -184,7 +184,7 @@ def task(  # noqa: PLR0913
         return PerInstanceTaskDescriptor(
             func,
             autostart=autostart,
-            restart_on_failure=restart_on_failure,
+            restart_on_exception=restart_on_exception,
             restart_sec=restart_sec,
             start_limit_interval_sec=start_limit_interval_sec,
             start_limit_burst=start_limit_burst,
