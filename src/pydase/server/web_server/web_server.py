@@ -150,10 +150,7 @@ class WebServer:
                     f"{escaped_prefix}/favicon.ico",
                 )
 
-                return aiohttp.web.Response(
-                    text=modified_html, content_type="text/html"
-                )
-            return aiohttp.web.FileResponse(self.frontend_src / "index.html")
+            return aiohttp.web.Response(text=modified_html, content_type="text/html")
 
         app = aiohttp.web.Application()
 
