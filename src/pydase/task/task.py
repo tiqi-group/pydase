@@ -169,7 +169,7 @@ class Task(pydase.data_service.data_service.DataService, Generic[R]):
 
         while True:
             try:
-                await self._func()
+                return await self._func()
             except asyncio.CancelledError:
                 logger.info("Task '%s' was cancelled", self._func_name)
                 raise
