@@ -12,6 +12,7 @@ nav:
     - Understanding Units: user-guide/Understanding-Units.md
     - Validating Property Setters: user-guide/Validating-Property-Setters.md
     - Configuring pydase: user-guide/Configuration.md
+    - Logging in pydase: user-guide/Logging.md
     - Advanced:
         - Deploying behind a Reverse Proxy: user-guide/advanced/Reverse-Proxy.md
   - Developer Guide: 

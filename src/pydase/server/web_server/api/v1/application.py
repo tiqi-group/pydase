@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import aiohttp.web
 import aiohttp_middlewares.error
+import click
 
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server.api.v1.endpoints import (
@@ -28,9 +29,11 @@ STATUS_FAILED = 400
 async def _get_value(
     request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
-    logger.info("Handle api request: %s", request)
+    log_id = get_log_id(request)
 
     access_path = request.rel_url.query["access_path"]
+
+    logger.info("Client [%s] is getting the value of '%s'", log_id, access_path)
 
     status = STATUS_OK
     try:
@@ -45,7 +48,13 @@ async def _get_value(
 async def _update_value(
     request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
+    log_id = get_log_id(request)
+
     data: UpdateDict = await request.json()
+
+    logger.info(
+        "Client [%s] is updating the value of '%s'", log_id, data["access_path"]
+    )
 
     try:
         update_value(state_manager, data)
@@ -59,9 +68,15 @@ async def _update_value(
 async def _trigger_method(
     request: aiohttp.web.Request, state_manager: StateManager
 ) -> aiohttp.web.Response:
+    log_id = get_log_id(request)
+
     data: TriggerMethodDict = await request.json()
 
-    method = get_object_attr_from_path(state_manager.service, data["access_path"])
+    access_path = data["access_path"]
+
+    logger.info("Client [%s] is triggering the method '%s'", log_id, access_path)
+
+    method = get_object_attr_from_path(state_manager.service, access_path)
 
     try:
         if inspect.iscoroutinefunction(method):
@@ -76,6 +91,20 @@ async def _trigger_method(
     except Exception as e:
         logger.exception(e)
         return aiohttp.web.json_response(dump(e), status=STATUS_FAILED)
+
+
+def get_log_id(request: aiohttp.web.Request) -> str:
+    client_id_header = request.headers.get("x-client-id", None)
+    remote_username_header = request.headers.get("remote-user", None)
+
+    if remote_username_header is not None:
+        log_id = f"user={click.style(remote_username_header, fg='cyan')}"
+    elif client_id_header is not None:
+        log_id = f"id={click.style(client_id_header, fg='cyan')}"
+    else:
+        log_id = f"id={click.style(None, fg='cyan')}"
+
+    return log_id
 
 
 def create_api_application(state_manager: StateManager) -> aiohttp.web.Application:

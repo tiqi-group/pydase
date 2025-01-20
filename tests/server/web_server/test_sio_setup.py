@@ -1,11 +1,10 @@
-import json
 import threading
 from collections.abc import Generator
 from typing import Any
 
-import aiohttp
 import pydase
 import pytest
+import socketio
 from pydase.utils.serialization.deserializer import Deserializer
 
 
@@ -46,7 +45,7 @@ def pydase_server() -> Generator[None, None, None]:
         async def my_async_method(self, input_str: str) -> str:
             return f"{input_str}: my_async_method"
 
-    server = pydase.Server(MyService(), web_port=9998)
+    server = pydase.Server(MyService(), web_port=9997)
     thread = threading.Thread(target=server.run, daemon=True)
     thread.start()
 
@@ -113,10 +112,13 @@ async def test_get_value(
     expected: dict[str, Any],
     pydase_server: None,
 ) -> None:
-    async with aiohttp.ClientSession("http://localhost:9998") as session:
-        resp = await session.get(f"/api/v1/get_value?access_path={access_path}")
-        content = json.loads(await resp.text())
-        assert content == expected
+    client = socketio.AsyncClient()
+    await client.connect(
+        "http://localhost:9997", socketio_path="/ws/socket.io", transports=["websocket"]
+    )
+    response = await client.call("get_value", access_path)
+    assert response == expected
+    await client.disconnect()
 
 
 @pytest.mark.parametrize(
@@ -184,19 +186,24 @@ async def test_update_value(
     access_path: str,
     new_value: dict[str, Any],
     ok: bool,
-    pydase_server: pydase.DataService,
+    pydase_server: None,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    async with aiohttp.ClientSession("http://localhost:9998") as session:
-        resp = await session.put(
-            "/api/v1/update_value",
-            json={"access_path": access_path, "value": new_value},
-        )
-        assert resp.ok == ok
-        if resp.ok:
-            resp = await session.get(f"/api/v1/get_value?access_path={access_path}")
-            content = json.loads(await resp.text())
-            assert content == new_value
+    client = socketio.AsyncClient()
+    await client.connect(
+        "http://localhost:9997", socketio_path="/ws/socket.io", transports=["websocket"]
+    )
+    response = await client.call(
+        "update_value",
+        {"access_path": access_path, "value": new_value},
+    )
+
+    if ok:
+        assert response is None
+    else:
+        assert response["type"] == "Exception"
+
+    await client.disconnect()
 
 
 @pytest.mark.parametrize(
@@ -226,37 +233,43 @@ async def test_trigger_method(
     ok: bool,
     pydase_server: pydase.DataService,
 ) -> None:
-    async with aiohttp.ClientSession("http://localhost:9998") as session:
-        resp = await session.put(
-            "/api/v1/trigger_method",
-            json={
-                "access_path": access_path,
-                "kwargs": {
-                    "full_access_path": "",
-                    "type": "dict",
-                    "value": {
-                        "input_str": {
-                            "docs": None,
-                            "full_access_path": "",
-                            "readonly": False,
-                            "type": "str",
-                            "value": "Hello from function",
-                        },
+    client = socketio.AsyncClient()
+    await client.connect(
+        "http://localhost:9997", socketio_path="/ws/socket.io", transports=["websocket"]
+    )
+    response = await client.call(
+        "trigger_method",
+        {
+            "access_path": access_path,
+            "kwargs": {
+                "full_access_path": "",
+                "type": "dict",
+                "value": {
+                    "input_str": {
+                        "docs": None,
+                        "full_access_path": "",
+                        "readonly": False,
+                        "type": "str",
+                        "value": "Hello from function",
                     },
                 },
             },
-        )
-        assert resp.ok == ok
+        },
+    )
 
-        if resp.ok:
-            content = Deserializer.deserialize(json.loads(await resp.text()))
-            assert content == expected
+    if ok:
+        content = Deserializer.deserialize(response)
+        assert content == expected
+    else:
+        assert response["type"] == "Exception"
+
+    await client.disconnect()
 
 
 @pytest.mark.parametrize(
     "headers, log_id",
     [
-        ({}, "id=None"),
+        ({}, "sid="),
         (
             {
                 "X-Client-Id": "client-header",
@@ -285,9 +298,15 @@ async def test_client_information_logging(
     pydase_server: pydase.DataService,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    async with aiohttp.ClientSession("http://localhost:9998") as session:
-        await session.get(
-            "/api/v1/get_value?access_path=readonly_attr", headers=headers
-        )
+    client = socketio.AsyncClient()
+    await client.connect(
+        "http://localhost:9997",
+        socketio_path="/ws/socket.io",
+        transports=["websocket"],
+        headers=headers,
+    )
+    await client.call("get_value", "readonly_attr")
 
     assert log_id in caplog.text
+
+    await client.disconnect()
