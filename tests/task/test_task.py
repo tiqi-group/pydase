@@ -436,3 +436,24 @@ async def test_exit_on_failure_exceeding_rate_limit(
     await asyncio.sleep(0.5)
     assert "os.kill called with signal=" in caplog.text
     assert "Task 'my_task' encountered an exception" in caplog.text
+
+
+@pytest.mark.asyncio(scope="function")
+async def test_gracefully_finishing_task(
+    monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
+) -> None:
+    class MyService(pydase.DataService):
+        @task()
+        async def my_task(self) -> None:
+            print("Hello")
+            await asyncio.sleep(0.1)
+
+    service_instance = MyService()
+    state_manager = StateManager(service_instance)
+    DataServiceObserver(state_manager)
+    service_instance.my_task.start()
+
+    await asyncio.sleep(0.05)
+    assert service_instance.my_task.status == TaskStatus.RUNNING
+    await asyncio.sleep(0.1)
+    assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
