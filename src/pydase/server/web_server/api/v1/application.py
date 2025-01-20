@@ -70,13 +70,13 @@ async def _trigger_method(
 ) -> aiohttp.web.Response:
     log_id = get_log_id(request)
 
-    access_path = request.rel_url.query["access_path"]
+    data: TriggerMethodDict = await request.json()
+
+    access_path = data["access_path"]
 
     logger.info("Client [%s] is triggering the method '%s'", log_id, access_path)
 
-    data: TriggerMethodDict = await request.json()
-
-    method = get_object_attr_from_path(state_manager.service, data["access_path"])
+    method = get_object_attr_from_path(state_manager.service, access_path)
 
     try:
         if inspect.iscoroutinefunction(method):
