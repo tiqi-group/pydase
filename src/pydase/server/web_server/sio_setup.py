@@ -144,10 +144,10 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
         client_id_header = environ.get("HTTP_X_CLIENT_ID", None)
         remote_username_header = environ.get("HTTP_REMOTE_USER", None)
 
-        if client_id_header is not None:
-            log_id = f"id={click.style(client_id_header, fg='cyan')}"
-        elif remote_username_header is not None:
+        if remote_username_header is not None:
             log_id = f"user={click.style(remote_username_header, fg='cyan')}"
+        elif client_id_header is not None:
+            log_id = f"id={click.style(client_id_header, fg='cyan')}"
         else:
             log_id = f"sid={click.style(sid, fg='cyan')}"
 

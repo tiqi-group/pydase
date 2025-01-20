@@ -97,10 +97,10 @@ def get_log_id(request: aiohttp.web.Request) -> str:
     client_id_header = request.headers.get("x-client-id", None)
     remote_username_header = request.headers.get("remote-user", None)
 
-    if client_id_header is not None:
-        log_id = f"id={click.style(client_id_header, fg='cyan')}"
-    elif remote_username_header is not None:
+    if remote_username_header is not None:
         log_id = f"user={click.style(remote_username_header, fg='cyan')}"
+    elif client_id_header is not None:
+        log_id = f"id={click.style(client_id_header, fg='cyan')}"
     else:
         log_id = f"id={click.style(None, fg='cyan')}"
 

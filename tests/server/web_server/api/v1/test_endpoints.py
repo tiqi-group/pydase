@@ -274,7 +274,7 @@ async def test_trigger_method(
                 "X-Client-Id": "client-header",
                 "Remote-User": "Remote User",
             },
-            "id=client-header",
+            "user=Remote User",
         ),
     ],
 )
