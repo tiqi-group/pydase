@@ -201,8 +201,6 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
-        method = get_object_attr_from_path(state_manager.service, data["access_path"])
-
         async with sio.session(sid) as session:
             logger.debug(
                 "Client [%s] is triggering the method '%s'",
@@ -210,6 +208,9 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
                 data["access_path"],
             )
         try:
+            method = get_object_attr_from_path(
+                state_manager.service, data["access_path"]
+            )
             if inspect.iscoroutinefunction(method):
                 return await endpoints.trigger_async_method(
                     state_manager=state_manager, data=data
