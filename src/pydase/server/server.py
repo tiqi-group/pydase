@@ -90,8 +90,10 @@ class Server:
             The host address for the server. Defaults to `'0.0.0.0'`, which means all
             available network interfaces.
         web_port:
-            The port number for the web server. Defaults to
-            [`ServiceConfig().web_port`][pydase.config.ServiceConfig.web_port].
+            The port number for the web server. If set to None, it will use the port
+            defined in
+            [`ServiceConfig().web_port`][pydase.config.ServiceConfig.web_port]. Defaults
+            to None.
         enable_web:
             Whether to enable the web server.
         filename:
@@ -145,7 +147,7 @@ class Server:
         self,
         service: DataService,
         host: str = "0.0.0.0",
-        web_port: int = ServiceConfig().web_port,
+        web_port: int | None = None,
         enable_web: bool = True,
         filename: str | Path | None = None,
         additional_servers: list[AdditionalServer] | None = None,
@@ -155,7 +157,10 @@ class Server:
             additional_servers = []
         self._service = service
         self._host = host
-        self._web_port = web_port
+        if web_port is None:
+            self._web_port = ServiceConfig().web_port
+        else:
+            self._web_port = web_port
         self._enable_web = enable_web
         self._kwargs = kwargs
         self._additional_servers = additional_servers
