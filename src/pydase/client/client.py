@@ -84,7 +84,7 @@ class Client:
         url: str,
         block_until_connected: bool = True,
         sio_client_kwargs: dict[str, Any] = {},
-        client_id: str = "pydase_client",
+        client_id: str | None = None,
     ):
         # Parse the URL to separate base URL and path prefix
         parsed_url = urllib.parse.urlparse(url)
@@ -138,11 +138,14 @@ class Client:
     async def _connect(self) -> None:
         logger.debug("Connecting to server '%s' ...", self._url)
         await self._setup_events()
+
+        headers = {}
+        if self._client_id is not None:
+            headers["X-Client-Id"] = self._client_id
+
         await self._sio.connect(
             url=self._base_url,
-            headers={
-                "X-Client-Id": self._client_id,
-            },
+            headers=headers,
             socketio_path=f"{self._path_prefix}/ws/socket.io",
             transports=["websocket"],
             retry=True,
