@@ -84,6 +84,7 @@ class Client:
         url: str,
         block_until_connected: bool = True,
         sio_client_kwargs: dict[str, Any] = {},
+        client_id: str = "pydase_client",
     ):
         # Parse the URL to separate base URL and path prefix
         parsed_url = urllib.parse.urlparse(url)
@@ -98,6 +99,7 @@ class Client:
         self._url = url
         self._sio = socketio.AsyncClient(**sio_client_kwargs)
         self._loop = asyncio.new_event_loop()
+        self._client_id = client_id
         self.proxy = ProxyClass(
             sio_client=self._sio, loop=self._loop, reconnect=self.connect
         )
@@ -137,7 +139,10 @@ class Client:
         logger.debug("Connecting to server '%s' ...", self._url)
         await self._setup_events()
         await self._sio.connect(
-            self._base_url,
+            url=self._base_url,
+            headers={
+                "X-Client-Id": self._client_id,
+            },
             socketio_path=f"{self._path_prefix}/ws/socket.io",
             transports=["websocket"],
             retry=True,
