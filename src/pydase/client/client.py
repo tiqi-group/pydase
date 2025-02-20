@@ -56,6 +56,9 @@ class Client:
             [`AsyncClient`][socketio.AsyncClient]. This allows fine-tuning of the
             client's behaviour (e.g., reconnection attempts or reconnection delay).
             Default is an empty dictionary.
+        client_id: Client identification that will be shown in the server logs this
+            client is connecting to. This ID is passed as a `X-Client-Id` header in the
+            HTTP(s) request. Defaults to None.
 
     Example:
         The following example demonstrates a `Client` instance that connects to another
