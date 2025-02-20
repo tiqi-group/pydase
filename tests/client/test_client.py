@@ -168,7 +168,7 @@ def test_client_id(
 ) -> None:
     pydase.Client(url="ws://localhost:9999")
 
-    assert "Client [id=pydase_client] connected" in caplog.text
+    assert "Client [sid=" in caplog.text
     caplog.clear()
 
     pydase.Client(url="ws://localhost:9999", client_id="my_service")
