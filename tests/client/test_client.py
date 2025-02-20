@@ -161,3 +161,15 @@ def test_context_manager(pydase_client: pydase.Client) -> None:
         assert client.proxy.my_property == 1337.01
 
     assert not client.proxy.connected
+
+
+def test_client_id(
+    pydase_client: pydase.Client, caplog: pytest.LogCaptureFixture
+) -> None:
+    pydase.Client(url="ws://localhost:9999")
+
+    assert "Client [sid=" in caplog.text
+    caplog.clear()
+
+    pydase.Client(url="ws://localhost:9999", client_id="my_service")
+    assert "Client [id=my_service] connected" in caplog.text

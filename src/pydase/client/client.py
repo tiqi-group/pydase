@@ -56,6 +56,9 @@ class Client:
             [`AsyncClient`][socketio.AsyncClient]. This allows fine-tuning of the
             client's behaviour (e.g., reconnection attempts or reconnection delay).
             Default is an empty dictionary.
+        client_id: Client identification that will be shown in the server logs this
+            client is connecting to. This ID is passed as a `X-Client-Id` header in the
+            HTTP(s) request. Defaults to None.
 
     Example:
         The following example demonstrates a `Client` instance that connects to another
@@ -84,6 +87,7 @@ class Client:
         url: str,
         block_until_connected: bool = True,
         sio_client_kwargs: dict[str, Any] = {},
+        client_id: str | None = None,
     ):
         # Parse the URL to separate base URL and path prefix
         parsed_url = urllib.parse.urlparse(url)
@@ -98,6 +102,7 @@ class Client:
         self._url = url
         self._sio = socketio.AsyncClient(**sio_client_kwargs)
         self._loop = asyncio.new_event_loop()
+        self._client_id = client_id
         self.proxy = ProxyClass(
             sio_client=self._sio, loop=self._loop, reconnect=self.connect
         )
@@ -136,8 +141,14 @@ class Client:
     async def _connect(self) -> None:
         logger.debug("Connecting to server '%s' ...", self._url)
         await self._setup_events()
+
+        headers = {}
+        if self._client_id is not None:
+            headers["X-Client-Id"] = self._client_id
+
         await self._sio.connect(
-            self._base_url,
+            url=self._base_url,
+            headers=headers,
             socketio_path=f"{self._path_prefix}/ws/socket.io",
             transports=["websocket"],
             retry=True,
