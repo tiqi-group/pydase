@@ -33,10 +33,20 @@ LOGGING_CONFIG = {
         "default": {
             "formatter": "default",
             "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+        },
+        "stdout": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
     },
     "loggers": {
+        "pydase.server": {
+            "handlers": ["stdout"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
         "pydase": {"handlers": ["default"], "level": LOG_LEVEL, "propagate": False},
         "aiohttp_middlewares": {
             "handlers": ["default"],
