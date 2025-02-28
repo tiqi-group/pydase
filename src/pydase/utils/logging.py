@@ -30,13 +30,13 @@ LOGGING_CONFIG = {
         },
     },
     "filters": {
-        "only_pydase_server_or_task": {
+        "only_pydase_server": {
             "()": "pydase.utils.logging.NameFilter",
-            "matches": ["pydase.server", "pydase.task"],
+            "match": "pydase.server",
         },
-        "exclude_pydase_server_and_task": {
+        "exclude_pydase_server": {
             "()": "pydase.utils.logging.NameFilter",
-            "matches": ["pydase.server", "pydase.task"],
+            "match": "pydase.server",
             "invert": True,
         },
     },
@@ -45,13 +45,13 @@ LOGGING_CONFIG = {
             "formatter": "default",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
-            "filters": ["only_pydase_server_or_task"],
+            "filters": ["only_pydase_server"],
         },
         "stderr_handler": {
             "formatter": "default",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stderr",
-            "filters": ["exclude_pydase_server_and_task"],
+            "filters": ["exclude_pydase_server"],
         },
     },
     "loggers": {
@@ -80,15 +80,15 @@ class NameFilter(logging.Filter):
     Can either include or exclude a specific logger.
     """
 
-    def __init__(self, matches: list[str], invert: bool = False):
+    def __init__(self, match: str, invert: bool = False):
         super().__init__()
-        self.matches = matches
+        self.match = match
         self.invert = invert
 
     def filter(self, record: logging.LogRecord) -> bool:
         if self.invert:
-            return not any(record.name.startswith(match) for match in self.matches)
-        return any(record.name.startswith(match) for match in self.matches)
+            return not record.name.startswith(self.match)
+        return record.name.startswith(self.match)
 
 
 class DefaultFormatter(logging.Formatter):
