@@ -29,37 +29,66 @@ LOGGING_CONFIG = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
-    "handlers": {
-        "default": {
-            "formatter": "default",
-            "class": "logging.StreamHandler",
-            "stream": "ext://sys.stderr",
+    "filters": {
+        "only_pydase_server_or_task": {
+            "()": "pydase.utils.logging.NameFilter",
+            "matches": ["pydase.server", "pydase.task"],
         },
-        "stdout": {
+        "exclude_pydase_server_and_task": {
+            "()": "pydase.utils.logging.NameFilter",
+            "matches": ["pydase.server", "pydase.task"],
+            "invert": True,
+        },
+    },
+    "handlers": {
+        "stdout_handler": {
             "formatter": "default",
             "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
+            "filters": ["only_pydase_server_or_task"],
+        },
+        "stderr_handler": {
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stderr",
+            "filters": ["exclude_pydase_server_and_task"],
         },
     },
     "loggers": {
-        "pydase.server": {
-            "handlers": ["stdout"],
+        "pydase": {
+            "handlers": ["stdout_handler", "stderr_handler"],
             "level": LOG_LEVEL,
             "propagate": False,
         },
-        "pydase": {"handlers": ["default"], "level": LOG_LEVEL, "propagate": False},
         "aiohttp_middlewares": {
-            "handlers": ["default"],
+            "handlers": ["stderr_handler"],
             "level": logging.WARNING,
             "propagate": False,
         },
         "aiohttp": {
-            "handlers": ["default"],
+            "handlers": ["stderr_handler"],
             "level": logging.INFO,
             "propagate": False,
         },
     },
 }
+
+
+class NameFilter(logging.Filter):
+    """
+    Logging filter that allows filtering logs based on the logger name.
+    Can either include or exclude a specific logger.
+    """
+
+    def __init__(self, matches: list[str], invert: bool = False):
+        super().__init__()
+        self.matches = matches
+        self.invert = invert
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if self.invert:
+            return not any(record.name.startswith(match) for match in self.matches)
+        return any(record.name.startswith(match) for match in self.matches)
 
 
 class DefaultFormatter(logging.Formatter):
