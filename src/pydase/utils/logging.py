@@ -205,7 +205,7 @@ def configure_root_logger_with_pydase_formatter(
 
     root_logger = logging.getLogger()
     handler = logging.StreamHandler(stream=stream)
-    formatter = pydase.utils.logging.DefaultFormatter(
+    formatter = DefaultFormatter(
         fmt="%(asctime)s.%(msecs)03d | %(levelprefix)s | "
         "%(name)s:%(funcName)s:%(lineno)d - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
