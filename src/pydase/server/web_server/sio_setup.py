@@ -202,7 +202,7 @@ def setup_sio_events(sio: socketio.AsyncServer, state_manager: StateManager) -> 
     @sio.event
     async def trigger_method(sid: str, data: TriggerMethodDict) -> Any:
         async with sio.session(sid) as session:
-            logger.debug(
+            logger.info(
                 "Client [%s] is triggering the method '%s'",
                 session["client_id"],
                 data["access_path"],
