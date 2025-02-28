@@ -4,7 +4,7 @@ import logging.config
 import sys
 from collections.abc import Callable
 from copy import copy
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, TextIO
 
 import click
 import socketio  # type: ignore[import-untyped]
@@ -189,3 +189,27 @@ def setup_logging() -> None:
     logger.debug("Configuring pydase logging.")
 
     logging.config.dictConfig(LOGGING_CONFIG)
+
+
+def configure_root_logger_with_pydase_formatter(
+    level: int = logging.INFO, stream: TextIO | None = None
+) -> None:
+    """Configures root logger with pydase formatting. Log level and stream are
+    configurable.
+
+    Args:
+        level: Logging level of this logger. Defaults to logging.INFO.
+        stream: Stream used in the logging handler. If None is passed, std.err is used.
+            Defaults to None.
+    """
+
+    root_logger = logging.getLogger()
+    handler = logging.StreamHandler(stream=stream)
+    formatter = pydase.utils.logging.DefaultFormatter(
+        fmt="%(asctime)s.%(msecs)03d | %(levelprefix)s | "
+        "%(name)s:%(funcName)s:%(lineno)d - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+    root_logger.addHandler(handler)
+    root_logger.setLevel(level)
