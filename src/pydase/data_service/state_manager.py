@@ -73,7 +73,8 @@ class StateManager:
 
     The StateManager is used by the web server to apply updates to service attributes
     and to serve the current state to newly connected clients. Internally, it creates a
-    `DataServiceCache` instance to track the state of public attributes and properties.
+    [`DataServiceCache`][pydase.data_service.data_service_cache.DataServiceCache]
+    instance to track the state of public attributes and properties.
 
     The StateManager also handles state persistence: it can load a previously saved
     state from disk at startup and periodically autosave the current state to a file
