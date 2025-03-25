@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import json
 import logging
@@ -66,43 +67,40 @@ def has_load_state_decorator(prop: property) -> bool:
 class StateManager:
     """
     Manages the state of a DataService instance, serving as both a cache and a
-    persistence layer. It is designed to provide quick access to the latest known state
-    for newly connecting web clients without the need for expensive property accesses
-    that may involve complex calculations or I/O operations.
+    persistence layer. It provides fast access to the most recently known state of the
+    service and ensures consistent state updates across connected clients and service
+    restarts.
 
-    The StateManager listens for state change notifications from the DataService's
-    callback manager and updates its cache accordingly. This cache does not always
-    reflect the most current complex property states but rather retains the value from
-    the last known state, optimizing for performance and reducing the load on the
-    system.
+    The StateManager is used by the web server to apply updates to service attributes
+    and to serve the current state to newly connected clients. Internally, it creates a
+    `DataServiceCache` instance to track the state of public attributes and properties.
 
-    While the StateManager ensures that the cached state is as up-to-date as possible,
-    it does not autonomously update complex properties of the DataService. Such
-    properties must be updated programmatically, for instance, by invoking specific
-    tasks or methods that trigger the necessary operations to refresh their state.
-
-    The cached state maintained by the StateManager is particularly useful for web
-    clients that connect to the system and need immediate access to the current state of
-    the DataService. By avoiding direct and potentially costly property accesses, the
-    StateManager provides a snapshot of the DataService's state that is sufficiently
-    accurate for initial rendering and interaction.
+    The StateManager also handles state persistence: it can load a previously saved
+    state from disk at startup and periodically autosave the current state to a file
+    during runtime.
 
     Args:
-        service:
-            The DataService instance whose state is being managed.
-        filename:
-            The file name used for storing the DataService's state.
+        service: The DataService instance whose state is being managed.
+        filename: The file name used for loading and storing the DataService's state.
+            If provided, the state is loaded from this file at startup and saved to it
+            on shutdown or at regular intervals.
+        autosave_interval: Interval in seconds between automatic state save events.
+            If set to `None`, automatic saving is disabled.
 
     Note:
-        The StateManager's cache updates are triggered by notifications and do not
-        include autonomous updates of complex DataService properties, which must be
-        managed programmatically. The cache serves the purpose of providing immediate
-        state information to web clients, reflecting the state after the last property
-        update.
+        The StateManager does not autonomously poll hardware state. It relies on the
+        service to perform such updates. The cache maintained by
+        [`DataServiceCache`][pydase.data_service.data_service_cache.DataServiceCache]
+        reflects the last known state as notified by the `DataServiceObserver`, and is
+        used by the web interface to provide fast and accurate state rendering for
+        connected clients.
     """
 
     def __init__(
-        self, service: "DataService", filename: str | Path | None = None
+        self,
+        service: "DataService",
+        filename: str | Path | None,
+        autosave_interval: float | None,
     ) -> None:
         self.filename = getattr(service, "_filename", None)
 
@@ -115,6 +113,29 @@ class StateManager:
 
         self.service = service
         self.cache_manager = DataServiceCache(self.service)
+        self.autosave_interval = autosave_interval
+
+    async def autosave(self) -> None:
+        """Periodically saves the current service state to the configured file.
+
+        This coroutine is automatically started by the [`pydase.Server`][pydase.Server]
+        when a filename is provided. It runs in the background and writes the latest
+        known state of the service to disk every `autosave_interval` seconds.
+
+        If `autosave_interval` is set to `None`, autosaving is disabled and this
+        coroutine exits immediately.
+        """
+
+        if self.autosave_interval is None:
+            return
+
+        while True:
+            try:
+                if self.filename is not None:
+                    self.save_state()
+                await asyncio.sleep(self.autosave_interval)
+            except Exception as e:
+                logger.exception(e)
 
     @property
     def cache_value(self) -> dict[str, SerializedObject]:
@@ -122,23 +143,21 @@ class StateManager:
         return cast(dict[str, SerializedObject], self.cache_manager.cache["value"])
 
     def save_state(self) -> None:
-        """
-        Saves the DataService's current state to a JSON file defined by `self.filename`.
-        Logs an error if `self.filename` is not set.
+        """Saves the DataService's current state to a JSON file defined by
+        `self.filename`.
         """
 
         if self.filename is not None:
             with open(self.filename, "w") as f:
                 json.dump(self.cache_value, f, indent=4)
         else:
-            logger.info(
+            logger.debug(
                 "State manager was not initialised with a filename. Skipping "
                 "'save_state'..."
             )
 
     def load_state(self) -> None:
-        """
-        Loads the DataService's state from a JSON file defined by `self.filename`.
+        """Loads the DataService's state from a JSON file defined by `self.filename`.
         Updates the service's attributes, respecting type and read-only constraints.
         """
 
@@ -191,8 +210,7 @@ class StateManager:
         path: str,
         serialized_value: SerializedObject,
     ) -> None:
-        """
-        Sets the value of an attribute in the service managed by the `StateManager`
+        """Sets the value of an attribute in the service managed by the `StateManager`
         given its path as a dot-separated string.
 
         This method updates the attribute specified by 'path' with 'value' only if the
