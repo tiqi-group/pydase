@@ -99,8 +99,8 @@ class StateManager:
     def __init__(
         self,
         service: "DataService",
-        filename: str | Path | None,
-        autosave_interval: float | None,
+        filename: str | Path | None = None,
+        autosave_interval: float | None = None,
     ) -> None:
         self.filename = getattr(service, "_filename", None)
 
