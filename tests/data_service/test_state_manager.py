@@ -1,10 +1,13 @@
+import asyncio
 import json
 from pathlib import Path
 from typing import Any
 
+import anyio
 import pydase
 import pydase.components
 import pydase.units as u
+import pytest
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import (
     StateManager,
@@ -349,4 +352,24 @@ def test_property_load_state(tmp_path: Path) -> None:
 
     assert service_instance.name == "Some other name"
     assert service_instance.not_loadable_attr == "Not loadable"
-    assert not has_load_state_decorator(type(service_instance).property_without_setter)
+    assert not has_load_state_decorator(type(service_instance).property_without_setter)  # type: ignore
+
+
+@pytest.mark.asyncio()
+async def test_autosave(tmp_path: Path, caplog: LogCaptureFixture) -> None:
+    filename = tmp_path / "state.json"
+
+    service = Service()
+    manager = StateManager(service=service, filename=filename, autosave_interval=0.1)
+    DataServiceObserver(state_manager=manager)
+
+    task = asyncio.create_task(manager.autosave())
+    service.property_attr = 198.0
+    await asyncio.sleep(0.1)
+    task.cancel()
+
+    assert filename.exists(), "Autosave should write to the file"
+    async with await anyio.open_file(filename) as f:
+        data = json.loads(await f.read())
+
+    assert data["property_attr"]["value"] == service.property_attr
