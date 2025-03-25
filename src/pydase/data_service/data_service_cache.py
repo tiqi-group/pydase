@@ -14,6 +14,22 @@ logger = logging.getLogger(__name__)
 
 
 class DataServiceCache:
+    """Maintains a serialized cache of the current state of a DataService instance.
+
+    This class is responsible for storing and updating a representation of the service's
+    public attributes and properties. It is primarily used by the StateManager and the
+    web server to serve consistent state to clients without accessing the DataService
+    attributes directly.
+
+    The cache is initialized once upon construction by serializing the full state of
+    the service. After that, it can be incrementally updated using attribute paths and
+    values as notified by the
+    [`DataServiceObserver`][pydase.data_service.data_service_observer.DataServiceObserver].
+
+    Args:
+        service: The DataService instance whose state should be cached.
+    """
+
     def __init__(self, service: "DataService") -> None:
         self._cache: SerializedObject
         self.service = service

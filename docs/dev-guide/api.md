@@ -1,6 +1,15 @@
 ::: pydase.data_service
     handler: python
 
+::: pydase.data_service.data_service_cache
+    handler: python
+
+::: pydase.data_service.data_service_observer
+    handler: python
+
+::: pydase.data_service.state_manager
+    handler: python
+
 ::: pydase.server.server
     handler: python
 

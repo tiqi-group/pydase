@@ -84,21 +84,15 @@ class Server:
     The `Server` class provides a flexible server implementation for the `DataService`.
 
     Args:
-        service:
-            The DataService instance that this server will manage.
-        host:
-            The host address for the server. Defaults to `'0.0.0.0'`, which means all
+        service: The DataService instance that this server will manage.
+        host: The host address for the server. Defaults to `'0.0.0.0'`, which means all
             available network interfaces.
-        web_port:
-            The port number for the web server. Defaults to
+        web_port: The port number for the web server. Defaults to
             [`ServiceConfig().web_port`][pydase.config.ServiceConfig.web_port].
-        enable_web:
-            Whether to enable the web server.
-        filename:
-            Filename of the file managing the service state persistence.
-        additional_servers:
-            A list of additional servers to run alongside the main server.
-
+        enable_web: Whether to enable the web server.
+        filename: Filename of the file managing the service state persistence.
+        additional_servers: A list of additional servers to run alongside the main
+            server.
             Here's an example of how you might define an additional server:
 
             ```python
@@ -137,8 +131,9 @@ class Server:
             )
             server.run()
             ```
-        **kwargs:
-            Additional keyword arguments.
+        autosave_interval: Interval in seconds between automatic state save events.
+            If set to `None`, automatic saving is disabled. Defaults to 30 seconds.
+        **kwargs: Additional keyword arguments.
     """
 
     def __init__(  # noqa: PLR0913
@@ -149,6 +144,7 @@ class Server:
         enable_web: bool = True,
         filename: str | Path | None = None,
         additional_servers: list[AdditionalServer] | None = None,
+        autosave_interval: float = 30.0,
         **kwargs: Any,
     ) -> None:
         if additional_servers is None:
@@ -161,7 +157,11 @@ class Server:
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
-        self._state_manager = StateManager(self._service, filename)
+        self._state_manager = StateManager(
+            service=self._service,
+            filename=filename,
+            autosave_interval=autosave_interval,
+        )
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
         autostart_service_tasks(self._service)
@@ -222,6 +222,8 @@ class Server:
 
             server_task.add_done_callback(self._handle_server_shutdown)
             self.servers["web"] = server_task
+
+        self._loop.create_task(self._state_manager.autosave())
 
     def _handle_server_shutdown(self, task: asyncio.Task[Any]) -> None:
         """Handle server shutdown. If the service should exit, do nothing. Else, make
