@@ -4,7 +4,7 @@ import logging.config
 import sys
 from collections.abc import Callable
 from copy import copy
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, TextIO
 
 import click
 import socketio  # type: ignore[import-untyped]
@@ -189,3 +189,51 @@ def setup_logging() -> None:
     logger.debug("Configuring pydase logging.")
 
     logging.config.dictConfig(LOGGING_CONFIG)
+
+
+def configure_logging_with_pydase_formatter(
+    name: str | None = None, level: int = logging.INFO, stream: TextIO | None = None
+) -> None:
+    """Configure a logger with the pydase `DefaultFormatter`.
+
+    This sets up a `StreamHandler` with the custom `DefaultFormatter`, which includes
+    timestamp, log level with color (if supported), logger name, function, and line
+    number. It can be used to configure the root logger or any named logger.
+
+    Args:
+        name: The name of the logger to configure. If None, the root logger is used.
+        level: The logging level to set on the logger (e.g., logging.DEBUG,
+            logging.INFO). Defaults to logging.INFO.
+        stream: The output stream for the log messages (e.g., sys.stdout or sys.stderr).
+            If None, defaults to sys.stderr.
+
+    Example:
+        Configure logging in your service:
+
+        ```python
+        import sys
+        from pydase.utils.logging import configure_logging_with_pydase_formatter
+
+        configure_logging_with_pydase_formatter(
+            name="my_service",      # Use the package/module name or None for the root logger
+            level=logging.DEBUG,    # Set the desired logging level (defaults to INFO)
+            stream=sys.stdout       # Set the output stream (stderr by default)
+        )
+        ```
+
+    Notes:
+        - This function adds a new handler each time it's called.
+          Use carefully to avoid duplicate logs.
+        - Colors are enabled if the stream supports TTY (e.g., in terminal).
+    """  # noqa: E501
+
+    logger = logging.getLogger(name=name)
+    handler = logging.StreamHandler(stream=stream)
+    formatter = DefaultFormatter(
+        fmt="%(asctime)s.%(msecs)03d | %(levelprefix)s | "
+        "%(name)s:%(funcName)s:%(lineno)d - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(level)

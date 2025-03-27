@@ -47,6 +47,9 @@
     options:
       filters: ["!render_in_frontend"]
 
+::: pydase.utils.logging
+    handler: python
+
 ::: pydase.units
     handler: python
 
