@@ -1,7 +1,7 @@
 import logging
 
 import pytest
-from pydase.utils.logging import configure_root_logger_with_pydase_formatter
+from pydase.utils.logging import configure_logging_with_pydase_formatter
 
 
 def test_log_error(caplog: pytest.LogCaptureFixture) -> None:
@@ -78,7 +78,7 @@ def test_before_configuring_root_logger(caplog: pytest.LogCaptureFixture) -> Non
 
 
 def test_configure_root_logger(caplog: pytest.LogCaptureFixture) -> None:
-    configure_root_logger_with_pydase_formatter()
+    configure_logging_with_pydase_formatter()
     logger = logging.getLogger(__name__)
     logger.info("Hello world")
 
