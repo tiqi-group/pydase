@@ -226,45 +226,15 @@ For details, please see [here](https://pydase.readthedocs.io/en/stable/user-guid
 
 ## Logging in pydase
 
-The `pydase` library organizes its loggers on a per-module basis, mirroring the Python package hierarchy. This structured approach allows for granular control over logging levels and behaviour across different parts of the library.
+The `pydase` library provides structured, per-module logging with support for log level configuration, rich formatting, and optional client identification in logs.
 
-### Changing the Log Level
+To configure logging in your own service, you can use:
 
-You have two primary ways to adjust the log levels in `pydase`:
+```python
+from pydase.utils.logging import configure_logging_with_pydase_formatter
+```
 
-1. directly targeting `pydase` loggers
-
-   You can set the log level for any `pydase` logger directly in your code. This method is useful for fine-tuning logging levels for specific modules within `pydase`. For instance, if you want to change the log level of the main `pydase` logger or target a submodule like `pydase.data_service`, you can do so as follows:
-
-   ```python
-   # <your_script.py>
-   import logging
-
-   # Set the log level for the main pydase logger
-   logging.getLogger("pydase").setLevel(logging.INFO)
-
-   # Optionally, target a specific submodule logger
-   # logging.getLogger("pydase.data_service").setLevel(logging.DEBUG)
-
-   # Your logger for the current script
-   logging.basicConfig(level=logging.INFO)
-   logger = logging.getLogger(__name__)
-   logger.info("My info message.")
-   ```
-
-   This approach allows for specific control over different parts of the `pydase` library, depending on your logging needs.
-
-2. using the `ENVIRONMENT` environment variable
-
-   For a more global setting that affects the entire `pydase` library, you can utilize the `ENVIRONMENT` environment variable. Setting this variable to "production" will configure all `pydase` loggers to only log messages of level "INFO" and above, filtering out more verbose logging. This is particularly useful for production environments where excessive logging can be overwhelming or unnecessary.
-
-   ```bash
-   ENVIRONMENT="production" python -m <module_using_pydase>
-   ```
-
-   In the absence of this setting, the default behavior is to log everything of level "DEBUG" and above, suitable for development environments where more detailed logs are beneficial.
-
-**Note**: It is recommended to avoid calling the `pydase.utils.logging.setup_logging` function directly, as this may result in duplicated logging messages.
+For more information, see the [full guide](https://pydase.readthedocs.io/en/stable/user-guide/Logging/).
 
 ## Documentation
 
