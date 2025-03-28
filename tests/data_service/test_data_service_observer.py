@@ -222,3 +222,22 @@ def test_nested_dict_property_changes(
     # Changing the _voltage attribute should re-evaluate the voltage property, but avoid
     # recursion
     service.my_dict["key"].voltage = 1.2
+
+
+def test_read_only_dict_property(caplog: pytest.LogCaptureFixture) -> None:
+    class MyObservable(pydase.DataService):
+        def __init__(self) -> None:
+            super().__init__()
+            self._dict_attr = {"dotted.key": 1.0}
+
+        @property
+        def dict_attr(self) -> dict[str, Any]:
+            return self._dict_attr
+
+    service_instance = MyObservable()
+    state_manager = StateManager(service=service_instance)
+    DataServiceObserver(state_manager)
+
+    service_instance._dict_attr["dotted.key"] = 2.0
+
+    assert "'dict_attr[\"dotted.key\"]' changed to '2.0'" in caplog.text
