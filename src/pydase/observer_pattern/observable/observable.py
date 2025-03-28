@@ -55,6 +55,10 @@ class Observable(ObservableObject):
         value = super().__getattribute__(name)
 
         if is_property_attribute(self, name):
+            # fixes https://github.com/tiqi-group/pydase/issues/187 and
+            # https://github.com/tiqi-group/pydase/issues/192
+            if isinstance(value, ObservableObject):
+                value.add_observer(self, name)
             self._notify_changed(name, value)
 
         return value
