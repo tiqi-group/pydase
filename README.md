@@ -244,6 +244,14 @@ The full documentation provides more detailed information about `pydase`, includ
 
 We welcome contributions! Please see [contributing.md](https://pydase.readthedocs.io/en/stable/about/contributing/) for details on how to contribute.
 
+## Acknowledgements
+
+This work was funded by the [ETH Zurich-PSI Quantum Computing Hub](https://www.psi.ch/en/lnq/qchub).
+
+The main idea behind `pydase` is based on a previous project called `tiqi-plugin`, which
+was developed within the same research group. While the concept was inspired by that
+project, `pydase` was implemented from the ground up with a new architecture and design.
+
 ## License
 
 `pydase` is licensed under the [MIT License][License].
