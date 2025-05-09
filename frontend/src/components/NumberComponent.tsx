@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import { DocStringComponent } from "./DocStringComponent";
 import "../App.css";
@@ -175,6 +175,33 @@ const handleNumericKey = (
   return { value: newValue, selectionStart: selectionStart + 1 };
 };
 
+/**
+ * Calculates the new cursor position after moving left by a specified step size.
+ *
+ * @param cursorPosition - The current position of the cursor.
+ * @param step - The number of positions to move left.
+ * @returns The new cursor position, clamped to a minimum of 0.
+ */
+const getCursorLeftPosition = (cursorPosition: number, step: number): number => {
+  return Math.max(0, cursorPosition - step);
+};
+
+/**
+ * Calculates the new cursor position after moving right by a specified step size.
+ *
+ * @param cursorPosition - The current position of the cursor.
+ * @param step - The number of positions to move right.
+ * @param maxPosition - The maximum allowed cursor position (e.g., value.length).
+ * @returns The new cursor position, clamped to a maximum of maxPosition.
+ */
+const getCursorRightPosition = (
+  cursorPosition: number,
+  step: number,
+  maxPosition: number,
+): number => {
+  return Math.min(maxPosition, cursorPosition + step);
+};
+
 export const NumberComponent = React.memo((props: NumberComponentProps) => {
   const {
     fullAccessPath,
@@ -191,7 +218,8 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   } = props;
 
   // Create a state for the cursor position
-  const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+  const cursorPositionRef = useRef<number | null>(null);
+
   // Create a state for the input string
   const [inputString, setInputString] = useState(value.toString());
   const renderCount = useRenderCount();
@@ -200,25 +228,39 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     const { key, target } = event;
 
     const inputTarget = target as HTMLInputElement;
-    if (key === "F1" || key === "F5" || key === "F12" || key === "Tab") {
-      return;
-    }
-    event.preventDefault();
 
     // Get the current input value and cursor position
     const { value } = inputTarget;
+    const valueLength = value.length;
     const selectionEnd = inputTarget.selectionEnd ?? 0;
     let selectionStart = inputTarget.selectionStart ?? 0;
+
+    if (key === "F1" || key === "F5" || key === "F12" || key === "Tab") {
+      return;
+    } else if (key === "ArrowLeft" || key === "ArrowRight") {
+      const hasSelection = selectionEnd > selectionStart;
+
+      if (hasSelection && !event.shiftKey) {
+        // Collapse selection: ArrowLeft -> start, ArrowRight -> end
+        const collapseTo = key === "ArrowLeft" ? selectionStart : selectionEnd;
+        cursorPositionRef.current = collapseTo;
+      } else {
+        // No selection or shift key is pressed, just move cursor by one
+        const newSelectionStart =
+          key === "ArrowLeft"
+            ? getCursorLeftPosition(selectionStart, 1)
+            : getCursorRightPosition(selectionEnd, 1, valueLength);
+
+        cursorPositionRef.current = newSelectionStart;
+      }
+      return;
+    }
+    event.preventDefault();
 
     let newValue: string = value;
     if (event.ctrlKey && key === "a") {
       // Select everything when pressing Ctrl + a
       inputTarget.setSelectionRange(0, value.length);
-      return;
-    } else if (key === "ArrowRight" || key === "ArrowLeft") {
-      // Move the cursor with the arrow keys and store its position
-      selectionStart = key === "ArrowRight" ? selectionStart + 1 : selectionStart - 1;
-      setCursorPosition(selectionStart);
       return;
     } else if ((key >= "0" && key <= "9") || key === "-") {
       // Check if a number key or a decimal point key is pressed
@@ -314,7 +356,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     setInputString(newValue);
 
     // Save the current cursor position before the component re-renders
-    setCursorPosition(selectionStart);
+    cursorPositionRef.current = selectionStart;
   };
 
   const handleBlur = () => {
@@ -367,8 +409,11 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
   useEffect(() => {
     // Set the cursor position after the component re-renders
     const inputElement = document.getElementsByName(id)[0] as HTMLInputElement;
-    if (inputElement && cursorPosition !== null) {
-      inputElement.setSelectionRange(cursorPosition, cursorPosition);
+    if (inputElement && cursorPositionRef.current !== null) {
+      inputElement.setSelectionRange(
+        cursorPositionRef.current,
+        cursorPositionRef.current,
+      );
     }
   });
 
