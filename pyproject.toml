@@ -1,50 +1,53 @@
-[tool.poetry]
+[project]
 name = "pydase"
 version = "0.10.12"
 description = "A flexible and robust Python library for creating, managing, and interacting with data services, with built-in support for web and RPC servers, and customizable features for diverse use cases."
-authors = ["Mose Mueller <mosmuell@ethz.ch>"]
+authors = [
+    {name = "Mose Müller",email = "mosemueller@gmail.com"}
+]
 readme = "README.md"
-packages = [{ include = "pydase", from = "src" }]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "toml (>=0.10.2,<0.11.0)",
+    "python-socketio (>=5.13.0,<6.0.0)",
+    "confz (>=2.1.0,<3.0.0)",
+    "pint (>=0.24.4,<0.25.0)",
+    "websocket-client (>=1.8.0,<2.0.0)",
+    "aiohttp (>=3.11.18,<4.0.0)",
+    "click (>=8.2.0,<9.0.0)",
+    "aiohttp-middlewares (>=2.4.0,<3.0.0)",
+    "anyio (>=4.9.0,<5.0.0)"
+]
 
-
-[tool.poetry.dependencies]
-python = "^3.10"
-toml = "^0.10.2"
-python-socketio = "^5.8.0"
-confz = "^2.0.0"
-pint = "^0.24"
-websocket-client = "^1.7.0"
-aiohttp = "^3.9.3"
-click = "^8.1.7"
-aiohttp-middlewares = "^2.3.0"
-anyio = "^4.6.0"
+[tool.poetry]
+packages = [{include = "pydase", from = "src"}]
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-types-toml = "^0.10.8.6"
-pytest = "^7.4.0"
-pytest-cov = "^4.1.0"
-mypy = "^1.4.1"
-matplotlib = "^3.7.2"
-pyright = "^1.1.323"
-pytest-mock = "^3.11.1"
-ruff = "^0.5.0"
-pytest-asyncio = "^0.23.2"
+types-toml = "^0.10.8.20240310"
+pytest = "^8.3.5"
+pytest-cov = "^6.1.1"
+mypy = "^1.15.0"
+matplotlib = "^3.10.3"
+pyright = "^1.1.400"
+pytest-mock = "^3.14.0"
+ruff = "^0.11.10"
+pytest-asyncio = "^0.26.0"
 
 [tool.poetry.group.docs]
 optional = true
 
 [tool.poetry.group.docs.dependencies]
-mkdocs-material = "^9.5.30"
-mkdocs-include-markdown-plugin = "^3.9.1"
-mkdocstrings = {extras = ["python"], version = "^0.29.0"}
-pymdown-extensions = "^10.1"
-mkdocs-swagger-ui-tag = "^0.7.0"
+mkdocs-material = "^9.6.14"
+mkdocs-include-markdown-plugin = "^7.1.5"
+mkdocstrings = {extras = ["python"], version = "^0.29.1"}
+pymdown-extensions = "^10.15"
+mkdocs-swagger-ui-tag = "^0.7.1"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
@@ -86,6 +89,7 @@ select = [
 ignore = [
     "RUF006",  # asyncio-dangling-task
     "PERF203",  # try-except-in-loop
+    "ASYNC110", # async-busy-wait
 ]
 
 [tool.ruff.lint.mccabe]
