@@ -89,7 +89,7 @@ Each key in the file corresponds to the full access path of public attributes, p
 - **Control Component Visibility**: Utilize the `"display"` key-value pair to control whether a component is rendered in the frontend. Set the value to `true` to make the component visible or `false` to hide it.
 - **Adjustable Component Order**: The `"displayOrder"` values determine the order of components. Alter these values to rearrange the components as desired. The value defaults to [`Number.MAX_SAFE_INTEGER`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER).
 
-The `web_settings.json` file will be stored in the directory specified by the `SERVICE_CONFIG_DIR` environment variable. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](../Configuration).
+The `web_settings.json` file will be stored in the directory specified by the `SERVICE_CONFIG_DIR` environment variable. You can generate a `web_settings.json` file by setting the `GENERATE_WEB_SETTINGS` to `True`. For more information, see the [configuration section](../Configuration.md).
 
 For example, styling the following service 
 

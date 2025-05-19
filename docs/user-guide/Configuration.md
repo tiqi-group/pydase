@@ -30,7 +30,7 @@ example of how to separate service code from configuration.
 
 - **`ENVIRONMENT`**:  
   Defines the operation mode (`"development"` or `"production"`), which influences 
-  behaviour such as logging (see [Logging in pydase](https://github.com/tiqi-group/pydase?tab=readme-ov-file#logging-in-pydase)).
+  behaviour such as logging (see [Logging in pydase](./Logging.md)).
 
 - **`SERVICE_CONFIG_DIR`**:  
   Specifies the directory for configuration files (e.g., `web_settings.json`). Defaults
@@ -46,7 +46,7 @@ example of how to separate service code from configuration.
   port. Default: `8001`.
 
 - **`GENERATE_WEB_SETTINGS`**:  
-  When `true`, generates or updates the `web_settings.json` file. Existing entries are 
+  When `true`, generates or updates the `web_settings.json` file (see [Tailoring Frontend Component Layout](../interaction/#tailoring-frontend-component-layout)). Existing entries are
   preserved, and new entries are appended.
 
 ### Configuring `pydase` via Keyword Arguments
@@ -70,32 +70,32 @@ server = Server(
 
 ## Separating Service Code from Configuration
 
-To decouple configuration from code, `pydase` utilizes `confz` for configuration 
-management. Below is an example that demonstrates how to configure a `pydase` service 
+To decouple configuration from code, `pydase` utilizes `confz` for configuration
+management. Below is an example that demonstrates how to configure a `pydase` service
 for a sensor readout application.
 
 ### Scenario: Configuring a Sensor Service
 
-Imagine you have multiple sensors distributed across your lab. You need to configure 
+Imagine you have multiple sensors distributed across your lab. You need to configure
 each service instance with:
 
 1. **Hostname**: The hostname or IP address of the sensor.
 2. **Authentication Token**: A token or credentials to authenticate with the sensor.
-3. **Readout Interval**: A periodic interval to read sensor data and log it to a 
+3. **Readout Interval**: A periodic interval to read sensor data and log it to a
   database.
 
 Given the repository structure:
 
 ```bash title="Service Repository Structure"
 my_sensor
-├── pyproject.toml        
-├── README.md             
-└── src                   
-    └── my_sensor       
+├── pyproject.toml
+├── README.md
+└── src
+    └── my_sensor
         ├── my_sensor.py
-        ├── config.py     
-        ├── __init__.py   
-        └── __main__.py   
+        ├── config.py
+        ├── __init__.py
+        └── __main__.py
 ```
 
 Your service might look like this:
@@ -119,7 +119,7 @@ class MySensorConfig(confz.BaseConfig):
 
 This class defines configurable parameters and loads values from a `config.yaml` file
 located in the service’s configuration directory (which is configurable through an 
-environment variable, see [above](#configuring-pydase-using-environment-variables)).  
+environment variable, see [above](#configuring-pydase-using-environment-variables)).
 A sample YAML file might look like this:
 
 ```yaml title="config.yaml"
