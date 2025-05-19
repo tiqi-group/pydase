@@ -6,7 +6,11 @@ nav:
   - Getting Started: getting-started.md
   - User Guide:
     - Components Guide: user-guide/Components.md
-    - Interacting with pydase Services: user-guide/interaction/README.md
+    - Interaction:
+        - Overview: user-guide/interaction/README.md
+        - Auto-generated Frontend: user-guide/interaction/Auto-generated-Frontend.md
+        - RESTful API: user-guide/interaction/RESTful-API.md
+        - Python Client: user-guide/interaction/Python-Client.md
     - Achieving Service Persistence: user-guide/Service_Persistence.md
     - Understanding Tasks: user-guide/Tasks.md
     - Understanding Units: user-guide/Understanding-Units.md
