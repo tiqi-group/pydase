@@ -5,7 +5,7 @@
    end="<!--getting-started-end-->"
 %}
 
-[RESTful API]: ./user-guide/interaction/README.md#restful-api
-[Python RPC Client]: ./user-guide/interaction/README.md#python-rpc-client
+[RESTful API]: ./user-guide/interaction/RESTful-API.md
+[Python RPC Client]: ./user-guide/interaction/Python-Client.md
 [Custom Components]: ./user-guide/Components.md#custom-components-pydasecomponents
 [Components]: ./user-guide/Components.md

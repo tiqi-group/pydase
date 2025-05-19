@@ -11,7 +11,7 @@
 [Defining DataService]: ./getting-started.md#defining-a-dataservice
 [Web Interface Access]: ./getting-started.md#accessing-the-web-interface
 [Short RPC Client]: ./getting-started.md#connecting-to-the-service-via-python-rpc-client
-[Customizing Web Interface]: ./user-guide/interaction/README.md#customization-options
+[Customizing Web Interface]: ./user-guide/interaction/Auto-generated-Frontend.md#customization-options
 [Task Management]: ./user-guide/Tasks.md
 [Units]: ./user-guide/Understanding-Units.md
 [Property Validation]: ./user-guide/Validating-Property-Setters.md
