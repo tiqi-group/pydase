@@ -46,8 +46,8 @@ example of how to separate service code from configuration.
   port. Default: `8001`.
 
 - **`GENERATE_WEB_SETTINGS`**:  
-  When `true`, generates or updates the `web_settings.json` file (see [Tailoring Frontend Component Layout](../interaction/#tailoring-frontend-component-layout)). Existing entries are
-  preserved, and new entries are appended.
+  When `true`, generates or updates the `web_settings.json` file (see [Tailoring Frontend Component Layout](./interaction/Auto-generated-Frontend.md#tailoring-frontend-component-layout)).
+  Existing entries are preserved, and new entries are appended.
 
 ### Configuring `pydase` via Keyword Arguments
 
