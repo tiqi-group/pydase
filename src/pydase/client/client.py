@@ -33,7 +33,10 @@ class NotifyDict(TypedDict):
 
 def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 
 
 class Client:
