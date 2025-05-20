@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import weakref
 from abc import ABC, abstractmethod
@@ -252,7 +253,8 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
             self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
 
     def __del__(self) -> None:
-        self._dict_mapping.pop(id(self._original_dict))
+        with contextlib.suppress(KeyError):
+            self._dict_mapping.pop(id(self._original_dict))
 
     def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):
