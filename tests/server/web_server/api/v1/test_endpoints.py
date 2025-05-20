@@ -4,12 +4,13 @@ from collections.abc import Generator
 from typing import Any
 
 import aiohttp
-import pydase
 import pytest
+
+import pydase
 from pydase.utils.serialization.deserializer import Deserializer
 
 
-@pytest.fixture()
+@pytest.fixture(scope="module")
 def pydase_server() -> Generator[None, None, None]:
     class SubService(pydase.DataService):
         name = "SubService"
@@ -51,6 +52,9 @@ def pydase_server() -> Generator[None, None, None]:
     thread.start()
 
     yield
+
+    server.handle_exit()
+    thread.join()
 
 
 @pytest.mark.parametrize(
@@ -107,7 +111,7 @@ def pydase_server() -> Generator[None, None, None]:
         ),
     ],
 )
-@pytest.mark.asyncio()
+@pytest.mark.asyncio(loop_scope="module")
 async def test_get_value(
     access_path: str,
     expected: dict[str, Any],
@@ -179,7 +183,7 @@ async def test_get_value(
         ),
     ],
 )
-@pytest.mark.asyncio()
+@pytest.mark.asyncio(loop_scope="module")
 async def test_update_value(
     access_path: str,
     new_value: dict[str, Any],
@@ -219,7 +223,7 @@ async def test_update_value(
         ),
     ],
 )
-@pytest.mark.asyncio()
+@pytest.mark.asyncio(loop_scope="module")
 async def test_trigger_method(
     access_path: str,
     expected: Any,
@@ -278,7 +282,7 @@ async def test_trigger_method(
         ),
     ],
 )
-@pytest.mark.asyncio()
+@pytest.mark.asyncio(loop_scope="module")
 async def test_client_information_logging(
     headers: dict[str, str],
     log_id: str,

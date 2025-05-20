@@ -1,19 +1,20 @@
 import asyncio
 import logging
 
-import pydase
 import pytest
+from pytest import LogCaptureFixture
+
+import pydase
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.task.autostart import autostart_service_tasks
 from pydase.task.decorator import task
 from pydase.task.task_status import TaskStatus
-from pytest import LogCaptureFixture
 
 logger = logging.getLogger("pydase")
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_start_and_stop_task(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         @task()
@@ -28,11 +29,11 @@ async def test_start_and_stop_task(caplog: LogCaptureFixture) -> None:
     DataServiceObserver(state_manager)
 
     autostart_service_tasks(service_instance)
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
     assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
 
     service_instance.my_task.start()
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
     assert service_instance.my_task.status == TaskStatus.RUNNING
 
     assert "'my_task.status' changed to 'TaskStatus.RUNNING'" in caplog.text
@@ -40,12 +41,12 @@ async def test_start_and_stop_task(caplog: LogCaptureFixture) -> None:
     caplog.clear()
 
     service_instance.my_task.stop()
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
     assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
     assert "Task 'my_task' was cancelled" in caplog.text
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_autostart_task(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         @task(autostart=True)
@@ -61,13 +62,16 @@ async def test_autostart_task(caplog: LogCaptureFixture) -> None:
 
     autostart_service_tasks(service_instance)
 
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
     assert service_instance.my_task.status == TaskStatus.RUNNING
 
     assert "'my_task.status' changed to 'TaskStatus.RUNNING'" in caplog.text
 
+    service_instance.my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_nested_list_autostart_task(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -86,7 +90,7 @@ async def test_nested_list_autostart_task(
     DataServiceObserver(state_manager)
     autostart_service_tasks(service_instance)
 
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
     assert service_instance.sub_services_list[0].my_task.status == TaskStatus.RUNNING
     assert service_instance.sub_services_list[1].my_task.status == TaskStatus.RUNNING
 
@@ -99,8 +103,12 @@ async def test_nested_list_autostart_task(
         in caplog.text
     )
 
+    service_instance.sub_services_list[0].my_task.stop()
+    service_instance.sub_services_list[1].my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_nested_dict_autostart_task(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -120,7 +128,7 @@ async def test_nested_dict_autostart_task(
 
     autostart_service_tasks(service_instance)
 
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
 
     assert (
         service_instance.sub_services_dict["first"].my_task.status == TaskStatus.RUNNING
@@ -139,8 +147,12 @@ async def test_nested_dict_autostart_task(
         in caplog.text
     )
 
+    service_instance.sub_services_dict["first"].my_task.stop()
+    service_instance.sub_services_dict["second"].my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_manual_start_with_multiple_service_instances(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -161,7 +173,7 @@ async def test_manual_start_with_multiple_service_instances(
 
     autostart_service_tasks(service_instance)
 
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.01)
 
     assert (
         service_instance.sub_services_list[0].my_task.status == TaskStatus.NOT_RUNNING
@@ -291,7 +303,7 @@ async def test_manual_start_with_multiple_service_instances(
     assert "Task 'my_task' was cancelled" in caplog.text
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_restart_on_exception(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         @task(restart_on_exception=True, restart_sec=0.1)
@@ -312,8 +324,11 @@ async def test_restart_on_exception(caplog: LogCaptureFixture) -> None:
     assert "Task 'my_task' encountered an exception" in caplog.text
     assert "Triggered task." in caplog.text
 
+    service_instance.my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_restart_sec(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.DataService):
         @task(restart_on_exception=True, restart_sec=0.1)
@@ -334,8 +349,11 @@ async def test_restart_sec(caplog: LogCaptureFixture) -> None:
     await asyncio.sleep(0.05)
     assert "Triggered task." in caplog.text  # Ensures the task restarted after 0.2s
 
+    service_instance.my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_exceeding_start_limit_interval_sec_and_burst(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -359,7 +377,7 @@ async def test_exceeding_start_limit_interval_sec_and_burst(
     assert service_instance.my_task.status == TaskStatus.NOT_RUNNING
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_non_exceeding_start_limit_interval_sec_and_burst(
     caplog: LogCaptureFixture,
 ) -> None:
@@ -382,8 +400,11 @@ async def test_non_exceeding_start_limit_interval_sec_and_burst(
     assert "Task 'my_task' exceeded restart burst limit" not in caplog.text
     assert service_instance.my_task.status == TaskStatus.RUNNING
 
+    service_instance.my_task.stop()
+    await asyncio.sleep(0.01)
 
-@pytest.mark.asyncio(scope="function")
+
+@pytest.mark.asyncio()
 async def test_exit_on_failure(
     monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
 ) -> None:
@@ -408,7 +429,7 @@ async def test_exit_on_failure(
     assert "Task 'my_task' encountered an exception" in caplog.text
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_exit_on_failure_exceeding_rate_limit(
     monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
 ) -> None:
@@ -438,7 +459,7 @@ async def test_exit_on_failure_exceeding_rate_limit(
     assert "Task 'my_task' encountered an exception" in caplog.text
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio()
 async def test_gracefully_finishing_task(
     monkeypatch: pytest.MonkeyPatch, caplog: LogCaptureFixture
 ) -> None:
