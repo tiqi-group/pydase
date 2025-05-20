@@ -134,19 +134,7 @@ class Client:
 
     def connect(self, block_until_connected: bool = True) -> None:
         if self._thread is None or self._loop is None:
-            if self._proxy_url is not None:
-                session = aiohttp.ClientSession(
-                    connector=aiohttp_socks.connector.ProxyConnector.from_url(
-                        url=self._proxy_url, loop=self._loop
-                    ),
-                    loop=self._loop,
-                )
-                self._sio = socketio.AsyncClient(
-                    http_session=session, **self._sio_client_kwargs
-                )
-            else:
-                self._sio = socketio.AsyncClient(**self._sio_client_kwargs)
-
+            self._initialize_socketio_client()
             self._loop = self._initialize_loop_and_thread()
 
         connection_future = asyncio.run_coroutine_threadsafe(
@@ -154,6 +142,20 @@ class Client:
         )
         if block_until_connected:
             connection_future.result()
+
+    def _initialize_socketio_client(self) -> None:
+        if self._proxy_url is not None:
+            session = aiohttp.ClientSession(
+                connector=aiohttp_socks.connector.ProxyConnector.from_url(
+                    url=self._proxy_url, loop=self._loop
+                ),
+                loop=self._loop,
+            )
+            self._sio = socketio.AsyncClient(
+                http_session=session, **self._sio_client_kwargs
+            )
+        else:
+            self._sio = socketio.AsyncClient(**self._sio_client_kwargs)
 
     def _initialize_loop_and_thread(self) -> asyncio.AbstractEventLoop:
         """Initialize a new asyncio event loop, start it in a background thread,
