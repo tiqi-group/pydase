@@ -1,6 +1,6 @@
 # Python RPC Client
 
-The [`pydase.Client`][pydase.Client] allows you to connect to a remote `pydase` service using socket.io, facilitating interaction with the service as though it were running locally.
+The [`pydase.Client`][pydase.Client] allows you to connect to a remote `pydase` service using Socket.IO, facilitating interaction with the service as though it were running locally.
 
 ## Basic Usage
 
@@ -9,6 +9,7 @@ import pydase
 
 # Replace <ip_addr> and <service_port> with the appropriate values for your service
 client_proxy = pydase.Client(url="ws://<ip_addr>:<service_port>").proxy
+
 # For SSL-encrypted services, use the wss protocol
 # client_proxy = pydase.Client(url="wss://your-domain.ch").proxy
 
@@ -21,6 +22,12 @@ This example shows how to set and retrieve the `voltage` attribute through the c
 The proxy acts as a local representation of the remote service, enabling intuitive interaction.
 
 The proxy class automatically synchronizes with the server's attributes and methods, keeping itself up-to-date with any changes. This dynamic synchronization essentially mirrors the server's API, making it feel like you're working with a local object.
+
+### Accessing Services Behind Firewalls or SSH Gateways
+
+If your service is only reachable through a private network or SSH gateway, you can route your connection through a local SOCKS5 proxy using the `proxy_url` parameter.
+
+See [Connecting Through a SOCKS5 Proxy](../advanced/SOCKS-Proxy.md) for details.
 
 ## Context Manager Support
 
@@ -53,6 +60,7 @@ class MyService(pydase.DataService):
         block_until_connected=False,
         client_id="my_pydase_client_id",
     ).proxy
+
     # For SSL-encrypted services, use the wss protocol
     # proxy = pydase.Client(
     #     url="wss://your-domain.ch",
@@ -68,12 +76,12 @@ if __name__ == "__main__":
 
 In this example:
 - The `MyService` class has a `proxy` attribute that connects to a `pydase` service at `<ip_addr>:<service_port>`.
-- By setting `block_until_connected=False`, the service can start without waiting for the connection to succeed, which is particularly useful in distributed systems where services may initialize in any order.
-- By setting `client_id`, the server will provide more accurate logs of the connecting client. If set, this ID is sent as `X-Client-Id` header in the HTTP(s) request.
+- By setting `block_until_connected=False`, the service can start without waiting for the connection to succeed.
+- By setting `client_id`, the server will log a descriptive identifier for this client via the `X-Client-Id` HTTP header.
 
 ## Custom `socketio.AsyncClient` Connection Parameters
 
-You can also configure advanced connection options by passing additional arguments to the underlying [`AsyncClient`][socketio.AsyncClient] via `sio_client_kwargs`. This allows you to fine-tune reconnection behaviour, delays, and other settings:
+You can configure advanced connection options by passing arguments to the underlying [`AsyncClient`][socketio.AsyncClient] via `sio_client_kwargs`. For example:
 
 ```python
 client = pydase.Client(
