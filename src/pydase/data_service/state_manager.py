@@ -17,11 +17,11 @@ from pydase.utils.helpers import (
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
-    SerializedObject,
     generate_serialized_data_paths,
     get_nested_dict_by_path,
     serialized_dict_is_nested_object,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 if TYPE_CHECKING:
     from pydase import DataService

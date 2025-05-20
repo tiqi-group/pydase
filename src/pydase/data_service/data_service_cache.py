@@ -2,10 +2,10 @@ import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from pydase.utils.serialization.serializer import (
-    SerializedObject,
     get_nested_dict_by_path,
     set_nested_value_by_path,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 if TYPE_CHECKING:
     from pydase import DataService

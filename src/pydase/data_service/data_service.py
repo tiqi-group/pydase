@@ -15,9 +15,9 @@ from pydase.utils.helpers import (
     is_property_attribute,
 )
 from pydase.utils.serialization.serializer import (
-    SerializedObject,
     Serializer,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 logger = logging.getLogger(__name__)
 

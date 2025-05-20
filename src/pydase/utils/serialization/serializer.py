@@ -20,29 +20,29 @@ from pydase.utils.helpers import (
     parse_full_access_path,
     parse_serialized_key,
 )
-from pydase.utils.serialization.types import (
-    DataServiceTypes,
-    SerializedBool,
-    SerializedDataService,
-    SerializedDatetime,
-    SerializedDict,
-    SerializedEnum,
-    SerializedException,
-    SerializedFloat,
-    SerializedInteger,
-    SerializedList,
-    SerializedMethod,
-    SerializedNoneType,
-    SerializedObject,
-    SerializedQuantity,
-    SerializedString,
-    SignatureDict,
-)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from pydase.client.proxy_class import ProxyClass
+    from pydase.utils.serialization.types import (
+        DataServiceTypes,
+        SerializedBool,
+        SerializedDataService,
+        SerializedDatetime,
+        SerializedDict,
+        SerializedEnum,
+        SerializedException,
+        SerializedFloat,
+        SerializedInteger,
+        SerializedList,
+        SerializedMethod,
+        SerializedNoneType,
+        SerializedObject,
+        SerializedQuantity,
+        SerializedString,
+        SignatureDict,
+    )
 
 logger = logging.getLogger(__name__)
 

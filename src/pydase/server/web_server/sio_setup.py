@@ -20,7 +20,7 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server.api.v1 import endpoints
 from pydase.utils.logging import SocketIOHandler
-from pydase.utils.serialization.serializer import SerializedObject
+from pydase.utils.serialization.types import SerializedObject
 
 logger = logging.getLogger(__name__)
 
