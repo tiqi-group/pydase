@@ -219,7 +219,18 @@ def is_descriptor(obj: object) -> bool:
 
 
 def current_event_loop_exists() -> bool:
-    """Check if an event loop has been set."""
+    """Check if a running and open asyncio event loop exists in the current thread.
+
+    This checks if an event loop is set via the current event loop policy and verifies
+    that the loop has not been closed.
+
+    Returns:
+        True if an event loop exists and is not closed, False otherwise.
+    """
+
     import asyncio
 
-    return asyncio.get_event_loop_policy()._local._loop is not None  # type: ignore
+    try:
+        return not asyncio.get_running_loop().is_closed()
+    except RuntimeError:
+        return False
