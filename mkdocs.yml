@@ -19,6 +19,7 @@ nav:
     - Logging in pydase: user-guide/Logging.md
     - Advanced:
         - Deploying behind a Reverse Proxy: user-guide/advanced/Reverse-Proxy.md
+        - Connecting through a SOCKS Proxy: user-guide/advanced/SOCKS-Proxy.md
   - Developer Guide: 
     - Developer Guide: dev-guide/README.md
     - API Reference: dev-guide/api.md

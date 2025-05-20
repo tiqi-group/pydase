@@ -6,6 +6,8 @@ import urllib.parse
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
+import aiohttp
+import aiohttp_socks.connector
 import socketio  # type: ignore
 
 from pydase.client.proxy_class import ProxyClass
@@ -40,47 +42,52 @@ def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
 
 
 class Client:
-    """
-    A client for connecting to a remote pydase service using socket.io. This client
+    """A client for connecting to a remote pydase service using Socket.IO. This client
     handles asynchronous communication with a service, manages events such as
     connection, disconnection, and updates, and ensures that the proxy object is
     up-to-date with the server state.
 
     Args:
-        url:
-            The URL of the pydase Socket.IO server. This should always contain the
-            protocol and the hostname.
-        block_until_connected:
-            If set to True, the constructor will block until the connection to the
-            service has been established. This is useful for ensuring the client is
-            ready to use immediately after instantiation. Default is True.
-        sio_client_kwargs:
-            Additional keyword arguments passed to the underlying
+        url: The URL of the pydase Socket.IO server. This should always contain the
+            protocol (e.g., `ws` or `wss`) and the hostname, and can optionally include
+            a path prefix (e.g., `ws://localhost:8001/service`).
+        block_until_connected: If set to True, the constructor will block until the
+            connection to the service has been established. This is useful for ensuring
+            the client is ready to use immediately after instantiation. Default is True.
+        sio_client_kwargs: Additional keyword arguments passed to the underlying
             [`AsyncClient`][socketio.AsyncClient]. This allows fine-tuning of the
             client's behaviour (e.g., reconnection attempts or reconnection delay).
-            Default is an empty dictionary.
-        client_id: Client identification that will be shown in the server logs this
-            client is connecting to. This ID is passed as a `X-Client-Id` header in the
-            HTTP(s) request. Defaults to None.
+        client_id: An optional client identifier. This ID is sent to the server as the
+            `X-Client-Id` HTTP header. It can be used for logging or authentication
+            purposes on the server side.
+        proxy_url: An optional proxy URL to route the connection through. This is useful
+            if the service is only reachable via an SSH tunnel or behind a firewall
+            (e.g., `socks5://localhost:2222`).
 
     Example:
-        The following example demonstrates a `Client` instance that connects to another
-        pydase service, while customising some of the connection settings for the
-        underlying [`AsyncClient`][socketio.AsyncClient].
+        Connect to a service directly:
 
         ```python
-        pydase.Client(url="ws://localhost:8001", sio_client_kwargs={
-            "reconnection_attempts": 2,
-            "reconnection_delay": 2,
-            "reconnection_delay_max": 8,
-        })
+        client = pydase.Client(url="ws://localhost:8001")
         ```
 
-        When connecting to a server over a secure connection (i.e., the server is using
-        SSL/TLS encryption), make sure that the `wss` protocol is used instead of `ws`:
+        Connect over a secure connection:
 
         ```python
-        pydase.Client(url="wss://my-service.example.com")
+        client = pydase.Client(url="wss://my-service.example.com")
+        ```
+
+        Connect using a SOCKS5 proxy (e.g., through an SSH tunnel):
+
+        ```bash
+        ssh -D 2222 user@gateway.example.com
+        ```
+
+        ```python
+        client = pydase.Client(
+            url="ws://remote-server:8001",
+            proxy_url="socks5://localhost:2222"
+        )
         ```
     """
 
@@ -91,6 +98,7 @@ class Client:
         block_until_connected: bool = True,
         sio_client_kwargs: dict[str, Any] = {},
         client_id: str | None = None,
+        proxy_url: str | None = None,
     ):
         # Parse the URL to separate base URL and path prefix
         parsed_url = urllib.parse.urlparse(url)
@@ -103,8 +111,9 @@ class Client:
         # Store the path prefix (e.g., "/service" in "ws://localhost:8081/service")
         self._path_prefix = parsed_url.path.rstrip("/")  # Remove trailing slash if any
         self._url = url
-        self._sio = socketio.AsyncClient(**sio_client_kwargs)
+        self._proxy_url = proxy_url
         self._client_id = client_id
+        self._sio_client_kwargs = sio_client_kwargs
         self._loop: asyncio.AbstractEventLoop | None = None
         self._thread: threading.Thread | None = None
         self.proxy: ProxyClass
@@ -126,6 +135,12 @@ class Client:
     def connect(self, block_until_connected: bool = True) -> None:
         if self._thread is None or self._loop is None:
             self._loop = self._initialize_loop_and_thread()
+            self._initialize_socketio_client()
+            self.proxy = ProxyClass(
+                sio_client=self._sio,
+                loop=self._loop,
+                reconnect=self.connect,
+            )
 
         connection_future = asyncio.run_coroutine_threadsafe(
             self._connect(), self._loop
@@ -133,17 +148,26 @@ class Client:
         if block_until_connected:
             connection_future.result()
 
+    def _initialize_socketio_client(self) -> None:
+        if self._proxy_url is not None:
+            session = aiohttp.ClientSession(
+                connector=aiohttp_socks.connector.ProxyConnector.from_url(
+                    url=self._proxy_url, loop=self._loop
+                ),
+                loop=self._loop,
+            )
+            self._sio = socketio.AsyncClient(
+                http_session=session, **self._sio_client_kwargs
+            )
+        else:
+            self._sio = socketio.AsyncClient(**self._sio_client_kwargs)
+
     def _initialize_loop_and_thread(self) -> asyncio.AbstractEventLoop:
         """Initialize a new asyncio event loop, start it in a background thread,
         and create the ProxyClass instance bound to that loop.
         """
 
         loop = asyncio.new_event_loop()
-        self.proxy = ProxyClass(
-            sio_client=self._sio,
-            loop=loop,
-            reconnect=self.connect,
-        )
         self._thread = threading.Thread(
             target=asyncio_loop_thread,
             args=(loop,),
