@@ -7,7 +7,7 @@ from pydase.task.autostart import autostart_service_tasks
 from pytest import LogCaptureFixture
 
 
-@pytest.mark.asyncio(scope="function")
+@pytest.mark.asyncio(loop_scope="function")
 async def test_reconnection(caplog: LogCaptureFixture) -> None:
     class MyService(pydase.components.device_connection.DeviceConnection):
         def __init__(

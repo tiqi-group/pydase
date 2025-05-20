@@ -207,7 +207,7 @@ def test_ColouredEnum_serialize() -> None:
     }
 
 
-@pytest.mark.asyncio(scope="module")
+@pytest.mark.asyncio(loop_scope="module")
 async def test_method_serialization() -> None:
     class ClassWithMethod(pydase.DataService):
         def some_method(self) -> str:

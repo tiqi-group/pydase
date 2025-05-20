@@ -182,7 +182,10 @@ class Server:
 
         This method should be called to start the server after it's been instantiated.
         """
-        self._loop.run_until_complete(self.serve())
+        try:
+            self._loop.run_until_complete(self.serve())
+        finally:
+            self._loop.close()
 
     async def serve(self) -> None:
         process_id = os.getpid()

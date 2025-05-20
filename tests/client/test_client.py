@@ -2,8 +2,9 @@ import threading
 from collections.abc import Generator
 from typing import Any
 
-import pydase
 import pytest
+
+import pydase
 from pydase.client.proxy_loader import ProxyAttributeError
 
 
@@ -52,6 +53,7 @@ def pydase_client() -> Generator[pydase.Client, None, Any]:
 
     yield client
 
+    client.disconnect()
     server.handle_exit()
     thread.join()
 

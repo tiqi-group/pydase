@@ -2,27 +2,26 @@ import threading
 from collections.abc import Callable, Generator
 from typing import Any
 
-import pydase
 import pytest
 import socketio.exceptions
 
+import pydase
+
 
 @pytest.fixture(scope="function")
-def pydase_restartable_server() -> (
-    Generator[
-        tuple[
-            pydase.Server,
-            threading.Thread,
-            pydase.DataService,
-            Callable[
-                [pydase.Server, threading.Thread, pydase.DataService],
-                tuple[pydase.Server, threading.Thread],
-            ],
+def pydase_restartable_server() -> Generator[
+    tuple[
+        pydase.Server,
+        threading.Thread,
+        pydase.DataService,
+        Callable[
+            [pydase.Server, threading.Thread, pydase.DataService],
+            tuple[pydase.Server, threading.Thread],
         ],
-        None,
-        Any,
-    ]
-):
+    ],
+    None,
+    Any,
+]:
     class MyService(pydase.DataService):
         def __init__(self) -> None:
             super().__init__()
@@ -61,9 +60,6 @@ def pydase_restartable_server() -> (
         return server, new_thread
 
     yield server, thread, service_instance, restart
-
-    server.handle_exit()
-    thread.join()
 
 
 def test_reconnection(
@@ -105,3 +101,6 @@ def test_reconnection(
     # the service proxies successfully reconnect and get the new service name
     assert client.proxy.name == "New service name"
     assert client_2.proxy.name == "New service name"
+
+    server.handle_exit()
+    thread.join()

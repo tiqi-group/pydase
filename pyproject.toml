@@ -104,3 +104,10 @@ disallow_incomplete_defs = true
 disallow_any_generics = true
 check_untyped_defs = true
 ignore_missing_imports = false
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # I don't controll the usage of the timeout
+    "ignore:parameter 'timeout' of type 'float' is deprecated, please use 'timeout=ClientWSTimeout"
+]
