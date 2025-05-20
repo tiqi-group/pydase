@@ -134,8 +134,13 @@ class Client:
 
     def connect(self, block_until_connected: bool = True) -> None:
         if self._thread is None or self._loop is None:
-            self._initialize_socketio_client()
             self._loop = self._initialize_loop_and_thread()
+            self._initialize_socketio_client()
+            self.proxy = ProxyClass(
+                sio_client=self._sio,
+                loop=self._loop,
+                reconnect=self.connect,
+            )
 
         connection_future = asyncio.run_coroutine_threadsafe(
             self._connect(), self._loop
@@ -163,11 +168,6 @@ class Client:
         """
 
         loop = asyncio.new_event_loop()
-        self.proxy = ProxyClass(
-            sio_client=self._sio,
-            loop=loop,
-            reconnect=self.connect,
-        )
         self._thread = threading.Thread(
             target=asyncio_loop_thread,
             args=(loop,),
