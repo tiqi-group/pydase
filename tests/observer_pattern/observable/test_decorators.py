@@ -1,8 +1,9 @@
 import asyncio
 import threading
 
-import pydase
 import pytest
+
+import pydase
 from pydase.observer_pattern.observable.decorators import validate_set
 
 
@@ -17,7 +18,10 @@ def linspace(start: float, stop: float, n: int):
 
 def asyncio_loop_thread(loop: asyncio.AbstractEventLoop) -> None:
     asyncio.set_event_loop(loop)
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    finally:
+        loop.close()
 
 
 def test_validate_set_precision(caplog: pytest.LogCaptureFixture) -> None:
@@ -89,10 +93,10 @@ def test_validate_set_timeout(caplog: pytest.LogCaptureFixture) -> None:
         def value(self, value: float) -> None:
             self.loop.create_task(self.set_value(value))
 
-        async def set_value(self, value) -> None:
+        async def set_value(self, value: float) -> None:
             for i in linspace(self._value, value, 10):
                 self._value = i
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
 
     class Service(pydase.DataService):
         def __init__(self) -> None:
@@ -104,7 +108,7 @@ def test_validate_set_timeout(caplog: pytest.LogCaptureFixture) -> None:
             return self._driver.value
 
         @value_1.setter
-        @validate_set(timeout=0.5)
+        @validate_set(timeout=0.01)
         def value_1(self, value: float) -> None:
             self._driver.value = value
 
@@ -113,7 +117,7 @@ def test_validate_set_timeout(caplog: pytest.LogCaptureFixture) -> None:
             return self._driver.value
 
         @value_2.setter
-        @validate_set(timeout=1)
+        @validate_set(timeout=0.11)
         def value_2(self, value: float) -> None:
             self._driver.value = value
 

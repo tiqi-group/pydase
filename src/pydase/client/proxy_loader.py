@@ -123,35 +123,35 @@ class ProxyList(list[Any]):
 
         update_value(self._sio, self._loop, full_access_path, value)
 
-    def append(self, __object: Any) -> None:
+    def append(self, object_: Any, /) -> None:
         full_access_path = f"{self._parent_path}.append"
 
-        trigger_method(self._sio, self._loop, full_access_path, [__object], {})
+        trigger_method(self._sio, self._loop, full_access_path, [object_], {})
 
     def clear(self) -> None:
         full_access_path = f"{self._parent_path}.clear"
 
         trigger_method(self._sio, self._loop, full_access_path, [], {})
 
-    def extend(self, __iterable: Iterable[Any]) -> None:
+    def extend(self, iterable: Iterable[Any], /) -> None:
         full_access_path = f"{self._parent_path}.extend"
 
-        trigger_method(self._sio, self._loop, full_access_path, [__iterable], {})
+        trigger_method(self._sio, self._loop, full_access_path, [iterable], {})
 
-    def insert(self, __index: SupportsIndex, __object: Any) -> None:
+    def insert(self, index: SupportsIndex, object_: Any, /) -> None:
         full_access_path = f"{self._parent_path}.insert"
 
-        trigger_method(self._sio, self._loop, full_access_path, [__index, __object], {})
+        trigger_method(self._sio, self._loop, full_access_path, [index, object_], {})
 
-    def pop(self, __index: SupportsIndex = -1) -> Any:
+    def pop(self, index: SupportsIndex = -1, /) -> Any:
         full_access_path = f"{self._parent_path}.pop"
 
-        return trigger_method(self._sio, self._loop, full_access_path, [__index], {})
+        return trigger_method(self._sio, self._loop, full_access_path, [index], {})
 
-    def remove(self, __value: Any) -> None:
+    def remove(self, value: Any, /) -> None:
         full_access_path = f"{self._parent_path}.remove"
 
-        trigger_method(self._sio, self._loop, full_access_path, [__value], {})
+        trigger_method(self._sio, self._loop, full_access_path, [value], {})
 
 
 class ProxyClassMixin:
@@ -266,7 +266,7 @@ class ProxyLoader:
         return ProxyList(
             [
                 ProxyLoader.loads_proxy(item, sio_client, loop)
-                for item in cast(list[SerializedObject], serialized_object["value"])
+                for item in cast("list[SerializedObject]", serialized_object["value"])
             ],
             parent_path=serialized_object["full_access_path"],
             sio_client=sio_client,
@@ -283,7 +283,7 @@ class ProxyLoader:
             {
                 key: ProxyLoader.loads_proxy(value, sio_client, loop)
                 for key, value in cast(
-                    dict[str, SerializedObject], serialized_object["value"]
+                    "dict[str, SerializedObject]", serialized_object["value"]
                 ).items()
             },
             parent_path=serialized_object["full_access_path"],
@@ -300,7 +300,7 @@ class ProxyLoader:
         proxy_class._proxy_setters.clear()
         proxy_class._proxy_methods.clear()
         for key, value in cast(
-            dict[str, SerializedObject], serialized_object["value"]
+            "dict[str, SerializedObject]", serialized_object["value"]
         ).items():
             type_handler: dict[str | None, None | Callable[..., Any]] = {
                 None: None,
@@ -333,7 +333,7 @@ class ProxyLoader:
     ) -> Any:
         # Custom types like Components or DataService classes
         component_class = cast(
-            type, Deserializer.get_service_base_class(serialized_object["type"])
+            "type", Deserializer.get_service_base_class(serialized_object["type"])
         )
         class_bases = (
             ProxyClassMixin,

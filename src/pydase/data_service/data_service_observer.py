@@ -13,9 +13,9 @@ from pydase.utils.helpers import (
 )
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
-    SerializedObject,
     dump,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 logger = logging.getLogger(__name__)
 

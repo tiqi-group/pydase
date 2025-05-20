@@ -192,7 +192,7 @@ class Client:
     async def _handle_connect(self) -> None:
         logger.debug("Connected to '%s' ...", self._url)
         serialized_object = cast(
-            SerializedDataService, await self._sio.call("service_serialization")
+            "SerializedDataService", await self._sio.call("service_serialization")
         )
         ProxyLoader.update_data_service_proxy(
             self.proxy, serialized_object=serialized_object

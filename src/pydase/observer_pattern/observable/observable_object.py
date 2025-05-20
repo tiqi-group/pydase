@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import logging
 import weakref
 from abc import ABC, abstractmethod
@@ -164,9 +165,9 @@ class _ObservableList(ObservableObject, list[Any]):
 
         self._notify_changed(f"[{key}]", value)
 
-    def append(self, __object: Any) -> None:
+    def append(self, object_: Any, /) -> None:
         self._notify_change_start("")
-        super().append(self._initialise_new_objects(f"[{len(self)}]", __object))
+        super().append(self._initialise_new_objects(f"[{len(self)}]", object_))
         self._notify_changed("", self)
 
     def clear(self) -> None:
@@ -176,33 +177,33 @@ class _ObservableList(ObservableObject, list[Any]):
 
         self._notify_changed("", self)
 
-    def extend(self, __iterable: Iterable[Any]) -> None:
+    def extend(self, iterable: Iterable[Any], /) -> None:
         self._remove_self_from_observables()
 
         try:
-            super().extend(__iterable)
+            super().extend(iterable)
         finally:
             for i, item in enumerate(self):
                 super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
 
             self._notify_changed("", self)
 
-    def insert(self, __index: SupportsIndex, __object: Any) -> None:
+    def insert(self, index: SupportsIndex, object_: Any, /) -> None:
         self._remove_self_from_observables()
 
         try:
-            super().insert(__index, __object)
+            super().insert(index, object_)
         finally:
             for i, item in enumerate(self):
                 super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
 
             self._notify_changed("", self)
 
-    def pop(self, __index: SupportsIndex = -1) -> Any:
+    def pop(self, index: SupportsIndex = -1, /) -> Any:
         self._remove_self_from_observables()
 
         try:
-            popped_item = super().pop(__index)
+            popped_item = super().pop(index)
         finally:
             for i, item in enumerate(self):
                 super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
@@ -210,11 +211,11 @@ class _ObservableList(ObservableObject, list[Any]):
             self._notify_changed("", self)
         return popped_item
 
-    def remove(self, __value: Any) -> None:
+    def remove(self, value: Any, /) -> None:
         self._remove_self_from_observables()
 
         try:
-            super().remove(__value)
+            super().remove(value)
         finally:
             for i, item in enumerate(self):
                 super().__setitem__(i, self._initialise_new_objects(f"[{i}]", item))
@@ -252,7 +253,8 @@ class _ObservableDict(ObservableObject, dict[str, Any]):
             self.__setitem__(key, self._initialise_new_objects(f'["{key}"]', value))
 
     def __del__(self) -> None:
-        self._dict_mapping.pop(id(self._original_dict))
+        with contextlib.suppress(KeyError):
+            self._dict_mapping.pop(id(self._original_dict))
 
     def __setitem__(self, key: str, value: Any) -> None:
         if not isinstance(key, str):

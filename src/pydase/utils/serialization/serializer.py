@@ -20,29 +20,29 @@ from pydase.utils.helpers import (
     parse_full_access_path,
     parse_serialized_key,
 )
-from pydase.utils.serialization.types import (
-    DataServiceTypes,
-    SerializedBool,
-    SerializedDataService,
-    SerializedDatetime,
-    SerializedDict,
-    SerializedEnum,
-    SerializedException,
-    SerializedFloat,
-    SerializedInteger,
-    SerializedList,
-    SerializedMethod,
-    SerializedNoneType,
-    SerializedObject,
-    SerializedQuantity,
-    SerializedString,
-    SignatureDict,
-)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from pydase.client.proxy_class import ProxyClass
+    from pydase.utils.serialization.types import (
+        DataServiceTypes,
+        SerializedBool,
+        SerializedDataService,
+        SerializedDatetime,
+        SerializedDict,
+        SerializedEnum,
+        SerializedException,
+        SerializedFloat,
+        SerializedInteger,
+        SerializedList,
+        SerializedMethod,
+        SerializedNoneType,
+        SerializedObject,
+        SerializedQuantity,
+        SerializedString,
+        SignatureDict,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +253,7 @@ class Serializer:
 
         for k, v in sig.parameters.items():
             default_value = cast(
-                dict[str, Any], {} if v.default == inspect._empty else dump(v.default)
+                "dict[str, Any]", {} if v.default == inspect._empty else dump(v.default)
             )
             default_value.pop("full_access_path", None)
             signature["parameters"][k] = {
@@ -385,7 +385,7 @@ def set_nested_value_by_path(
                 current_dict, path_part, allow_append=False
             )
             current_dict = cast(
-                dict[Any, SerializedObject],
+                "dict[Any, SerializedObject]",
                 next_level_serialized_object["value"],
             )
 
@@ -426,7 +426,7 @@ def get_nested_dict_by_path(
             current_dict, path_part, allow_append=False
         )
         current_dict = cast(
-            dict[Any, SerializedObject],
+            "dict[Any, SerializedObject]",
             next_level_serialized_object["value"],
         )
     return get_container_item_by_key(current_dict, path_parts[-1], allow_append=False)
@@ -456,7 +456,7 @@ def get_or_create_item_in_container(
         return container[key]
     except IndexError:
         if allow_add_key and key == len(container):
-            cast(list[SerializedObject], container).append(
+            cast("list[SerializedObject]", container).append(
                 create_empty_serialized_object()
             )
             return container[key]
@@ -541,7 +541,7 @@ def get_data_paths_from_serialized_object(  # noqa: C901
 
     elif serialized_dict_is_nested_object(serialized_obj):
         for key, value in cast(
-            dict[str, SerializedObject], serialized_obj["value"]
+            "dict[str, SerializedObject]", serialized_obj["value"]
         ).items():
             # Serialized dictionaries need to have a different new_path than nested
             # classes
@@ -628,13 +628,13 @@ def add_prefix_to_full_access_path(
 
         if isinstance(serialized_obj["value"], list):
             for value in serialized_obj["value"]:
-                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
+                add_prefix_to_full_access_path(cast("SerializedObject", value), prefix)
 
         elif isinstance(serialized_obj["value"], dict):
             for value in cast(
-                dict[str, SerializedObject], serialized_obj["value"]
+                "dict[str, SerializedObject]", serialized_obj["value"]
             ).values():
-                add_prefix_to_full_access_path(cast(SerializedObject, value), prefix)
+                add_prefix_to_full_access_path(cast("SerializedObject", value), prefix)
     except (TypeError, KeyError, AttributeError):
         # passed dictionary is not a serialized object
         pass

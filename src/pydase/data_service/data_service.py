@@ -15,9 +15,9 @@ from pydase.utils.helpers import (
     is_property_attribute,
 )
 from pydase.utils.serialization.serializer import (
-    SerializedObject,
     Serializer,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +27,17 @@ class DataService(AbstractDataService):
         super().__init__()
         self.__check_instance_classes()
 
-    def __setattr__(self, __name: str, __value: Any) -> None:
+    def __setattr__(self, name: str, value: Any, /) -> None:
         # Check and warn for unexpected type changes in attributes
-        self._warn_on_type_change(__name, __value)
+        self._warn_on_type_change(name, value)
 
         # every class defined by the user should inherit from DataService if it is
         # assigned to a public attribute
-        if not __name.startswith("_") and not inspect.isfunction(__value):
-            self.__warn_if_not_observable(__value)
+        if not name.startswith("_") and not inspect.isfunction(value):
+            self.__warn_if_not_observable(value)
 
         # Set the attribute
-        super().__setattr__(__name, __value)
+        super().__setattr__(name, value)
 
     def _warn_on_type_change(self, attr_name: str, new_value: Any) -> None:
         if is_property_attribute(self, attr_name):
@@ -56,16 +56,14 @@ class DataService(AbstractDataService):
 
     def _is_unexpected_type_change(self, current_value: Any, new_value: Any) -> bool:
         return (
-            isinstance(current_value, float)
-            and not isinstance(new_value, float)
-            or (
-                isinstance(current_value, u.Quantity)
-                and not isinstance(new_value, u.Quantity)
-            )
+            isinstance(current_value, float) and not isinstance(new_value, float)
+        ) or (
+            isinstance(current_value, u.Quantity)
+            and not isinstance(new_value, u.Quantity)
         )
 
-    def __warn_if_not_observable(self, __value: Any) -> None:
-        value_class = __value if inspect.isclass(__value) else __value.__class__
+    def __warn_if_not_observable(self, value: Any, /) -> None:
+        value_class = value if inspect.isclass(value) else value.__class__
 
         if not issubclass(
             value_class,
@@ -81,7 +79,7 @@ class DataService(AbstractDataService):
                 | Observable
                 | Callable
             ),
-        ) and not is_descriptor(__value):
+        ) and not is_descriptor(value):
             logger.warning(
                 "Class '%s' does not inherit from DataService. This may lead to"
                 " unexpected behaviour!",

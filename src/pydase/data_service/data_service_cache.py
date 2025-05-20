@@ -2,10 +2,10 @@ import logging
 from typing import TYPE_CHECKING, Any, cast
 
 from pydase.utils.serialization.serializer import (
-    SerializedObject,
     get_nested_dict_by_path,
     set_nested_value_by_path,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 if TYPE_CHECKING:
     from pydase import DataService
@@ -46,13 +46,13 @@ class DataServiceCache:
 
     def update_cache(self, full_access_path: str, value: Any) -> None:
         set_nested_value_by_path(
-            cast(dict[str, SerializedObject], self._cache["value"]),
+            cast("dict[str, SerializedObject]", self._cache["value"]),
             full_access_path,
             value,
         )
 
     def get_value_dict_from_cache(self, full_access_path: str) -> SerializedObject:
         return get_nested_dict_by_path(
-            cast(dict[str, SerializedObject], self._cache["value"]),
+            cast("dict[str, SerializedObject]", self._cache["value"]),
             full_access_path,
         )

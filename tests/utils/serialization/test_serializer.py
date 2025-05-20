@@ -3,15 +3,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, ClassVar
 
+import pytest
+
 import pydase
 import pydase.units as u
-import pytest
 from pydase.components.coloured_enum import ColouredEnum
 from pydase.task.task_status import TaskStatus
 from pydase.utils.decorators import frontend
 from pydase.utils.serialization.serializer import (
     SerializationPathError,
-    SerializedObject,
     add_prefix_to_full_access_path,
     dump,
     generate_serialized_data_paths,
@@ -21,6 +21,7 @@ from pydase.utils.serialization.serializer import (
     serialized_dict_is_nested_object,
     set_nested_value_by_path,
 )
+from pydase.utils.serialization.types import SerializedObject
 
 
 class MyEnum(enum.Enum):
@@ -252,7 +253,7 @@ def test_methods_with_type_hints() -> None:
     def method_with_type_hint(some_argument: int) -> None:
         pass
 
-    def method_with_union_type_hint(some_argument: int | float) -> None:
+    def method_with_union_type_hint(some_argument: int | float) -> None:  # noqa: PYI041
         pass
 
     assert dump(method_without_type_hint) == {
