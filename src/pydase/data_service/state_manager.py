@@ -141,7 +141,7 @@ class StateManager:
     @property
     def cache_value(self) -> dict[str, SerializedObject]:
         """Returns the "value" value of the DataService serialization."""
-        return cast(dict[str, SerializedObject], self.cache_manager.cache["value"])
+        return cast("dict[str, SerializedObject]", self.cache_manager.cache["value"])
 
     def save_state(self) -> None:
         """Saves the DataService's current state to a JSON file defined by
@@ -203,7 +203,7 @@ class StateManager:
             with open(self.filename) as f:
                 # Load JSON data from file and update class attributes with these
                 # values
-                return cast(dict[str, Any], json.load(f))
+                return cast("dict[str, Any]", json.load(f))
         return {}
 
     def set_service_attribute_value_by_path(

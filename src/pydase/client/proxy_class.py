@@ -67,7 +67,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
     def serialize(self) -> SerializedObject:
         if self._service_representation is None:
             serialization_future = cast(
-                asyncio.Future[SerializedDataService],
+                "asyncio.Future[SerializedDataService]",
                 asyncio.run_coroutine_threadsafe(
                     self._sio.call("service_serialization"), self._loop
                 ),
@@ -80,7 +80,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
                 self._service_representation = serialization_future.result()
 
         device_connection_value = cast(
-            dict[str, SerializedObject],
+            "dict[str, SerializedObject]",
             pydase.components.DeviceConnection().serialize()["value"],
         )
 
@@ -90,7 +90,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
 
         value = {
             **cast(
-                dict[str, SerializedObject],
+                "dict[str, SerializedObject]",
                 # need to deepcopy to not overwrite the _service_representation dict
                 # when adding a prefix with add_prefix_to_full_access_path
                 deepcopy(self._service_representation["value"]),

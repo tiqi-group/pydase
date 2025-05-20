@@ -85,7 +85,7 @@ class Deserializer:
     def deserialize_list(cls, serialized_object: SerializedObject) -> Any:
         return [
             cls.deserialize(item)
-            for item in cast(list[SerializedObject], serialized_object["value"])
+            for item in cast("list[SerializedObject]", serialized_object["value"])
         ]
 
     @classmethod
@@ -93,7 +93,7 @@ class Deserializer:
         return {
             key: cls.deserialize(value)
             for key, value in cast(
-                dict[str, SerializedObject], serialized_object["value"]
+                "dict[str, SerializedObject]", serialized_object["value"]
             ).items()
         }
 
@@ -148,7 +148,7 @@ class Deserializer:
 
             # Process and add properties based on the serialized object
             for key, value in cast(
-                dict[str, SerializedObject], serialized_object["value"]
+                "dict[str, SerializedObject]", serialized_object["value"]
             ).items():
                 if value["type"] != "method":
                     class_attrs[key] = cls.create_attr_property(value)

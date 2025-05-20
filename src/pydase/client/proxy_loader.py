@@ -266,7 +266,7 @@ class ProxyLoader:
         return ProxyList(
             [
                 ProxyLoader.loads_proxy(item, sio_client, loop)
-                for item in cast(list[SerializedObject], serialized_object["value"])
+                for item in cast("list[SerializedObject]", serialized_object["value"])
             ],
             parent_path=serialized_object["full_access_path"],
             sio_client=sio_client,
@@ -283,7 +283,7 @@ class ProxyLoader:
             {
                 key: ProxyLoader.loads_proxy(value, sio_client, loop)
                 for key, value in cast(
-                    dict[str, SerializedObject], serialized_object["value"]
+                    "dict[str, SerializedObject]", serialized_object["value"]
                 ).items()
             },
             parent_path=serialized_object["full_access_path"],
@@ -300,7 +300,7 @@ class ProxyLoader:
         proxy_class._proxy_setters.clear()
         proxy_class._proxy_methods.clear()
         for key, value in cast(
-            dict[str, SerializedObject], serialized_object["value"]
+            "dict[str, SerializedObject]", serialized_object["value"]
         ).items():
             type_handler: dict[str | None, None | Callable[..., Any]] = {
                 None: None,
@@ -333,7 +333,7 @@ class ProxyLoader:
     ) -> Any:
         # Custom types like Components or DataService classes
         component_class = cast(
-            type, Deserializer.get_service_base_class(serialized_object["type"])
+            "type", Deserializer.get_service_base_class(serialized_object["type"])
         )
         class_bases = (
             ProxyClassMixin,

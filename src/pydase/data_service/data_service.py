@@ -56,12 +56,10 @@ class DataService(AbstractDataService):
 
     def _is_unexpected_type_change(self, current_value: Any, new_value: Any) -> bool:
         return (
-            isinstance(current_value, float)
-            and not isinstance(new_value, float)
-            or (
-                isinstance(current_value, u.Quantity)
-                and not isinstance(new_value, u.Quantity)
-            )
+            isinstance(current_value, float) and not isinstance(new_value, float)
+        ) or (
+            isinstance(current_value, u.Quantity)
+            and not isinstance(new_value, u.Quantity)
         )
 
     def __warn_if_not_observable(self, value: Any, /) -> None:
