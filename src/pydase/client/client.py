@@ -3,11 +3,11 @@ import logging
 import sys
 import threading
 import urllib.parse
+from builtins import ModuleNotFoundError
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 import aiohttp
-import aiohttp_socks.connector
 import socketio  # type: ignore
 
 from pydase.client.proxy_class import ProxyClass
@@ -150,6 +150,17 @@ class Client:
 
     def _initialize_socketio_client(self) -> None:
         if self._proxy_url is not None:
+            try:
+                import aiohttp_socks.connector
+            except ModuleNotFoundError:
+                raise ModuleNotFoundError(
+                    "Missing dependency 'aiohttp_socks'. To use SOCKS5 proxy support, "
+                    "install the optional 'socks' extra:\n\n"
+                    '    pip install "pydase[socks]"\n\n'
+                    "This is required when specifying a `proxy_url` for "
+                    "`pydase.Client`."
+                )
+
             session = aiohttp.ClientSession(
                 connector=aiohttp_socks.connector.ProxyConnector.from_url(
                     url=self._proxy_url, loop=self._loop
