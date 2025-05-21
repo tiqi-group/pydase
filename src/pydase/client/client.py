@@ -1,9 +1,9 @@
-from builtins import ModuleNotFoundError
 import asyncio
 import logging
 import sys
 import threading
 import urllib.parse
+from builtins import ModuleNotFoundError
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, TypedDict, cast
 
