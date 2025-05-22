@@ -262,3 +262,22 @@ def test_dependency_as_function_argument(caplog: pytest.LogCaptureFixture) -> No
     service_instance.some_int = 1337
 
     assert "'other_int' changed to '1338'" in caplog.text
+
+
+def test_property_starting_with_dependency_name(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    class MyObservable(pydase.DataService):
+        my_int = 0
+
+        @property
+        def my_int_2(self) -> int:
+            return self.my_int + 1
+
+    service_instance = MyObservable()
+    state_manager = StateManager(service=service_instance)
+    DataServiceObserver(state_manager)
+
+    service_instance.my_int = 1337
+
+    assert "'my_int_2' changed to '1338'" in caplog.text
