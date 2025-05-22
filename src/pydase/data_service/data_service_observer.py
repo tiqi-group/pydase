@@ -20,6 +20,19 @@ from pydase.utils.serialization.types import SerializedObject
 logger = logging.getLogger(__name__)
 
 
+def _is_nested_attribute(full_access_path: str, changing_attributes: list[str]) -> bool:
+    """Return True if the full_access_path is a nested attribute of any
+    changing_attribute."""
+
+    return any(
+        (
+            full_access_path.startswith((f"{attr}.", f"{attr}["))
+            and full_access_path != attr
+        )
+        for attr in changing_attributes
+    )
+
+
 class DataServiceObserver(PropertyObserver):
     def __init__(self, state_manager: StateManager) -> None:
         self.state_manager = state_manager
@@ -29,11 +42,7 @@ class DataServiceObserver(PropertyObserver):
         super().__init__(state_manager.service)
 
     def on_change(self, full_access_path: str, value: Any) -> None:
-        if any(
-            full_access_path.startswith(changing_attribute)
-            and full_access_path != changing_attribute
-            for changing_attribute in self.changing_attributes
-        ):
+        if _is_nested_attribute(full_access_path, self.changing_attributes):
             return
         cached_value_dict: SerializedObject
 
