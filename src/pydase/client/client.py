@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import socket
 import sys
 import threading
 import urllib.parse
@@ -59,7 +60,8 @@ class Client:
             client's behaviour (e.g., reconnection attempts or reconnection delay).
         client_id: An optional client identifier. This ID is sent to the server as the
             `X-Client-Id` HTTP header. It can be used for logging or authentication
-            purposes on the server side.
+            purposes on the server side. If not provided, it defaults to the hostname
+            of the machine running the client.
         proxy_url: An optional proxy URL to route the connection through. This is useful
             if the service is only reachable via an SSH tunnel or behind a firewall
             (e.g., `socks5://localhost:2222`).
@@ -112,7 +114,7 @@ class Client:
         self._path_prefix = parsed_url.path.rstrip("/")  # Remove trailing slash if any
         self._url = url
         self._proxy_url = proxy_url
-        self._client_id = client_id
+        self._client_id = client_id or socket.gethostname()
         self._sio_client_kwargs = sio_client_kwargs
         self._loop: asyncio.AbstractEventLoop | None = None
         self._thread: threading.Thread | None = None

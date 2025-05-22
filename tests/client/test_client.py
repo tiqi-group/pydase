@@ -168,9 +168,11 @@ def test_context_manager(pydase_client: pydase.Client) -> None:
 def test_client_id(
     pydase_client: pydase.Client, caplog: pytest.LogCaptureFixture
 ) -> None:
+    import socket
+
     pydase.Client(url="ws://localhost:9999")
 
-    assert "Client [sid=" in caplog.text
+    assert f"Client [id={socket.gethostname()}]" in caplog.text
     caplog.clear()
 
     pydase.Client(url="ws://localhost:9999", client_id="my_service")

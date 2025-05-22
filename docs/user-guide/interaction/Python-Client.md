@@ -58,7 +58,7 @@ class MyService(pydase.DataService):
     proxy = pydase.Client(
         url="ws://<ip_addr>:<service_port>",
         block_until_connected=False,
-        client_id="my_pydase_client_id",
+        client_id="my_pydase_client_id",  # optional, defaults to system hostname
     ).proxy
 
     # For SSL-encrypted services, use the wss protocol
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 In this example:
 - The `MyService` class has a `proxy` attribute that connects to a `pydase` service at `<ip_addr>:<service_port>`.
 - By setting `block_until_connected=False`, the service can start without waiting for the connection to succeed.
-- By setting `client_id`, the server will log a descriptive identifier for this client via the `X-Client-Id` HTTP header.
+- The `client_id` is optional. If not specified, it defaults to the system hostname, which will be sent in the `X-Client-Id` HTTP header for logging or authentication on the server side.
 
 ## Custom `socketio.AsyncClient` Connection Parameters
 
