@@ -1,8 +1,9 @@
 import logging
 from typing import Any
 
-import pydase
 import pytest
+
+import pydase
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.serialization.serializer import SerializationError, dump
@@ -241,3 +242,22 @@ def test_read_only_dict_property(caplog: pytest.LogCaptureFixture) -> None:
     service_instance._dict_attr["dotted.key"] = 2.0
 
     assert "'dict_attr[\"dotted.key\"]' changed to '2.0'" in caplog.text
+
+
+def test_dependency_as_function_argument(caplog: pytest.LogCaptureFixture) -> None:
+    import time
+
+    class MyObservable(pydase.DataService):
+        time_ms = 0
+
+        @property
+        def datetime(self) -> str:
+            return time.ctime(self.time_ms)
+
+    service_instance = MyObservable()
+    state_manager = StateManager(service=service_instance)
+    DataServiceObserver(state_manager)
+
+    service_instance.time_ms = 1746136800
+
+    assert "'datetime' changed to 'Fri May  2 00:00:00 2025'" in caplog.text
