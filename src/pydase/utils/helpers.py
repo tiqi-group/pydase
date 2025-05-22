@@ -231,6 +231,6 @@ def current_event_loop_exists() -> bool:
     import asyncio
 
     try:
-        return not asyncio.get_running_loop().is_closed()
+        return not asyncio.get_event_loop().is_closed()
     except RuntimeError:
         return False
