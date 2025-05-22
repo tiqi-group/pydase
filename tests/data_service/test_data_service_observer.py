@@ -245,19 +245,20 @@ def test_read_only_dict_property(caplog: pytest.LogCaptureFixture) -> None:
 
 
 def test_dependency_as_function_argument(caplog: pytest.LogCaptureFixture) -> None:
-    import time
-
     class MyObservable(pydase.DataService):
-        time_ms = 0
+        some_int = 0
 
         @property
-        def datetime(self) -> str:
-            return time.ctime(self.time_ms)
+        def other_int(self) -> int:
+            return self.add_one(self.some_int)
+
+        def add_one(self, value: int) -> int:
+            return value + 1
 
     service_instance = MyObservable()
     state_manager = StateManager(service=service_instance)
     DataServiceObserver(state_manager)
 
-    service_instance.time_ms = 1746136800
+    service_instance.some_int = 1337
 
-    assert "'datetime' changed to 'Fri May  2 00:00:00 2025'" in caplog.text
+    assert "'other_int' changed to '1338'" in caplog.text
