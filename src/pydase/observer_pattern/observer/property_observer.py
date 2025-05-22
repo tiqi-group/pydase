@@ -22,7 +22,7 @@ def reverse_dict(original_dict: dict[str, list[str]]) -> dict[str, list[str]]:
 
 def get_property_dependencies(prop: property, prefix: str = "") -> list[str]:
     source_code_string = inspect.getsource(prop.fget)  # type: ignore[arg-type]
-    pattern = r"self\.([^\s\{\}\)]+)"
+    pattern = r"self\.([^\s\{\}\(\)]+)"
     matches = re.findall(pattern, source_code_string)
     return [prefix + match for match in matches if "(" not in match]
 
