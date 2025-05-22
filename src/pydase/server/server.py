@@ -14,7 +14,6 @@ from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.server.web_server import WebServer
 from pydase.task.autostart import autostart_service_tasks
-from pydase.utils.helpers import current_event_loop_exists
 
 HANDLED_SIGNALS = (
     signal.SIGINT,  # Unix signal 2. Sent by Ctrl+C.
@@ -162,6 +161,10 @@ class Server:
         self._additional_servers = additional_servers
         self.should_exit = False
         self.servers: dict[str, asyncio.Future[Any]] = {}
+
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+
         self._state_manager = StateManager(
             service=self._service,
             filename=filename,
@@ -170,11 +173,6 @@ class Server:
         self._observer = DataServiceObserver(self._state_manager)
         self._state_manager.load_state()
         autostart_service_tasks(self._service)
-        if not current_event_loop_exists():
-            self._loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(self._loop)
-        else:
-            self._loop = asyncio.get_event_loop()
 
     def run(self) -> None:
         """
