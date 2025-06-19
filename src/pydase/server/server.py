@@ -135,6 +135,14 @@ class Server:
         autosave_interval: Interval in seconds between automatic state save events.
             If set to `None`, automatic saving is disabled. Defaults to 30 seconds.
         **kwargs: Additional keyword arguments.
+
+    # Advanced
+    - [`post_startup`][pydase.Server.post_startup] hook:
+
+          This method is intended to be overridden in subclasses. It runs immediately
+          after all servers (web and additional) are initialized and before entering the
+          main event loop. You can use this hook to register custom logic after the
+          server is fully started.
     """
 
     def __init__(  # noqa: PLR0913
@@ -191,6 +199,7 @@ class Server:
         logger.info("Started server process [%s]", process_id)
 
         await self.startup()
+        await self.post_startup()
         if self.should_exit:
             return
         await self.main_loop()
@@ -257,6 +266,9 @@ class Server:
         await self.__cancel_servers()
         logger.debug("Cancelling tasks")
         await self.__cancel_tasks()
+
+    async def post_startup(self) -> None:
+        """Override this in a subclass to register custom logic after startup."""
 
     async def __cancel_servers(self) -> None:
         for server_name, task in self.servers.items():
