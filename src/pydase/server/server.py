@@ -226,17 +226,17 @@ class Server:
             server_task = self._loop.create_task(addin_server.serve())
             server_task.add_done_callback(self._handle_server_shutdown)
             self.servers[server_name] = server_task
-        if self._enable_web:
-            self._web_server = WebServer(
-                data_service_observer=self._observer,
-                host=self._host,
-                port=self._web_port,
-                **self._kwargs,
-            )
-            server_task = self._loop.create_task(self._web_server.serve())
+        self._web_server = WebServer(
+            data_service_observer=self._observer,
+            host=self._host,
+            port=self._web_port,
+            enable_frontend=self._enable_web,
+            **self._kwargs,
+        )
+        server_task = self._loop.create_task(self._web_server.serve())
 
-            server_task.add_done_callback(self._handle_server_shutdown)
-            self.servers["web"] = server_task
+        server_task.add_done_callback(self._handle_server_shutdown)
+        self.servers["web"] = server_task
 
         self._loop.create_task(self._state_manager.autosave())
 
@@ -319,7 +319,7 @@ class Server:
         # here we exclude most kinds of exceptions from triggering this kind of shutdown
         exc = context.get("exception")
         if type(exc) not in [RuntimeError, KeyboardInterrupt, asyncio.CancelledError]:
-            if self._enable_web:
+            if loop.is_running():
 
                 async def emit_exception() -> None:
                     try:

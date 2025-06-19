@@ -81,6 +81,7 @@ class WebServer:
         host: str,
         port: int,
         *,
+        enable_frontend: bool = True,
         css: str | Path | None = None,
         favicon_path: str | Path | None = None,
         enable_cors: bool = True,
@@ -97,6 +98,7 @@ class WebServer:
         self.enable_cors = enable_cors
         self.frontend_src = frontend_src
         self.favicon_path: Path | str = favicon_path  # type: ignore
+        self.enable_frontend = enable_frontend
 
         if self.favicon_path is None:
             self.favicon_path = self.frontend_src / "favicon.ico"
@@ -162,15 +164,17 @@ class WebServer:
 
         # Define routes
         self._sio.attach(app, socketio_path="/ws/socket.io")
-        app.router.add_static("/assets", self.frontend_src / "assets")
-        app.router.add_get("/favicon.ico", self._favicon_route)
-        app.router.add_get("/service-properties", self._service_properties_route)
-        app.router.add_get("/web-settings", self._web_settings_route)
-        app.router.add_get("/custom.css", self._styles_route)
+        if self.enable_frontend:
+            app.router.add_static("/assets", self.frontend_src / "assets")
+            app.router.add_get("/favicon.ico", self._favicon_route)
+            app.router.add_get("/service-properties", self._service_properties_route)
+            app.router.add_get("/web-settings", self._web_settings_route)
+            app.router.add_get("/custom.css", self._styles_route)
         app.add_subapp("/api/", create_api_application(self.state_manager))
 
-        app.router.add_get(r"/", index)
-        app.router.add_get(r"/{tail:.*}", index)
+        if self.enable_frontend:
+            app.router.add_get(r"/", index)
+            app.router.add_get(r"/{tail:.*}", index)
 
         await aiohttp.web._run_app(
             app,
