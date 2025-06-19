@@ -23,7 +23,26 @@ The proxy acts as a local representation of the remote service, enabling intuiti
 
 The proxy class automatically synchronizes with the server's attributes and methods, keeping itself up-to-date with any changes. This dynamic synchronization essentially mirrors the server's API, making it feel like you're working with a local object.
 
-### Accessing Services Behind Firewalls or SSH Gateways
+## Direct API Access
+
+In addition to using the `proxy` object, users may access the server API directly via the following methods:
+
+```python
+client = pydase.Client(url="ws://localhost:8001")
+
+# Get the current value of an attribute
+value = client.get_value("device.voltage")
+
+# Update an attribute
+client.update_value("device.voltage", 5.0)
+
+# Call a method on the remote service
+result = client.trigger_method("device.reset")
+```
+
+This bypasses the proxy and is useful for lower-level access to individual service endpoints.
+
+## Accessing Services Behind Firewalls or SSH Gateways
 
 If your service is only reachable through a private network or SSH gateway, you can route your connection through a local SOCKS5 proxy using the `proxy_url` parameter.
 
