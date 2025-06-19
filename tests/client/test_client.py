@@ -177,3 +177,16 @@ def test_client_id(
 
     pydase.Client(url="ws://localhost:9999", client_id="my_service")
     assert "Client [id=my_service] connected" in caplog.text
+
+
+def test_get_value(
+    pydase_client: pydase.Client, caplog: pytest.LogCaptureFixture
+) -> None:
+    pydase_client.update_value("sub_service.name", "Other name")
+
+    assert pydase_client.get_value("sub_service.name") == "Other name"
+
+    assert (
+        pydase_client.trigger_method("my_async_method", input_str="Hello World")
+        == "Hello World"
+    )
