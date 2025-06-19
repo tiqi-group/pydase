@@ -165,15 +165,16 @@ class SocketIOHandler(logging.Handler):
         log_entry = self.format(record)
 
         loop = asyncio.get_event_loop()
-        loop.create_task(
-            self._sio.emit(
-                "log",
-                {
-                    "levelname": record.levelname,
-                    "message": log_entry,
-                },
+        if loop.is_running():
+            loop.create_task(
+                self._sio.emit(
+                    "log",
+                    {
+                        "levelname": record.levelname,
+                        "message": log_entry,
+                    },
+                )
             )
-        )
 
 
 def setup_logging() -> None:
