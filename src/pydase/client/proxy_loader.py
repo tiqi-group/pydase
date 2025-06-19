@@ -257,7 +257,7 @@ class ProxyClassMixin:
         self, attr_name: str, serialized_object: SerializedObject
     ) -> None:
         def getter_proxy() -> Any:
-            get_value(
+            return get_value(
                 sio_client=self._sio,
                 loop=self._loop,
                 access_path=serialized_object["full_access_path"],
