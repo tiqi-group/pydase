@@ -319,7 +319,7 @@ class Server:
         # here we exclude most kinds of exceptions from triggering this kind of shutdown
         exc = context.get("exception")
         if type(exc) not in [RuntimeError, KeyboardInterrupt, asyncio.CancelledError]:
-            if self._enable_web:
+            if loop.is_running():
 
                 async def emit_exception() -> None:
                     try:
