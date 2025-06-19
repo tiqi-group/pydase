@@ -105,13 +105,11 @@ class WebServer:
 
         self._service_config_dir = config_dir
         self._generate_web_settings = generate_web_settings
-        self._loop: asyncio.AbstractEventLoop
+        self._loop = asyncio.get_event_loop()
+        self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
         self._initialise_configuration()
 
     async def serve(self) -> None:
-        self._loop = asyncio.get_running_loop()
-        self._sio = setup_sio_server(self.observer, self.enable_cors, self._loop)
-
         async def index(
             request: aiohttp.web.Request,
         ) -> aiohttp.web.Response | aiohttp.web.FileResponse:

@@ -115,7 +115,7 @@ def setup_sio_server(
     def sio_callback(
         full_access_path: str, value: Any, cached_value_dict: SerializedObject
     ) -> None:
-        if cached_value_dict != {}:
+        if cached_value_dict != {} and loop.is_running():
 
             async def notify() -> None:
                 try:

@@ -182,6 +182,14 @@ class Server:
         self._state_manager.load_state()
         autostart_service_tasks(self._service)
 
+        self._web_server = WebServer(
+            data_service_observer=self._observer,
+            host=self._host,
+            port=self._web_port,
+            enable_frontend=self._enable_web,
+            **self._kwargs,
+        )
+
     def run(self) -> None:
         """
         Initializes the asyncio event loop and starts the server.
@@ -211,6 +219,10 @@ class Server:
         self._loop.set_exception_handler(self.custom_exception_handler)
         self.install_signal_handlers()
 
+        server_task = self._loop.create_task(self._web_server.serve())
+        server_task.add_done_callback(self._handle_server_shutdown)
+        self.servers["web"] = server_task
+
         for server in self._additional_servers:
             addin_server = server["server"](
                 data_service_observer=self._observer,
@@ -226,17 +238,6 @@ class Server:
             server_task = self._loop.create_task(addin_server.serve())
             server_task.add_done_callback(self._handle_server_shutdown)
             self.servers[server_name] = server_task
-        self._web_server = WebServer(
-            data_service_observer=self._observer,
-            host=self._host,
-            port=self._web_port,
-            enable_frontend=self._enable_web,
-            **self._kwargs,
-        )
-        server_task = self._loop.create_task(self._web_server.serve())
-
-        server_task.add_done_callback(self._handle_server_shutdown)
-        self.servers["web"] = server_task
 
         self._loop.create_task(self._state_manager.autosave())
 
