@@ -74,6 +74,21 @@ def update_value(
         )
 
 
+def get_value(
+    sio_client: socketio.AsyncClient,
+    loop: asyncio.AbstractEventLoop,
+    access_path: str,
+) -> Any:
+    async def get_result() -> Any:
+        return await sio_client.call("get_value", access_path)
+
+    result = asyncio.run_coroutine_threadsafe(
+        get_result(),
+        loop=loop,
+    ).result()
+    return ProxyLoader.loads_proxy(result, sio_client, loop)
+
+
 class ProxyDict(dict[str, Any]):
     def __init__(
         self,
@@ -242,16 +257,11 @@ class ProxyClassMixin:
         self, attr_name: str, serialized_object: SerializedObject
     ) -> None:
         def getter_proxy() -> Any:
-            async def get_result() -> Any:
-                return await self._sio.call(
-                    "get_value", serialized_object["full_access_path"]
-                )
-
-            result = asyncio.run_coroutine_threadsafe(
-                get_result(),
+            get_value(
+                sio_client=self._sio,
                 loop=self._loop,
-            ).result()
-            return ProxyLoader.loads_proxy(result, self._sio, self._loop)
+                access_path=serialized_object["full_access_path"],
+            )
 
         dict.__setitem__(self._proxy_getters, attr_name, getter_proxy)  # type: ignore
 
