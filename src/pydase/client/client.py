@@ -12,7 +12,12 @@ import aiohttp
 import socketio  # type: ignore
 
 from pydase.client.proxy_class import ProxyClass
-from pydase.client.proxy_loader import ProxyLoader
+from pydase.client.proxy_loader import (
+    ProxyLoader,
+    get_value,
+    trigger_method,
+    update_value,
+)
 from pydase.utils.serialization.deserializer import loads
 from pydase.utils.serialization.types import SerializedDataService, SerializedObject
 
@@ -253,3 +258,77 @@ class Client:
             data["data"]["full_access_path"],
             loads(data["data"]["value"]),
         )
+
+    def get_value(self, access_path: str) -> Any:
+        """Retrieve the current value of a remote attribute.
+
+        Args:
+            access_path: The dot-separated path to the attribute in the remote service.
+
+        Returns:
+            The deserialized value of the remote attribute, or None if the client is not
+            connected.
+
+        Example:
+            ```python
+            value = client.get_value("my_device.temperature")
+            print(value)
+            ```
+        """
+
+        if self._loop is not None:
+            return get_value(
+                sio_client=self._sio,
+                loop=self._loop,
+                access_path=access_path,
+            )
+        return None
+
+    def update_value(self, access_path: str, new_value: Any) -> Any:
+        """Set a new value for a remote attribute.
+
+        Args:
+            access_path: The dot-separated path to the attribute in the remote service.
+            new_value: The new value to assign to the attribute.
+
+        Example:
+            ```python
+            client.update_value("my_device.power", True)
+            ```
+        """
+
+        if self._loop is not None:
+            update_value(
+                sio_client=self._sio,
+                loop=self._loop,
+                access_path=access_path,
+                value=new_value,
+            )
+
+    def trigger_method(self, access_path: str, *args: Any, **kwargs: Any) -> Any:
+        """Trigger a remote method with optional arguments.
+
+        Args:
+            access_path: The dot-separated path to the method in the remote service.
+            *args: Positional arguments to pass to the method.
+            **kwargs: Keyword arguments to pass to the method.
+
+        Returns:
+            The return value of the method call, if any.
+
+        Example:
+            ```python
+            result = client.trigger_method("my_device.calibrate", timeout=5)
+            print(result)
+            ```
+        """
+
+        if self._loop is not None:
+            return trigger_method(
+                sio_client=self._sio,
+                loop=self._loop,
+                access_path=access_path,
+                args=list(args),
+                kwargs=kwargs,
+            )
+        return None
