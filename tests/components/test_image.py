@@ -1,10 +1,17 @@
+import sys
+
+from pytest import LogCaptureFixture
 
 import pydase
 import pydase.components
 from pydase.data_service.data_service_observer import DataServiceObserver
 from pydase.data_service.state_manager import StateManager
 from pydase.utils.serialization.serializer import dump
-from pytest import LogCaptureFixture
+
+if sys.version_info < (3, 13):
+    PATHLIB_PATH = "pathlib.Path"
+else:
+    PATHLIB_PATH = "pathlib._local.Path"
 
 
 def test_image_functions(caplog: LogCaptureFixture) -> None:
@@ -106,7 +113,7 @@ def test_image_serialization() -> None:
                         "signature": {
                             "parameters": {
                                 "path": {
-                                    "annotation": "pathlib.Path | str",
+                                    "annotation": f"{PATHLIB_PATH} | str",
                                     "default": {},
                                 }
                             },
