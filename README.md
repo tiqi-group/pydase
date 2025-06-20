@@ -5,6 +5,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/pydase)](https://pypi.org/project/pydase/)
 [![Documentation Status](https://readthedocs.org/projects/pydase/badge/?version=stable)](https://pydase.readthedocs.io/en/stable/)
 [![License: MIT](https://img.shields.io/github/license/tiqi-group/pydase)][License]
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15703190.svg)](https://doi.org/10.5281/zenodo.15703190)
 
 `pydase` is a Python library that simplifies the creation of remote control interfaces for Python objects. It exposes the public attributes of a user-defined class via a [Socket.IO](https://python-socketio.readthedocs.io/en/stable/) web server, ensuring they are always in sync with the service state. You can interact with these attributes using an RPC client, a RESTful API, or a web browser. The web browser frontend is auto-generated, displaying components that correspond to each public attribute of the class for direct interaction.
 `pydase` implements an [observer pattern][Observer Pattern] to provide the real-time updates, ensuring that changes to the class attributes are reflected across all clients.
