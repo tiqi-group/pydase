@@ -240,12 +240,11 @@ class Client:
             self.proxy, serialized_object=serialized_object
         )
         serialized_object["type"] = "DeviceConnection"
-        if self.proxy._service_representation is not None:
-            # need to use object.__setattr__ to not trigger an observer notification
-            object.__setattr__(self.proxy, "_service_representation", serialized_object)
+        # need to use object.__setattr__ to not trigger an observer notification
+        object.__setattr__(self.proxy, "_service_representation", serialized_object)
 
-            if TYPE_CHECKING:
-                self.proxy._service_representation = serialized_object  # type: ignore
+        if TYPE_CHECKING:
+            self.proxy._service_representation = serialized_object  # type: ignore
         self.proxy._notify_changed("", self.proxy)
         self.proxy._connected = True
 
