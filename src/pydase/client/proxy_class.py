@@ -65,19 +65,31 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
         self.reconnect = reconnect
 
     def serialize(self) -> SerializedObject:
-        if self._service_representation is None:
-            serialization_future = cast(
+        current_loop = asyncio.get_event_loop()
+
+        if not self.connected or current_loop == self._loop:
+            logger.debug(
+                "Client not connected, or called from within client event loop - using "
+                "fallback serialization"
+            )
+            if self._service_representation is None:
+                serialized_service = pydase.components.DeviceConnection().serialize()
+            else:
+                serialized_service = self._service_representation
+
+        else:
+            future = cast(
                 "asyncio.Future[SerializedDataService]",
                 asyncio.run_coroutine_threadsafe(
                     self._sio.call("service_serialization"), self._loop
                 ),
             )
+            result = future.result()
             # need to use object.__setattr__ to not trigger an observer notification
-            object.__setattr__(
-                self, "_service_representation", serialization_future.result()
-            )
+            object.__setattr__(self, "_service_representation", result)
             if TYPE_CHECKING:
-                self._service_representation = serialization_future.result()
+                self._service_representation = result
+            serialized_service = result
 
         device_connection_value = cast(
             "dict[str, SerializedObject]",
@@ -93,7 +105,7 @@ class ProxyClass(ProxyClassMixin, pydase.components.DeviceConnection):
                 "dict[str, SerializedObject]",
                 # need to deepcopy to not overwrite the _service_representation dict
                 # when adding a prefix with add_prefix_to_full_access_path
-                deepcopy(self._service_representation["value"]),
+                deepcopy(serialized_service["value"]),
             ),
             **device_connection_value,
         }
