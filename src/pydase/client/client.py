@@ -70,6 +70,8 @@ class Client:
         proxy_url: An optional proxy URL to route the connection through. This is useful
             if the service is only reachable via an SSH tunnel or behind a firewall
             (e.g., `socks5://localhost:2222`).
+        auto_update_proxy: If False, disables automatic updates from the server. Useful
+            for request-only clients where real-time synchronization is not needed.
 
     Example:
         Connect to a service directly:
@@ -98,7 +100,7 @@ class Client:
         ```
     """
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         url: str,
@@ -106,6 +108,7 @@ class Client:
         sio_client_kwargs: dict[str, Any] = {},
         client_id: str | None = None,
         proxy_url: str | None = None,
+        auto_update_proxy: bool = True,  # new argument
     ):
         # Parse the URL to separate base URL and path prefix
         parsed_url = urllib.parse.urlparse(url)
@@ -123,6 +126,7 @@ class Client:
         self._sio_client_kwargs = sio_client_kwargs
         self._loop: asyncio.AbstractEventLoop | None = None
         self._thread: threading.Thread | None = None
+        self._auto_update_proxy = auto_update_proxy
         self.proxy: ProxyClass
         """A proxy object representing the remote service, facilitating interaction as
         if it were local."""
@@ -229,23 +233,25 @@ class Client:
     async def _setup_events(self) -> None:
         self._sio.on("connect", self._handle_connect)
         self._sio.on("disconnect", self._handle_disconnect)
-        self._sio.on("notify", self._handle_update)
+        if self._auto_update_proxy:
+            self._sio.on("notify", self._handle_update)
 
     async def _handle_connect(self) -> None:
         logger.debug("Connected to '%s' ...", self._url)
-        serialized_object = cast(
-            "SerializedDataService", await self._sio.call("service_serialization")
-        )
-        ProxyLoader.update_data_service_proxy(
-            self.proxy, serialized_object=serialized_object
-        )
-        serialized_object["type"] = "DeviceConnection"
-        # need to use object.__setattr__ to not trigger an observer notification
-        object.__setattr__(self.proxy, "_service_representation", serialized_object)
+        if self._auto_update_proxy:
+            serialized_object = cast(
+                "SerializedDataService", await self._sio.call("service_serialization")
+            )
+            ProxyLoader.update_data_service_proxy(
+                self.proxy, serialized_object=serialized_object
+            )
+            serialized_object["type"] = "DeviceConnection"
+            # need to use object.__setattr__ to not trigger an observer notification
+            object.__setattr__(self.proxy, "_service_representation", serialized_object)
 
-        if TYPE_CHECKING:
-            self.proxy._service_representation = serialized_object  # type: ignore
-        self.proxy._notify_changed("", self.proxy)
+            if TYPE_CHECKING:
+                self.proxy._service_representation = serialized_object  # type: ignore
+            self.proxy._notify_changed("", self.proxy)
         self.proxy._connected = True
 
     async def _handle_disconnect(self) -> None:
