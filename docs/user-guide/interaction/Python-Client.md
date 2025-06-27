@@ -23,6 +23,19 @@ The proxy acts as a local representation of the remote service, enabling intuiti
 
 The proxy class automatically synchronizes with the server's attributes and methods, keeping itself up-to-date with any changes. This dynamic synchronization essentially mirrors the server's API, making it feel like you're working with a local object.
 
+## Automatic Proxy Updates
+
+By default, the client listens for attribute and structure changes from the server and dynamically updates its internal proxy representation. This ensures that value changes or newly added attributes on the server appear in the client proxy without requiring reconnection or manual refresh.
+
+This is useful, for example, when [integrating the client into another service](#integrating-the-client-into-another-service). However, if you want to avoid this behavior (e.g., to reduce network traffic or avoid frequent re-syncing), you can disable it. When passing `auto_update_proxy=False` to the client, the proxy will not track changes after the initial connection:
+
+```python
+client = pydase.Client(
+    url="ws://localhost:8001",
+    auto_update_proxy=False
+)
+```
+
 ## Direct API Access
 
 In addition to using the `proxy` object, users may access the server API directly via the following methods:
@@ -94,6 +107,7 @@ if __name__ == "__main__":
 ```
 
 In this example:
+
 - The `MyService` class has a `proxy` attribute that connects to a `pydase` service at `<ip_addr>:<service_port>`.
 - By setting `block_until_connected=False`, the service can start without waiting for the connection to succeed.
 - The `client_id` is optional. If not specified, it defaults to the system hostname, which will be sent in the `X-Client-Id` HTTP header for logging or authentication on the server side.
