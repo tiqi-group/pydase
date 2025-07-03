@@ -158,7 +158,7 @@ class Serializer:
             "doc": None,
             "readonly": True,
             "type": "Exception",
-            "value": obj.args[0],
+            "value": obj.args[0] if len(obj.args) > 0 else "",
             "name": obj.__class__.__name__,
         }
 
