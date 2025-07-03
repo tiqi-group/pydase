@@ -1225,3 +1225,22 @@ def test_add_prefix_to_full_access_path(
     serialized_obj: SerializedObject, prefix: str, expected: SerializedObject
 ) -> None:
     assert add_prefix_to_full_access_path(serialized_obj, prefix) == expected
+
+
+def test_serialize_exception() -> None:
+    assert dump(Exception()) == {
+        "doc": None,
+        "full_access_path": "",
+        "name": "Exception",
+        "readonly": True,
+        "type": "Exception",
+        "value": "",
+    }
+    assert dump(Exception("Exception message")) == {
+        "doc": None,
+        "full_access_path": "",
+        "name": "Exception",
+        "readonly": True,
+        "type": "Exception",
+        "value": "Exception message",
+    }
