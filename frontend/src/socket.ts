@@ -28,7 +28,7 @@ export const socket = io(URL, {
 
 export const updateValue = (
   serializedObject: SerializedObject,
-  callback?: (ack: unknown) => void,
+  callback?: (ack: undefined | SerializedObject) => void,
 ) => {
   if (callback) {
     socket.emit(

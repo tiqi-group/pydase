@@ -50,7 +50,7 @@ const createDisplayNameFromAccessPath = (fullAccessPath: string): string => {
 
 function changeCallback(
   value: SerializedObject,
-  callback: (ack: unknown) => void = () => {},
+  callback: (ack: undefined | SerializedObject) => void = () => {},
 ) {
   updateValue(value, callback);
 }

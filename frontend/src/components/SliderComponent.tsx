@@ -19,7 +19,10 @@ interface SliderComponentProps {
   stepSize: NumberObject;
   isInstantUpdate: boolean;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
+  changeCallback?: (
+    value: SerializedObject,
+    callback?: (ack: undefined | SerializedObject) => void,
+  ) => void;
   displayName: string;
   id: string;
 }
