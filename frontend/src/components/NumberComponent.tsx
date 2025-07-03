@@ -38,7 +38,10 @@ interface NumberComponentProps {
   isInstantUpdate: boolean;
   unit?: string;
   addNotification: (message: string, levelname?: LevelName) => void;
-  changeCallback?: (value: SerializedObject, callback?: (ack: unknown) => void) => void;
+  changeCallback?: (
+    value: SerializedObject,
+    callback?: (ack: undefined | SerializedObject) => void,
+  ) => void;
   displayName?: string;
   id: string;
 }
@@ -217,6 +220,15 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
     id,
   } = props;
 
+  const handleChange = (newValue: SerializedObject) => {
+    changeCallback(newValue, (result: undefined | SerializedObject) => {
+      if (result === undefined) return;
+      if (result.type == "Exception") {
+        setInputString(value.toString());
+      }
+    });
+  };
+
   // Create a state for the cursor position
   const cursorPositionRef = useRef<number | null>(null);
 
@@ -319,7 +331,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         };
       }
 
-      changeCallback(serializedObject);
+      handleChange(serializedObject);
       return;
     } else {
       console.debug(key);
@@ -350,7 +362,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         };
       }
 
-      changeCallback(serializedObject);
+      handleChange(serializedObject);
     }
 
     setInputString(newValue);
@@ -384,7 +396,7 @@ export const NumberComponent = React.memo((props: NumberComponentProps) => {
         };
       }
 
-      changeCallback(serializedObject);
+      handleChange(serializedObject);
     }
   };
   useEffect(() => {
