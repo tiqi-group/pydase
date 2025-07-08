@@ -29,6 +29,7 @@ def get_property_dependencies(prop: property, prefix: str = "") -> list[str]:
 
 class PropertyObserver(Observer):
     def __init__(self, observable: Observable) -> None:
+        self.property_deps_dict: dict[str, list[str]] = {}
         super().__init__(observable)
         self._update_property_deps_dict()
 
