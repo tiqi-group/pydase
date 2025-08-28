@@ -1,6 +1,6 @@
 [project]
 name = "pydase"
-version = "0.10.19"
+version = "0.10.21"
 description = "A flexible and robust Python library for creating, managing, and interacting with data services, with built-in support for web and RPC servers, and customizable features for diverse use cases."
 authors = [
     {name = "Mose Müller",email = "mosemueller@gmail.com"}
