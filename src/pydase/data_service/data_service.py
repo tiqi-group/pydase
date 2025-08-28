@@ -12,7 +12,6 @@ from pydase.observer_pattern.observable.observable import (
 from pydase.utils.helpers import (
     get_class_and_instance_attributes,
     is_descriptor,
-    is_property_attribute,
 )
 from pydase.utils.serialization.serializer import (
     Serializer,
@@ -28,9 +27,6 @@ class DataService(AbstractDataService):
         self.__check_instance_classes()
 
     def __setattr__(self, name: str, value: Any, /) -> None:
-        # Check and warn for unexpected type changes in attributes
-        self._warn_on_type_change(name, value)
-
         # every class defined by the user should inherit from DataService if it is
         # assigned to a public attribute
         if not name.startswith("_") and not inspect.isfunction(value):
@@ -38,21 +34,6 @@ class DataService(AbstractDataService):
 
         # Set the attribute
         super().__setattr__(name, value)
-
-    def _warn_on_type_change(self, attr_name: str, new_value: Any) -> None:
-        if is_property_attribute(self, attr_name):
-            return
-
-        current_value = getattr(self, attr_name, None)
-        if self._is_unexpected_type_change(current_value, new_value):
-            logger.warning(
-                "Type of '%s' changed from '%s' to '%s'. This may have unwanted "
-                "side effects! Consider setting it to '%s' directly.",
-                attr_name,
-                type(current_value).__name__,
-                type(new_value).__name__,
-                type(current_value).__name__,
-            )
 
     def _is_unexpected_type_change(self, current_value: Any, new_value: Any) -> bool:
         return (
