@@ -30,6 +30,7 @@ class Deserializer:
             None: None,
             "int": cls.deserialize_primitive,
             "float": cls.deserialize_primitive,
+            "float64": cls.deserialize_primitive,
             "bool": cls.deserialize_primitive,
             "str": cls.deserialize_primitive,
             "NoneType": cls.deserialize_primitive,
