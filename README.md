@@ -31,10 +31,10 @@ Whether you're managing lab sensors, network devices, or any abstract data entit
 ## Installation
 
 
-Install `pydase` using [`poetry`](https://python-poetry.org/):
+Install `pydase` using [`uv`](https://docs.astral.sh/uv/):
 
 ```bash
-poetry add pydase
+uv add pydase
 ```
 
 or `pip`:
