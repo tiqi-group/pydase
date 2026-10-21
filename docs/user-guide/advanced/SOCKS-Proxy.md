@@ -40,7 +40,7 @@ includes [`aiohttp_socks`](https://pypi.org/project/aiohttp-socks/):
 
 - `poetry`
   ```bash
-  poetry add "pydase[socks]"
+  uv add "pydase[socks]"
   ```
 - `pip`
   ```bash
