@@ -29,20 +29,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install poetry
-        poetry install --with dev --all-extras
+        python -m pip install uv
+        uv sync --locked --all-extras
     - name: Check with ruff
       run: |
-        poetry run ruff check src
+        uv run ruff check src
     - name: Check formatting with ruff
       run: |
-        poetry run ruff format --check src
+        uv run ruff format --check src
     - name: Test with pytest
       run: |
-        poetry run pytest
+        uv run pytest
     - name: Test with pyright
       run: |
-        poetry run pyright
+        uv run pyright
     - name: Test with mypy
       run: |
-        poetry run mypy src
+        uv run mypy src
